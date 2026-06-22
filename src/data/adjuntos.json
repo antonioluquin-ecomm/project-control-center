@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "entidad": "PROYECTO",
+    "id_entidad": 1,
+    "nombre_archivo": "mockup-dashboard.svg",
+    "file_id": "demo-1",
+    "url": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='160'%3E%3Crect%20width='240'%20height='160'%20fill='%231a3f6b'/%3E%3Ctext%20x='120'%20y='86'%20fill='white'%20font-size='16'%20text-anchor='middle'%3Emockup.svg%3C/text%3E%3C/svg%3E",
+    "thumbnail_url": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='160'%3E%3Crect%20width='240'%20height='160'%20fill='%231a3f6b'/%3E%3Ctext%20x='120'%20y='86'%20fill='white'%20font-size='16'%20text-anchor='middle'%3Emockup.svg%3C/text%3E%3C/svg%3E",
+    "mime": "image/svg+xml",
+    "tamano": 320,
+    "subido_por": "gabriel.luna@empresa.com",
+    "fecha_creacion": "2026-06-19T12:00:00.000Z"
+  }
+]

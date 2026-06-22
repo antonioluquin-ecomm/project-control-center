@@ -1,0 +1,5 @@
+[
+  { "id": 1, "timestamp": "2026-06-15T11:00:00.000Z", "entidad": "PROYECTO", "id_entidad": 1, "campo": "estado", "valor_anterior": "Por Hacer", "valor_nuevo": "En Curso", "usuario": "gabriel.luna@empresa.com" },
+  { "id": 2, "timestamp": "2026-06-18T16:20:00.000Z", "entidad": "PROYECTO", "id_entidad": 1, "campo": "responsable", "valor_anterior": "", "valor_nuevo": "Gabriel Luna", "usuario": "gabriel.luna@empresa.com" },
+  { "id": 3, "timestamp": "2026-06-20T09:05:00.000Z", "entidad": "TAREA", "id_entidad": 2, "campo": "avance_pct", "valor_anterior": "40", "valor_nuevo": "70", "usuario": "gabriel.luna@empresa.com" }
+]

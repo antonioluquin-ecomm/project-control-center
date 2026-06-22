@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pcc",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3577"],
+      "port": 3577
+    }
+  ]
+}

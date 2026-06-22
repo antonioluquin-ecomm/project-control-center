@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresar — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="src/css/main.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .login-wrap { width: 100%; max-width: 380px; }
+    .login-header { text-align: center; margin-bottom: 22px; }
+    .login-logo { width: 48px; height: 48px; margin: 0 auto 12px; border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff;
+      font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    .login-name { font-size: 18px; font-weight: 700; }
+    .login-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .login-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 26px; }
+    .login-foot { text-align: center; margin-top: 18px; font-size: 12px; color: var(--muted); }
+    .login-foot a { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-header">
+      <div class="login-logo">PCC</div>
+      <div class="login-name">Project Control Center</div>
+      <div class="login-sub">Gestión de Proyectos · Luquin</div>
+    </div>
+    <div class="login-card">
+      <form id="loginForm">
+        <div class="field"><label for="email">Correo electrónico</label>
+          <input type="email" id="email" autocomplete="email" placeholder="usuario@empresa.com" autofocus /></div>
+        <div class="field"><label for="pwd">Contraseña</label>
+          <input type="password" id="pwd" autocomplete="current-password" placeholder="••••••••" /></div>
+        <button type="submit" id="btn" style="width:100%;justify-content:center">Ingresar</button>
+      </form>
+      <div id="err" class="status-bar error" style="margin-top:14px" hidden></div>
+    </div>
+    <div class="login-foot">
+      Herramienta interna — acceso restringido<br />
+      <a onclick="_configApi()">Configurar URL de API</a>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Si ya hay sesión válida, ir al inicio.
+    if (SESSION.isLoggedIn()) window.location.href = 'index.html';
+    // Sin API configurada → modo demo: entrar directo.
+    if (CFG.isMock()) { /* permitir configurar o entrar a demo */ }
+
+    function _configApi() {
+      const cur = CFG.apiUrl;
+      const v = prompt('URL del Web App de Apps Script (vacío = modo demo):', cur);
+      if (v !== null) { CFG.apiUrl = v.trim(); location.reload(); }
+    }
+
+    const form = document.getElementById('loginForm');
+    const err = document.getElementById('err');
+    const btn = document.getElementById('btn');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      err.hidden = true;
+
+      // Modo demo: sin backend, entrar directo.
+      if (CFG.isMock()) { window.location.href = 'index.html'; return; }
+
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('pwd').value;
+      if (!email || !password) { err.textContent = 'Completá los dos campos.'; err.hidden = false; return; }
+
+      btn.disabled = true; btn.textContent = 'Verificando…';
+      try {
+        const password_hash = await sha256(password);
+        const res = await fetch(CFG.apiUrl, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password_hash: password_hash }) });
+        if (!res.ok) throw new Error('Error de conexión (' + res.status + ').');
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || 'Credenciales incorrectas.');
+        setSession({ session_token: json.session_token, usuario: json.usuario, expira_en: json.expira_en });
+        window.location.href = 'index.html';
+      } catch (e2) {
+        err.textContent = e2.message || 'Error al iniciar sesión.'; err.hidden = false;
+        btn.disabled = false; btn.textContent = 'Ingresar';
+      }
+    });
+  </script>
+</body>
+</html>

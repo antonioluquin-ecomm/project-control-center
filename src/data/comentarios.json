@@ -1,0 +1,5 @@
+[
+  { "id": 1, "entidad": "PROYECTO", "id_entidad": 1, "texto": "Arrancamos con el Sprint 1: backend GAS y ABM.", "usuario": "gabriel.luna@empresa.com", "fecha_creacion": "2026-06-12T10:15:00.000Z" },
+  { "id": 2, "entidad": "PROYECTO", "id_entidad": 1, "texto": "Dashboard validado en modo demo. Falta el setup real en Google.", "usuario": "gabriel.luna@empresa.com", "fecha_creacion": "2026-06-22T14:30:00.000Z" },
+  { "id": 3, "entidad": "TAREA", "id_entidad": 2, "texto": "Router y validaciones listos; falta cerrar logging.", "usuario": "gabriel.luna@empresa.com", "fecha_creacion": "2026-06-20T09:00:00.000Z" }
+]

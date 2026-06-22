@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inicio — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="src/css/main.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PCC</span>
+        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active" href="index.html"><span class="nav-icon">▦</span> Inicio</a>
+        <a class="nav-item" href="modules/proyectos/proyectos.html"><span class="nav-icon">▣</span> Proyectos</a>
+        <a class="nav-item" href="modules/tareas/tareas.html"><span class="nav-icon">☑</span> Tareas</a>
+        <a class="nav-item" href="modules/seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
+        <a class="nav-item" href="modules/reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p class="eyebrow">Resumen general</p>
+          <h1>Inicio</h1>
+        </div>
+        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
+      </header>
+
+      <main class="container">
+        <div id="statusBar" class="status-bar">Cargando…</div>
+
+        <section class="panel" style="margin-top:16px">
+          <div class="kpi-grid" id="kpiGrid"></div>
+        </section>
+
+        <div style="display:flex;align-items:center;justify-content:space-between" class="section-title">
+          <h2>Proyectos activos</h2>
+          <a class="button secondary sm" href="modules/proyectos/proyectos.html">Ver todos →</a>
+        </div>
+        <div class="card-grid" id="activosGrid"></div>
+
+        <div class="section-title"><h2>Proyectos finalizados</h2></div>
+        <div class="card-grid" id="finalizadosGrid"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+  <script>
+    function kpi(label, value, cls) {
+      return '<div class="kpi-card ' + (cls || '') + '"><div class="kpi-label">' + escapeHtml(label) + '</div><div class="kpi-value">' + value + '</div></div>';
+    }
+
+    function projCard(p) {
+      const cls = ESTADO_CLASS[p.estado] || 'st-todo';
+      const venc = p.vencido ? '<span class="badge vencida">Vencido</span>' : '';
+      return '<a class="proj-card" href="modules/tareas/tareas.html?proyecto=' + p.id + '">' +
+        '<h3>' + escapeHtml(p.nombre) + '</h3>' +
+        '<p>' + escapeHtml(p.descripcion || '') + '</p>' +
+        '<div class="progress-track"><div class="progress-bar" style="width:' + (p.avance_pct || 0) + '%"></div></div>' +
+        '<div class="proj-meta"><span class="badge ' + cls + '">' + escapeHtml(p.estado) + '</span>' + venc +
+        '<span class="spacer" style="flex:1"></span><span class="mono">' + (p.avance_pct || 0) + '%</span></div>' +
+        '<div class="proj-meta" style="margin-top:6px">' + escapeHtml(p.responsable || 'Sin responsable') + ' · vence ' + fmtDate(p.fecha_fin_estimada) + '</div>' +
+        '</a>';
+    }
+
+    async function loadDashboard() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        const [resumen, proyectos] = await Promise.all([apiGetResumen(), apiGetProyectos({})]);
+        STATE.resumen = resumen; STATE.proyectos = proyectos;
+
+        document.getElementById('kpiGrid').innerHTML =
+          kpi('Proyectos activos', resumen.proyectos.activos) +
+          kpi('Finalizados', resumen.proyectos.finalizados, 'success') +
+          kpi('Proyectos vencidos', resumen.proyectos.vencidos, resumen.proyectos.vencidos ? 'danger' : '') +
+          kpi('Tareas totales', resumen.tareas.total) +
+          kpi('Tareas vencidas', resumen.tareas.vencidas, resumen.tareas.vencidas ? 'danger' : '');
+
+        const activos = proyectos.filter(function (p) { return ESTADOS_PROYECTO_CERRADOS.indexOf(p.estado) === -1; });
+        const finalizados = proyectos.filter(function (p) { return p.estado === 'Finalizado'; });
+        const ag = document.getElementById('activosGrid');
+        const fg = document.getElementById('finalizadosGrid');
+        ag.innerHTML = activos.length ? activos.map(projCard).join('') : '<p class="text-muted">No hay proyectos activos.</p>';
+        fg.innerHTML = finalizados.length ? finalizados.map(projCard).join('') : '<p class="text-muted">No hay proyectos finalizados.</p>';
+
+        setStatus('statusBar', proyectos.length + ' proyectos cargados.', 'success');
+      } catch (err) {
+        setStatus('statusBar', 'Error: ' + err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme();
+      requireAuth();
+      renderUserChip();
+      restrictWriteIfAgent();
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

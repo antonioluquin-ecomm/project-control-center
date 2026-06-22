@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimiento — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="../../src/css/main.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PCC</span>
+        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="../../index.html"><span class="nav-icon">▦</span> Inicio</a>
+        <a class="nav-item" href="../proyectos/proyectos.html"><span class="nav-icon">▣</span> Proyectos</a>
+        <a class="nav-item" href="../tareas/tareas.html"><span class="nav-icon">☑</span> Tareas</a>
+        <a class="nav-item active" href="seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
+        <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-copy"><p class="eyebrow">Operación</p><h1>Seguimiento</h1></div>
+        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
+      </header>
+
+      <main class="container">
+        <section class="panel">
+          <div class="toolbar">
+            <div class="seg-toggle">
+              <button class="seg-tab active" id="tg-proy" onclick="setVista('proyectos')">Proyectos</button>
+              <button class="seg-tab" id="tg-tar" onclick="setVista('tareas')">Tareas</button>
+            </div>
+            <span class="spacer"></span>
+            <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
+          </div>
+          <div id="statusBar" class="status-bar">Cargando…</div>
+        </section>
+
+        <section class="panel">
+          <div class="kpi-grid" id="buckets"></div>
+        </section>
+
+        <section class="panel">
+          <h2 id="listTitle" class="section-title" style="margin-top:0">Todos</h2>
+          <div class="table-wrap">
+            <table>
+              <thead id="thead"></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../config.js"></script>
+  <script src="../../auth.js"></script>
+  <script src="../../api.js"></script>
+  <script>
+    let _vista = 'proyectos';
+    let _bucket = '';
+    const _proyById = {};
+
+    const BUCKETS = [
+      { key: '',      label: 'Todos',       match: function () { return true; } },
+      { key: 'pend',  label: 'Pendientes',  match: function (r) { return r.estado === 'Por Hacer'; } },
+      { key: 'prog',  label: 'En progreso', match: function (r) { return r.estado === 'En Análisis' || r.estado === 'En Curso'; } },
+      { key: 'block', label: 'Bloqueadas',  match: function (r) { return r.estado === 'Bloqueado' || r.estado === 'Bloqueada'; } },
+      { key: 'done',  label: 'Finalizadas', match: function (r) { return r.estado === 'Finalizado' || r.estado === 'Finalizada'; } },
+      { key: 'venc',  label: 'Vencidas',    match: function (r) { return r.vencido === true || r.vencida === true; } },
+    ];
+
+    function records() { return _vista === 'proyectos' ? STATE.proyectos : STATE.tareas; }
+
+    async function load() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        const [proy, tar] = await Promise.all([apiGetProyectos({}), apiGetTareas({})]);
+        STATE.proyectos = proy; STATE.tareas = tar;
+        proy.forEach(function (p) { _proyById[p.id] = p.nombre; });
+        renderBuckets(); render();
+        setStatus('statusBar', proy.length + ' proyectos · ' + tar.length + ' tareas.', 'success');
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    function setVista(v) {
+      _vista = v; _bucket = '';
+      document.getElementById('tg-proy').classList.toggle('active', v === 'proyectos');
+      document.getElementById('tg-tar').classList.toggle('active', v === 'tareas');
+      renderBuckets(); render();
+    }
+
+    function renderBuckets() {
+      const rs = records();
+      document.getElementById('buckets').innerHTML = BUCKETS.map(function (b) {
+        const n = rs.filter(b.match).length;
+        const danger = b.key === 'venc' && n > 0 ? ' danger' : '';
+        const active = b.key === _bucket ? ' style="border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-mid)"' : '';
+        return '<div class="kpi-card seg-bucket' + danger + '"' + active + ' onclick="pickBucket(\'' + b.key + '\')">' +
+          '<div class="kpi-label">' + b.label + '</div><div class="kpi-value">' + n + '</div></div>';
+      }).join('');
+    }
+
+    function pickBucket(k) { _bucket = k; renderBuckets(); render(); }
+
+    function current() {
+      const b = BUCKETS.filter(function (x) { return x.key === _bucket; })[0] || BUCKETS[0];
+      return { def: b, rows: records().filter(b.match) };
+    }
+
+    function render() {
+      const cur = current();
+      document.getElementById('listTitle').textContent = cur.def.label + ' (' + cur.rows.length + ')';
+      const thead = document.getElementById('thead');
+      const tbody = document.getElementById('tbody');
+
+      if (_vista === 'proyectos') {
+        thead.innerHTML = '<tr><th>Proyecto</th><th>Estado</th><th>Responsable</th><th>Avance</th><th>Vence</th></tr>';
+        tbody.innerHTML = cur.rows.length ? cur.rows.map(function (p) {
+          return '<tr><td><b>' + escapeHtml(p.nombre) + '</b></td>' + estadoTd(p) +
+            '<td>' + escapeHtml(p.responsable || '—') + '</td>' +
+            '<td class="mono">' + (p.avance_pct || 0) + '%</td>' +
+            '<td class="mono">' + fmtDate(p.fecha_fin_estimada) + '</td></tr>';
+        }).join('') : emptyRow(5);
+      } else {
+        thead.innerHTML = '<tr><th>Tarea</th><th>Proyecto</th><th>Estado</th><th>Responsable</th><th>Vence</th></tr>';
+        tbody.innerHTML = cur.rows.length ? cur.rows.map(function (t) {
+          return '<tr><td><b>' + escapeHtml(t.titulo) + '</b></td>' +
+            '<td>' + escapeHtml(_proyById[t.id_proyecto] || '—') + '</td>' + estadoTd(t) +
+            '<td>' + escapeHtml(t.responsable || '—') + '</td>' +
+            '<td class="mono">' + fmtDate(t.fecha_limite) + '</td></tr>';
+        }).join('') : emptyRow(5);
+      }
+    }
+
+    function estadoTd(r) {
+      const cls = ESTADO_CLASS[r.estado] || 'st-todo';
+      const venc = (r.vencido || r.vencida) ? ' <span class="badge vencida">Vencid' + (_vista === 'proyectos' ? 'o' : 'a') + '</span>' : '';
+      return '<td><span class="badge ' + cls + '">' + escapeHtml(r.estado) + '</span>' + venc + '</td>';
+    }
+
+    function emptyRow(n) { return '<tr><td colspan="' + n + '" class="empty-row">Sin registros</td></tr>'; }
+
+    function exportCSV() {
+      const cur = current();
+      let rows;
+      if (_vista === 'proyectos') {
+        rows = [['id', 'nombre', 'estado', 'responsable', 'avance_pct', 'fecha_fin_estimada', 'vencido']];
+        cur.rows.forEach(function (p) { rows.push([p.id, p.nombre, p.estado, p.responsable, p.avance_pct, (p.fecha_fin_estimada || '').slice(0, 10), p.vencido ? 'SI' : 'NO']); });
+      } else {
+        rows = [['id', 'titulo', 'proyecto', 'estado', 'responsable', 'fecha_limite', 'vencida']];
+        cur.rows.forEach(function (t) { rows.push([t.id, t.titulo, _proyById[t.id_proyecto] || '', t.estado, t.responsable, (t.fecha_limite || '').slice(0, 10), t.vencida ? 'SI' : 'NO']); });
+      }
+      downloadCSV('seguimiento-' + _vista + '-' + (cur.def.key || 'todos') + '.csv', rows);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme(); requireAuth(); renderUserChip(); restrictWriteIfAgent(); load();
+    });
+  </script>
+</body>
+</html>

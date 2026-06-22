@@ -1,0 +1,16 @@
+# Credenciales y entorno local
+.env
+*.env.*
+secrets.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.suo
+*.user
+
+# Logs locales
+*.log

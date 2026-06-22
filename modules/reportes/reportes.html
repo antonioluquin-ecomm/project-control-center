@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="../../src/css/main.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PCC</span>
+        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="../../index.html"><span class="nav-icon">▦</span> Inicio</a>
+        <a class="nav-item" href="../proyectos/proyectos.html"><span class="nav-icon">▣</span> Proyectos</a>
+        <a class="nav-item" href="../tareas/tareas.html"><span class="nav-icon">☑</span> Tareas</a>
+        <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
+        <a class="nav-item active" href="reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-copy"><p class="eyebrow">Análisis</p><h1>Reportes</h1></div>
+        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
+      </header>
+
+      <main class="container">
+        <section class="panel">
+          <div class="toolbar">
+            <span id="statusBar" class="status-bar" style="flex:1">Cargando…</span>
+            <button class="secondary sm" onclick="exportProyectos()">CSV Proyectos</button>
+            <button class="secondary sm" onclick="exportTareas()">CSV Tareas</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="kpi-grid" id="kpiGrid"></div>
+        </section>
+
+        <h2 class="section-title">Proyectos</h2>
+        <section class="panel"><div class="rep-cols" id="repProy"></div></section>
+
+        <h2 class="section-title">Tareas</h2>
+        <section class="panel"><div class="rep-cols" id="repTar"></div></section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../config.js"></script>
+  <script src="../../auth.js"></script>
+  <script src="../../api.js"></script>
+  <script>
+    const _proyById = {};
+
+    function countBy(arr, key) {
+      const o = {};
+      arr.forEach(function (r) { const k = (r[key] === '' || r[key] == null) ? 'Sin asignar' : r[key]; o[k] = (o[k] || 0) + 1; });
+      return o;
+    }
+
+    function bars(title, counts) {
+      const entries = Object.keys(counts).map(function (k) { return [k, counts[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
+      const max = entries.reduce(function (m, e) { return Math.max(m, e[1]); }, 0) || 1;
+      const rows = entries.map(function (e) {
+        return '<div class="rep-row"><span class="rep-label" title="' + escapeHtml(e[0]) + '">' + escapeHtml(e[0]) + '</span>' +
+          '<span class="rep-track"><span class="rep-fill" style="width:' + Math.round(e[1] / max * 100) + '%"></span></span>' +
+          '<span class="rep-count">' + e[1] + '</span></div>';
+      }).join('') || '<div class="text-muted" style="font-size:13px">Sin datos</div>';
+      return '<div><h3 style="margin-bottom:10px">' + escapeHtml(title) + '</h3><div class="rep-bars">' + rows + '</div></div>';
+    }
+
+    function kpi(label, value, cls) {
+      return '<div class="kpi-card ' + (cls || '') + '"><div class="kpi-label">' + escapeHtml(label) + '</div><div class="kpi-value">' + value + '</div></div>';
+    }
+
+    async function load() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        const [resumen, proy, tar] = await Promise.all([apiGetResumen(), apiGetProyectos({}), apiGetTareas({})]);
+        STATE.resumen = resumen; STATE.proyectos = proy; STATE.tareas = tar;
+        proy.forEach(function (p) { _proyById[p.id] = p.nombre; });
+
+        document.getElementById('kpiGrid').innerHTML =
+          kpi('Proyectos', resumen.proyectos.total) +
+          kpi('Activos', resumen.proyectos.activos) +
+          kpi('Finalizados', resumen.proyectos.finalizados, 'success') +
+          kpi('Proy. vencidos', resumen.proyectos.vencidos, resumen.proyectos.vencidos ? 'danger' : '') +
+          kpi('Tareas', resumen.tareas.total) +
+          kpi('Tareas vencidas', resumen.tareas.vencidas, resumen.tareas.vencidas ? 'danger' : '');
+
+        document.getElementById('repProy').innerHTML =
+          bars('Por estado', countBy(proy, 'estado')) +
+          bars('Por responsable', countBy(proy, 'responsable')) +
+          bars('Por prioridad', countBy(proy, 'prioridad'));
+
+        document.getElementById('repTar').innerHTML =
+          bars('Por estado', countBy(tar, 'estado')) +
+          bars('Por tipo', countBy(tar, 'tipo')) +
+          bars('Por responsable', countBy(tar, 'responsable'));
+
+        setStatus('statusBar', proy.length + ' proyectos · ' + tar.length + ' tareas.', 'success');
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    function exportProyectos() {
+      const rows = [['id', 'nombre', 'estado', 'prioridad', 'responsable', 'sitio', 'avance_pct', 'fecha_inicio', 'fecha_fin_estimada']];
+      STATE.proyectos.forEach(function (p) { rows.push([p.id, p.nombre, p.estado, p.prioridad, p.responsable, p.sitio, p.avance_pct, (p.fecha_inicio || '').slice(0, 10), (p.fecha_fin_estimada || '').slice(0, 10)]); });
+      downloadCSV('reporte-proyectos.csv', rows);
+    }
+
+    function exportTareas() {
+      const rows = [['id', 'titulo', 'proyecto', 'tipo', 'estado', 'prioridad', 'responsable', 'avance_pct', 'fecha_limite']];
+      STATE.tareas.forEach(function (t) { rows.push([t.id, t.titulo, _proyById[t.id_proyecto] || '', t.tipo, t.estado, t.prioridad, t.responsable, t.avance_pct, (t.fecha_limite || '').slice(0, 10)]); });
+      downloadCSV('reporte-tareas.csv', rows);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme(); requireAuth(); renderUserChip(); restrictWriteIfAgent(); load();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+[
+  { "id": 1, "nombre": "Project Control Center", "descripcion": "Sistema interno de gestión y seguimiento de proyectos.", "estado": "En Curso", "prioridad": "High", "responsable": "Gabriel Luna", "sitio": "Todos", "fecha_inicio": "2026-06-01", "fecha_fin_estimada": "2026-08-15", "observaciones": "MVP en Sprint 1." },
+  { "id": 2, "nombre": "Migración Catálogo PIM", "descripcion": "Unificar atributos de producto en el PIM.", "estado": "En Análisis", "prioridad": "Medium", "responsable": "Equipo PIM", "sitio": "PIM", "fecha_inicio": "2026-05-10", "fecha_fin_estimada": "2026-07-30", "observaciones": "" },
+  { "id": 3, "nombre": "Checkout Sporting v2", "descripcion": "Rediseño del flujo de checkout para Sporting.", "estado": "Bloqueado", "prioridad": "Highest", "responsable": "Ecomm", "sitio": "Sporting", "fecha_inicio": "2026-04-01", "fecha_fin_estimada": "2026-06-10", "observaciones": "Esperando integración de pagos." },
+  { "id": 4, "nombre": "Reportería Comercial", "descripcion": "Dashboard de ventas y objetivos.", "estado": "Finalizado", "prioridad": "Medium", "responsable": "Tec. y Datos", "sitio": "Todos", "fecha_inicio": "2026-02-01", "fecha_fin_estimada": "2026-05-20", "observaciones": "Entregado." },
+  { "id": 5, "nombre": "Onboarding Woker B2B", "descripcion": "Alta de clientes mayoristas en Woker.", "estado": "Por Hacer", "prioridad": "Low", "responsable": "Comercial", "sitio": "B2B", "fecha_inicio": "", "fecha_fin_estimada": "2026-09-01", "observaciones": "" }
+]

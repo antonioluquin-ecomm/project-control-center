@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tareas — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="../../src/css/main.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PCC</span>
+        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="../../index.html"><span class="nav-icon">▦</span> Inicio</a>
+        <a class="nav-item" href="../proyectos/proyectos.html"><span class="nav-icon">▣</span> Proyectos</a>
+        <a class="nav-item active" href="tareas.html"><span class="nav-icon">☑</span> Tareas</a>
+        <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
+        <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-copy"><p class="eyebrow">Gestión</p><h1>Tareas</h1></div>
+        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
+      </header>
+
+      <main class="container">
+        <section class="panel">
+          <div class="toolbar">
+            <select id="selProyecto" onchange="onProyectoChange()" style="max-width:320px"></select>
+            <select id="fEstado" onchange="render()" style="max-width:160px"><option value="">Todos los estados</option></select>
+            <span class="spacer"></span>
+            <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
+            <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
+          </div>
+          <div id="statusBar" class="status-bar">Cargando…</div>
+          <div class="table-wrap" style="margin-top:12px">
+            <table>
+              <thead><tr>
+                <th>Tarea</th><th>Tipo</th><th>Estado</th><th>Prioridad</th>
+                <th>Responsable</th><th>Avance</th><th>Vence</th><th style="text-align:right">Acciones</th>
+              </tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modals"></div>
+
+  <script src="../../config.js"></script>
+  <script src="../../auth.js"></script>
+  <script src="../../api.js"></script>
+  <script src="../../actividad.js"></script>
+  <script>
+    let _editId = null;
+
+    function currentProyectoId() { return Number(document.getElementById('selProyecto').value) || null; }
+
+    function qsProyecto() {
+      const m = location.search.match(/[?&]proyecto=(\d+)/);
+      return m ? Number(m[1]) : null;
+    }
+
+    async function init() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        STATE.proyectos = await apiGetProyectos({});
+        const sel = document.getElementById('selProyecto');
+        sel.innerHTML = STATE.proyectos.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>'; }).join('');
+        const pre = qsProyecto();
+        if (pre && STATE.proyectos.some(function (p) { return Number(p.id) === pre; })) sel.value = pre;
+
+        document.getElementById('fEstado').innerHTML = '<option value="">Todos los estados</option>' + ESTADOS_TAREA.map(function (e) { return '<option>' + e + '</option>'; }).join('');
+        await loadTareas();
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    function onProyectoChange() { loadTareas(); }
+
+    async function loadTareas() {
+      const pid = currentProyectoId();
+      if (!pid) { setStatus('statusBar', 'No hay proyectos. Creá uno primero.', 'warning'); document.getElementById('tbody').innerHTML = ''; return; }
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        STATE.tareas = await apiGetTareas({ id_proyecto: pid });
+        render();
+        setStatus('statusBar', STATE.tareas.length + ' tareas.', 'success');
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    function filtered() {
+      const est = document.getElementById('fEstado').value;
+      return STATE.tareas.filter(function (t) { return !est || t.estado === est; });
+    }
+
+    function render() {
+      const rows = filtered();
+      const tb = document.getElementById('tbody');
+      if (!rows.length) { tb.innerHTML = '<tr><td colspan="8" class="empty-row">Sin tareas</td></tr>'; return; }
+      const estOpts = function (sel) { return ESTADOS_TAREA.map(function (e) { return '<option' + (e === sel ? ' selected' : '') + '>' + e + '</option>'; }).join(''); };
+      tb.innerHTML = rows.map(function (t) {
+        const cls = ESTADO_CLASS[t.estado] || 'st-todo';
+        const venc = t.vencida ? ' <span class="badge vencida">Vencida</span>' : '';
+        const prc = PRIORIDAD_CLASS[t.prioridad] || '';
+        return '<tr>' +
+          '<td><b>' + escapeHtml(t.titulo) + '</b></td>' +
+          '<td>' + escapeHtml(t.tipo || '—') + '</td>' +
+          '<td><select class="admin-only" style="font-size:11px;padding:4px 8px" onchange="quickEstado(' + t.id + ', this.value)">' + estOpts(t.estado) + '</select>' +
+            '<span class="badge ' + cls + '" style="margin-left:4px">' + escapeHtml(t.estado) + '</span>' + venc + '</td>' +
+          '<td class="' + prc + '">' + escapeHtml(t.prioridad || '—') + '</td>' +
+          '<td>' + escapeHtml(t.responsable || '—') + '</td>' +
+          '<td class="mono">' + (t.avance_pct || 0) + '%</td>' +
+          '<td class="mono">' + fmtDate(t.fecha_limite) + '</td>' +
+          '<td class="row-actions">' +
+            '<button class="secondary sm" onclick="actTarea(' + t.id + ')">Actividad</button>' +
+            '<button class="secondary sm admin-only" onclick="openModal(' + t.id + ')">Editar</button>' +
+            '<button class="danger sm admin-only" onclick="del(' + t.id + ')">Eliminar</button>' +
+          '</td></tr>';
+      }).join('');
+      restrictWriteIfAgent();
+    }
+
+    async function quickEstado(id, estado) {
+      try { await apiUpdateTarea({ id: id, estado: estado }); toast('✓', 'Estado actualizado', 'success'); loadTareas(); }
+      catch (e) { toast('✕', e.message, 'error'); }
+    }
+
+    function exportCSV() {
+      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'avance_pct', 'fecha_limite']];
+      filtered().forEach(function (t) { rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable, t.avance_pct, (t.fecha_limite || '').slice(0, 10)]); });
+      downloadCSV('tareas.csv', rows);
+    }
+
+    function openModal(id) {
+      const pid = currentProyectoId();
+      if (!pid) { toast('⚠', 'Seleccioná un proyecto primero', 'error'); return; }
+      _editId = id || null;
+      const t = id ? STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0] : {};
+      const opt = function (arr, sel) { return arr.map(function (v) { return '<option' + (v === sel ? ' selected' : '') + '>' + v + '</option>'; }).join(''); };
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal"><h3>' + (id ? 'Editar' : 'Nueva') + ' tarea</h3>' +
+        '<div class="field"><label>Título *</label><input id="m_tit" value="' + escapeHtml(t.titulo || '') + '"></div>' +
+        '<div class="field"><label>Descripción</label><textarea id="m_desc">' + escapeHtml(t.descripcion || '') + '</textarea></div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Tipo</label><select id="m_tipo">' + opt(TIPOS_TAREA, t.tipo || 'Tarea') + '</select></div>' +
+          '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
+          '<div class="field"><label>Responsable</label><input id="m_resp" value="' + escapeHtml(t.responsable || '') + '"></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Fecha inicio</label><input id="m_ini" type="date" value="' + (t.fecha_inicio || '').slice(0, 10) + '"></div>' +
+          '<div class="field"><label>Fecha límite</label><input id="m_lim" type="date" value="' + (t.fecha_limite || '').slice(0, 10) + '"></div>' +
+        '</div>' +
+        '<div class="field"><label>Avance (%)</label><input id="m_av" type="number" min="0" max="100" value="' + (t.avance_pct || 0) + '"></div>' +
+        '<div id="m_err" class="status-bar error" hidden></div>' +
+        '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancelar</button>' +
+        '<button id="m_save" onclick="save()">Guardar</button></div></div></div>';
+    }
+
+    function closeModal() { document.getElementById('modals').innerHTML = ''; }
+
+    async function save() {
+      const titulo = document.getElementById('m_tit').value.trim();
+      const err = document.getElementById('m_err');
+      if (!titulo) { err.textContent = 'El título es obligatorio.'; err.hidden = false; return; }
+      const data = {
+        id_proyecto: currentProyectoId(),
+        titulo: titulo,
+        descripcion: document.getElementById('m_desc').value.trim(),
+        tipo: document.getElementById('m_tipo').value,
+        estado: document.getElementById('m_estado').value,
+        prioridad: document.getElementById('m_prio').value,
+        responsable: document.getElementById('m_resp').value.trim(),
+        fecha_inicio: document.getElementById('m_ini').value,
+        fecha_limite: document.getElementById('m_lim').value,
+        avance_pct: parseInt(document.getElementById('m_av').value, 10) || 0,
+      };
+      const btn = document.getElementById('m_save'); btn.disabled = true;
+      try {
+        if (_editId) { data.id = _editId; await apiUpdateTarea(data); } else { await apiCreateTarea(data); }
+        closeModal(); toast('✓', 'Tarea guardada', 'success'); loadTareas();
+      } catch (e) { btn.disabled = false; err.textContent = e.message; err.hidden = false; }
+    }
+
+    function actTarea(id) {
+      const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      openActividad('TAREA', id, t ? t.titulo : ('Tarea #' + id));
+    }
+
+    async function del(id) {
+      const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      if (!confirm('¿Eliminar la tarea "' + (t ? t.titulo : id) + '"? (soft delete)')) return;
+      try { await apiDeleteTarea(id); toast('✓', 'Tarea cancelada', 'success'); loadTareas(); }
+      catch (e) { toast('✕', e.message, 'error'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme(); requireAuth(); renderUserChip(); restrictWriteIfAgent(); init();
+    });
+  </script>
+</body>
+</html>
