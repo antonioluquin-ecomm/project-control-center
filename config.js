@@ -9,15 +9,15 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.0.0',
+  number: '1.1.0',
   date:   '2026-06-22',
-  notes:  'Sprint 1 — Proyectos + Tareas CRUD: backend GAS, auth, dashboard y ABM.',
+  notes:  'Sprint 5 — Estados extendidos (Maquetación, QA, Documentación, Revisión) + migración Jira.',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
 
 const ESTADOS_PROYECTO = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueado', 'Finalizado', 'Cancelado'];
-const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueada', 'Finalizada', 'Cancelada'];
+const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso', 'QA', 'Documentación', 'Revisión', 'Bloqueada', 'Finalizada', 'Cancelada'];
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
@@ -27,15 +27,19 @@ const ESTADOS_TAREA_CERRADOS    = ['Finalizada', 'Cancelada'];
 
 // Clase CSS de badge por estado (definidas en main.css).
 const ESTADO_CLASS = {
-  'Por Hacer':   'st-todo',
-  'En Análisis': 'st-analysis',
-  'En Curso':    'st-progress',
-  'Bloqueado':   'st-blocked',
-  'Bloqueada':   'st-blocked',
-  'Finalizado':  'st-done',
-  'Finalizada':  'st-done',
-  'Cancelado':   'st-cancel',
-  'Cancelada':   'st-cancel',
+  'Por Hacer':     'st-todo',
+  'En Análisis':   'st-analysis',
+  'Maquetación':   'st-maquetacion',
+  'En Curso':      'st-progress',
+  'QA':            'st-qa',
+  'Documentación': 'st-docs',
+  'Revisión':      'st-revision',
+  'Bloqueado':     'st-blocked',
+  'Bloqueada':     'st-blocked',
+  'Finalizado':    'st-done',
+  'Finalizada':    'st-done',
+  'Cancelado':     'st-cancel',
+  'Cancelada':     'st-cancel',
 };
 
 const PRIORIDAD_CLASS = {

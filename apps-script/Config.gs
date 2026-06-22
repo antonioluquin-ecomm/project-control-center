@@ -119,7 +119,7 @@ const ROL_AGENTE = 2;
 // Replican las hojas CAT_ (google_sheets_standards §7.2).
 
 const ESTADOS_PROYECTO = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueado', 'Finalizado', 'Cancelado'];
-const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueada', 'Finalizada', 'Cancelada'];
+const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso', 'QA', 'Documentación', 'Revisión', 'Bloqueada', 'Finalizada', 'Cancelada'];
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];

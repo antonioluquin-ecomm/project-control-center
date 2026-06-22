@@ -92,6 +92,21 @@ function seedAdmin(email, plainPassword) {
   Logger.log('✓ Admin creado: ' + email);
 }
 
+// Actualiza los catálogos CAT_ existentes con los valores actuales de Config.gs.
+// Correr cuando se agreguen nuevos estados/tipos (ej: después de S5).
+function actualizarCatalogos() {
+  const ss = getSpreadsheet_();
+  Object.keys(_CATALOGOS).forEach(function(name) {
+    const sheet  = ss.getSheetByName(name);
+    if (!sheet) return;
+    // Limpiar valores existentes (mantener fila 1 = header).
+    const last = sheet.getLastRow();
+    if (last > 1) sheet.getRange(2, 1, last - 1, 1).clearContent();
+    _CATALOGOS[name].forEach(function(v) { sheet.appendRow([v]); });
+    Logger.log('✓ ' + name + ' actualizado.');
+  });
+}
+
 // ── internos ──────────────────────────────────────────────────
 function _ensureSheet_(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);
