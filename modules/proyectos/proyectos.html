@@ -77,6 +77,7 @@
         sel.innerHTML = '<option value="">Todos los estados</option>' + ESTADOS_PROYECTO.map(function (e) { return '<option>' + e + '</option>'; }).join('');
         render();
         setStatus('statusBar', STATE.proyectos.length + ' proyectos.', 'success');
+        if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
 

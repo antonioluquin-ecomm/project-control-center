@@ -40,6 +40,8 @@
           <div class="toolbar">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:320px"></select>
             <select id="fEstado" onchange="render()" style="max-width:160px"><option value="">Todos los estados</option></select>
+            <select id="fArea" onchange="render()" style="max-width:140px"><option value="">Todas las áreas</option></select>
+            <select id="fTienda" onchange="render()" style="max-width:140px"><option value="">Todas las tiendas</option></select>
             <span class="spacer"></span>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
@@ -86,7 +88,10 @@
         if (pre && STATE.proyectos.some(function (p) { return Number(p.id) === pre; })) sel.value = pre;
 
         document.getElementById('fEstado').innerHTML = '<option value="">Todos los estados</option>' + ESTADOS_TAREA.map(function (e) { return '<option>' + e + '</option>'; }).join('');
+        document.getElementById('fArea').innerHTML = '<option value="">Todas las áreas</option>' + AREAS.map(function (a) { return '<option>' + a + '</option>'; }).join('');
+        document.getElementById('fTienda').innerHTML = '<option value="">Todas las tiendas</option>' + TIENDAS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
         await loadTareas();
+        if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
 
@@ -105,7 +110,11 @@
 
     function filtered() {
       const est = document.getElementById('fEstado').value;
-      return STATE.tareas.filter(function (t) { return !est || t.estado === est; });
+      const area = document.getElementById('fArea').value;
+      const tienda = document.getElementById('fTienda').value;
+      return STATE.tareas.filter(function (t) {
+        return (!est || t.estado === est) && (!area || t.area === area) && (!tienda || t.tienda === tienda);
+      });
     }
 
     function render() {

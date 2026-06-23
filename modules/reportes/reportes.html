@@ -107,7 +107,9 @@
         document.getElementById('repTar').innerHTML =
           bars('Por estado', countBy(tar, 'estado')) +
           bars('Por tipo', countBy(tar, 'tipo')) +
-          bars('Por responsable', countBy(tar, 'responsable'));
+          bars('Por responsable', countBy(tar, 'responsable')) +
+          bars('Por área', countBy(tar, 'area')) +
+          bars('Por tienda', countBy(tar, 'tienda'));
 
         setStatus('statusBar', proy.length + ' proyectos · ' + tar.length + ' tareas.', 'success');
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
@@ -120,8 +122,8 @@
     }
 
     function exportTareas() {
-      const rows = [['id', 'titulo', 'proyecto', 'tipo', 'estado', 'prioridad', 'responsable', 'avance_pct', 'fecha_limite']];
-      STATE.tareas.forEach(function (t) { rows.push([t.id, t.titulo, _proyById[t.id_proyecto] || '', t.tipo, t.estado, t.prioridad, t.responsable, t.avance_pct, (t.fecha_limite || '').slice(0, 10)]); });
+      const rows = [['id', 'titulo', 'proyecto', 'tipo', 'estado', 'prioridad', 'responsable', 'area', 'tienda', 'avance_pct', 'fecha_limite']];
+      STATE.tareas.forEach(function (t) { rows.push([t.id, t.titulo, _proyById[t.id_proyecto] || '', t.tipo, t.estado, t.prioridad, t.responsable, t.area, t.tienda, t.avance_pct, (t.fecha_limite || '').slice(0, 10)]); });
       downloadCSV('reporte-tareas.csv', rows);
     }
 

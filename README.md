@@ -21,7 +21,7 @@ reportes e historial de cambios. Reemplaza Jira en el flujo propio del equipo.
 ├── config.js · auth.js · api.js
 ├── src/css/main.css
 ├── modules/
-│   ├── proyectos/ · tareas/ · seguimiento/ · reportes/ · admin/
+│   ├── proyectos/ · tareas/ · seguimiento/ · reportes/ · gantt/ · admin/
 ├── apps-script/            # Backend GAS (ver docs/gas-setup.md)
 │   ├── Config.gs Helpers.gs Logger.gs Validators.gs
 │   ├── Auth.gs Usuarios.gs Proyectos.gs Tareas.gs
@@ -63,7 +63,7 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S7 — Gestión de usuarios y roles | ✅ Módulo admin + responsable como selector (validado en demo) |
 | S8 — Checklists + racionalización de tipos | ✅ Hoja CHECKLIST + drawer + Subtarea deprecada (validado en demo) |
 | S9 — Vista Gantt | ✅ Cronograma por proyecto, CSS/JS puro (validado en demo) |
-| S10 — Pulido (front, estructura, UX) | Pendiente |
+| S10 — Pulido (front, estructura, UX) | ✅ Filtros área/tienda, reportes por área/tienda, quick-create (validado en demo) |
 
 Plan completo y decisiones: ver `CLAUDE.md` y la planificación aprobada.
 
