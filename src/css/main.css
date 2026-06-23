@@ -188,6 +188,25 @@ h3 { font-size: 15px; font-weight: 600; }
 .chk-label { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; font-size: 14px; }
 .chk-item.chk-done .chk-label span { text-decoration: line-through; color: var(--muted); }
 
+/* Gantt */
+.gantt { display: flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
+.gantt-left { flex-shrink: 0; width: 230px; border-right: 2px solid var(--line); background: var(--card2); }
+.gantt-corner { height: 30px; display: flex; align-items: center; padding: 0 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-bottom: 1px solid var(--line); }
+.gantt-rowlabel { height: 34px; padding: 0 12px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.gantt-rowlabel b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gantt-rowlabel span { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gantt-right { overflow-x: auto; flex: 1; }
+.gantt-canvas { position: relative; }
+.gantt-axis { display: flex; height: 30px; border-bottom: 1px solid var(--line); }
+.gantt-month { flex-shrink: 0; border-right: 1px solid var(--line); font-size: 11px; color: var(--muted); display: flex; align-items: center; padding: 0 6px; box-sizing: border-box; }
+.gantt-lanes { position: relative; }
+.gantt-lane { height: 34px; border-bottom: 1px solid var(--line); position: relative; }
+.gantt-bar { position: absolute; top: 6px; height: 22px; box-sizing: border-box; border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; overflow: hidden; gap: 0; }
+.gantt-bar.gantt-venc { outline: 2px solid var(--danger); outline-offset: -2px; }
+.gantt-bar-label { white-space: nowrap; }
+.gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--danger); z-index: 2; }
+.gantt-nodate { display: flex; flex-wrap: wrap; gap: 6px; }
+
 /* Enlaces externos (Jira / GitLab / Figma) en filas de tarea */
 .link-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .link-chip {

@@ -62,7 +62,7 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S6 — Tarea: área, tienda, enlaces externos | ✅ Backend + Frontend (validado en demo) |
 | S7 — Gestión de usuarios y roles | ✅ Módulo admin + responsable como selector (validado en demo) |
 | S8 — Checklists + racionalización de tipos | ✅ Hoja CHECKLIST + drawer + Subtarea deprecada (validado en demo) |
-| S9 — Vista Gantt | Pendiente |
+| S9 — Vista Gantt | ✅ Cronograma por proyecto, CSS/JS puro (validado en demo) |
 | S10 — Pulido (front, estructura, UX) | Pendiente |
 
 Plan completo y decisiones: ver `CLAUDE.md` y la planificación aprobada.

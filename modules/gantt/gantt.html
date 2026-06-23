@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gantt — Project Control Center</title>
+  <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <link rel="stylesheet" href="../../src/css/main.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PCC</span>
+        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="../../index.html"><span class="nav-icon">▦</span> Inicio</a>
+        <a class="nav-item" href="../proyectos/proyectos.html"><span class="nav-icon">▣</span> Proyectos</a>
+        <a class="nav-item" href="../tareas/tareas.html"><span class="nav-icon">☑</span> Tareas</a>
+        <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
+        <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+        <a class="nav-item active" href="gantt.html"><span class="nav-icon">▦</span> Gantt</a>
+        <a class="nav-item admin-only" href="../admin/usuarios.html"><span class="nav-icon">⚇</span> Usuarios</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer">
+        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-copy"><p class="eyebrow">Cronograma</p><h1>Gantt</h1></div>
+        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
+      </header>
+
+      <main class="container">
+        <section class="panel">
+          <div class="toolbar">
+            <select id="selProyecto" onchange="loadTareas()" style="max-width:300px"></select>
+            <select id="fArea" onchange="render()" style="max-width:150px"><option value="">Todas las áreas</option></select>
+            <select id="fTienda" onchange="render()" style="max-width:150px"><option value="">Todas las tiendas</option></select>
+            <span class="spacer"></span>
+            <div class="seg-toggle">
+              <button class="seg-tab active" id="zoomMes" onclick="setZoom('mes')">Mes</button>
+              <button class="seg-tab" id="zoomSemana" onclick="setZoom('semana')">Semana</button>
+            </div>
+          </div>
+          <div id="statusBar" class="status-bar">Cargando…</div>
+          <div id="ganttHost" style="margin-top:12px"></div>
+          <div id="sinFechas" style="margin-top:16px"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../config.js"></script>
+  <script src="../../auth.js"></script>
+  <script src="../../api.js"></script>
+  <script>
+    const PX = { mes: 5, semana: 22 };   // px por día según zoom
+    const ROW_H = 34;                      // alto de fila (px)
+    let _zoom = 'mes';
+
+    function qsProyecto() { const m = location.search.match(/[?&]proyecto=(\d+)/); return m ? Number(m[1]) : null; }
+    function currentProyectoId() { const v = document.getElementById('selProyecto').value; return v === '' ? null : Number(v); }
+
+    async function init() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        STATE.proyectos = await apiGetProyectos({});
+        const sel = document.getElementById('selProyecto');
+        sel.innerHTML = '<option value="">Todos los proyectos</option>' +
+          STATE.proyectos.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>'; }).join('');
+        const pre = qsProyecto();
+        if (pre && STATE.proyectos.some(function (p) { return Number(p.id) === pre; })) sel.value = pre;
+
+        document.getElementById('fArea').innerHTML = '<option value="">Todas las áreas</option>' + AREAS.map(function (a) { return '<option>' + a + '</option>'; }).join('');
+        document.getElementById('fTienda').innerHTML = '<option value="">Todas las tiendas</option>' + TIENDAS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+        await loadTareas();
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    async function loadTareas() {
+      setStatus('statusBar', 'Cargando…', 'info');
+      try {
+        const pid = currentProyectoId();
+        STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
+        render();
+      } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    function setZoom(z) {
+      _zoom = z;
+      document.getElementById('zoomMes').classList.toggle('active', z === 'mes');
+      document.getElementById('zoomSemana').classList.toggle('active', z === 'semana');
+      render();
+    }
+
+    function proyNombre(id) {
+      const p = STATE.proyectos.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      return p ? p.nombre : ('#' + id);
+    }
+
+    function _d(v) { if (!v) return null; const d = new Date(String(v).slice(0, 10) + 'T00:00:00'); return isNaN(d.getTime()) ? null : d; }
+    function _dayDiff(a, b) { return Math.round((b - a) / 86400000); }
+    function _addMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 1); }
+    const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+    function visibleTareas() {
+      const fa = document.getElementById('fArea').value;
+      const ft = document.getElementById('fTienda').value;
+      return STATE.tareas.filter(function (t) {
+        if (t.estado === 'Cancelada') return false;
+        if (fa && t.area !== fa) return false;
+        if (ft && t.tienda !== ft) return false;
+        return true;
+      });
+    }
+
+    function render() {
+      const host = document.getElementById('ganttHost');
+      const sinHost = document.getElementById('sinFechas');
+      const all = visibleTareas();
+
+      // Separar con/sin fechas.
+      const conFechas = [], sinFechas = [];
+      all.forEach(function (t) {
+        const ini = _d(t.fecha_inicio), lim = _d(t.fecha_limite);
+        const start = ini || lim, end = lim || ini;
+        if (start && end) { t._start = start <= end ? start : end; t._end = end >= start ? end : start; conFechas.push(t); }
+        else sinFechas.push(t);
+      });
+
+      if (!conFechas.length) {
+        host.innerHTML = '<div class="empty-row" style="padding:24px;text-align:center">Sin tareas con fechas para graficar.</div>';
+        setStatus('statusBar', all.length + ' tareas (' + sinFechas.length + ' sin fechas).', all.length ? 'info' : 'warning');
+        renderSinFechas(sinFechas);
+        return;
+      }
+
+      // Rango temporal con padding de 2 días.
+      let rangeStart = conFechas[0]._start, rangeEnd = conFechas[0]._end;
+      conFechas.forEach(function (t) { if (t._start < rangeStart) rangeStart = t._start; if (t._end > rangeEnd) rangeEnd = t._end; });
+      rangeStart = new Date(rangeStart.getTime() - 2 * 86400000);
+      rangeEnd = new Date(rangeEnd.getTime() + 2 * 86400000);
+
+      const px = PX[_zoom];
+      const totalDays = _dayDiff(rangeStart, rangeEnd) + 1;
+      const timelineW = totalDays * px;
+
+      // Cabecera de meses.
+      let axis = '', cur = new Date(rangeStart);
+      while (cur <= rangeEnd) {
+        const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
+        const segStart = cur > rangeStart ? cur : rangeStart;
+        const segEnd = mEnd < rangeEnd ? mEnd : rangeEnd;
+        const days = _dayDiff(segStart, segEnd) + 1;
+        const w = days * px;
+        const label = w >= 34 ? (MESES[cur.getMonth()] + ' ' + String(cur.getFullYear()).slice(2)) : '';
+        axis += '<div class="gantt-month" style="width:' + w + 'px">' + label + '</div>';
+        cur = _addMonth(cur);
+      }
+
+      // Línea de hoy.
+      const today = _d(new Date().toISOString());
+      let todayLine = '';
+      if (today >= rangeStart && today <= rangeEnd) {
+        const left = _dayDiff(rangeStart, today) * px;
+        todayLine = '<div class="gantt-today" style="left:' + left + 'px"></div>';
+      }
+
+      // Filas: label (izq) + barra (der).
+      let labels = '', lanes = '';
+      conFechas.forEach(function (t) {
+        const cls = ESTADO_CLASS[t.estado] || 'st-todo';
+        const left = _dayDiff(rangeStart, t._start) * px;
+        const width = Math.max(px, (_dayDiff(t._start, t._end) + 1) * px);
+        const venc = t.vencida ? ' gantt-venc' : '';
+        const sub = currentProyectoId() ? (t.responsable || '') : proyNombre(t.id_proyecto);
+        labels += '<div class="gantt-rowlabel" title="' + escapeHtml(t.titulo) + '">' +
+          '<b>' + escapeHtml(t.titulo) + '</b>' + (sub ? '<span>' + escapeHtml(sub) + '</span>' : '') + '</div>';
+        lanes += '<div class="gantt-lane">' +
+          '<div class="gantt-bar badge ' + cls + venc + '" style="left:' + left + 'px;width:' + width + 'px" ' +
+          'title="' + escapeHtml(t.titulo + ' · ' + (t.fecha_inicio || '—').slice(0, 10) + ' → ' + (t.fecha_limite || '—').slice(0, 10)) + '">' +
+          '<span class="gantt-bar-label">' + (t.avance_pct ? t.avance_pct + '%' : '') + '</span></div></div>';
+      });
+
+      host.innerHTML =
+        '<div class="gantt">' +
+          '<div class="gantt-left">' +
+            '<div class="gantt-corner">Tarea</div>' + labels +
+          '</div>' +
+          '<div class="gantt-right">' +
+            '<div class="gantt-canvas" style="width:' + timelineW + 'px">' +
+              '<div class="gantt-axis">' + axis + '</div>' +
+              '<div class="gantt-lanes">' + lanes + todayLine + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      setStatus('statusBar', conFechas.length + ' tareas graficadas · ' + sinFechas.length + ' sin fechas.', 'success');
+      renderSinFechas(sinFechas);
+    }
+
+    function renderSinFechas(rows) {
+      const host = document.getElementById('sinFechas');
+      if (!rows.length) { host.innerHTML = ''; return; }
+      host.innerHTML = '<h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">Sin fechas (' + rows.length + ')</h3>' +
+        '<div class="gantt-nodate">' + rows.map(function (t) {
+          const cls = ESTADO_CLASS[t.estado] || 'st-todo';
+          return '<span class="badge ' + cls + '" title="' + escapeHtml(proyNombre(t.id_proyecto)) + '">' + escapeHtml(t.titulo) + '</span>';
+        }).join('') + '</div>';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme(); requireAuth(); renderUserChip(); restrictWriteIfAgent(); init();
+    });
+  </script>
+</body>
+</html>

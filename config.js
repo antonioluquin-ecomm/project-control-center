@@ -9,9 +9,9 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.4.0',
+  number: '1.5.0',
   date:   '2026-06-23',
-  notes:  'Sprint 8 — Checklists en tareas/proyectos + Subtarea deprecada.',
+  notes:  'Sprint 9 — Vista Gantt (cronograma por proyecto, CSS/JS puro).',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
