@@ -98,6 +98,11 @@ function apiGetAdjuntos(entidad, id)           { return callApiRaw('getAdjuntos'
 function apiCreateAdjunto(payload)             { return callApiRaw('createAdjunto', payload); }
 function apiDeleteAdjunto(id)                  { return callApiRaw('deleteAdjunto', { id: id }); }
 
+function apiGetChecklist(entidad, id)          { return callApiRaw('getChecklist', { entidad: entidad, id_entidad: id }); }
+function apiCreateChecklistItem(entidad, id, t){ return callApiRaw('createChecklistItem', { entidad: entidad, id_entidad: id, texto: t }); }
+function apiToggleChecklistItem(id, hecho)     { return callApiRaw('toggleChecklistItem', { id: id, hecho: hecho }); }
+function apiDeleteChecklistItem(id)            { return callApiRaw('deleteChecklistItem', { id: id }); }
+
 function apiGetUsuarios()        { return callApiRaw('getUsuarios'); }
 function apiGetUsuariosBasico()  { return callApiRaw('getUsuariosBasico'); }
 function apiCreateUsuario(d)     { return callApiRaw('createUsuario', d); }
@@ -142,15 +147,16 @@ async function _mockLoad() {
   const fetchJson = function (path, fallback) {
     return fetch(base + path).then(function (r) { return r.ok ? r.json() : fallback; }).catch(function () { return fallback; });
   };
-  const [proyectos, tareas, comentarios, historial, adjuntos, usuarios] = await Promise.all([
+  const [proyectos, tareas, comentarios, historial, adjuntos, usuarios, checklist] = await Promise.all([
     fetchJson('src/data/proyectos.json', []),
     fetchJson('src/data/tareas.json', []),
     fetchJson('src/data/comentarios.json', []),
     fetchJson('src/data/historial.json', []),
     fetchJson('src/data/adjuntos.json', []),
     fetchJson('src/data/usuarios.json', []),
+    fetchJson('src/data/checklist.json', []),
   ]);
-  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios };
+  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios, checklist: checklist };
   return _mock;
 }
 
@@ -298,6 +304,29 @@ async function _mockCall(action, p) {
     }
     case 'deleteAdjunto': {
       _mock.adjuntos = _mock.adjuntos.filter(function (a) { return Number(a.id) !== Number(p.id); });
+      return { id: p.id };
+    }
+
+    case 'getChecklist': {
+      return _mock.checklist
+        .filter(function (c) { return c.entidad === p.entidad && Number(c.id_entidad) === Number(p.id_entidad); })
+        .sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
+    }
+    case 'createChecklistItem': {
+      const id = Math.max(0, ...(_mock.checklist.map(function (c) { return Number(c.id); }))) + 1;
+      const mismos = _mock.checklist.filter(function (c) { return c.entidad === p.entidad && Number(c.id_entidad) === Number(p.id_entidad); });
+      const orden = mismos.reduce(function (m, c) { return Math.max(m, Number(c.orden) || 0); }, 0) + 1;
+      _mock.checklist.push({ id: id, entidad: p.entidad, id_entidad: Number(p.id_entidad), texto: p.texto, hecho: 'NO', orden: orden, fecha_creacion: new Date().toISOString(), creado_por: 'demo@local' });
+      return { id: id };
+    }
+    case 'toggleChecklistItem': {
+      const c = _mock.checklist.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
+      if (!c) throw new Error('Ítem no encontrado');
+      c.hecho = (p.hecho === true || p.hecho === 'SI') ? 'SI' : 'NO';
+      return { id: c.id, hecho: c.hecho };
+    }
+    case 'deleteChecklistItem': {
+      _mock.checklist = _mock.checklist.filter(function (c) { return Number(c.id) !== Number(p.id); });
       return { id: p.id };
     }
 

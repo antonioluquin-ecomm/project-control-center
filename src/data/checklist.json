@@ -1,0 +1,5 @@
+[
+  { "id": 1, "entidad": "TAREA", "id_entidad": 3, "texto": "Definir wireframes base", "hecho": "SI", "orden": 1, "fecha_creacion": "2026-06-16T10:00:00.000Z", "creado_por": "demo@local" },
+  { "id": 2, "entidad": "TAREA", "id_entidad": 3, "texto": "Revisar responsive mobile", "hecho": "NO", "orden": 2, "fecha_creacion": "2026-06-16T10:05:00.000Z", "creado_por": "demo@local" },
+  { "id": 3, "entidad": "TAREA", "id_entidad": 3, "texto": "Validar con stakeholders", "hecho": "NO", "orden": 3, "fecha_creacion": "2026-06-16T10:06:00.000Z", "creado_por": "demo@local" }
+]

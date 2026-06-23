@@ -9,6 +9,7 @@ const SHEETS = {
   TAREAS:      'TAREAS',
   COMENTARIOS: 'COMENTARIOS',
   ADJUNTOS:    'ADJUNTOS',
+  CHECKLIST:   'CHECKLIST',
   HISTORIAL:   'HISTORIAL',
   USUARIOS:    'USUARIOS',
   SESIONES:    'SESIONES',
@@ -106,6 +107,17 @@ const HISTORIAL_COLS = {
   usuario:        8,
 };
 
+const CHECKLIST_COLS = {
+  id:             1,
+  entidad:        2,   // PROYECTO | TAREA
+  id_entidad:     3,
+  texto:          4,
+  hecho:          5,   // SI | NO
+  orden:          6,
+  fecha_creacion: 7,
+  creado_por:     8,
+};
+
 const USUARIOS_COLS = {
   id:             1,
   nombre:         2,
@@ -129,6 +141,9 @@ const ROL_AGENTE = 2;
 
 const ESTADOS_PROYECTO = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueado', 'Finalizado', 'Cancelado'];
 const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso', 'QA', 'Documentación', 'Revisión', 'Bloqueada', 'Finalizada', 'Cancelada'];
+// 'Subtarea' es legacy (S8: reemplazada por CHECKLIST). Se mantiene como valor
+// válido para no romper la edición de tareas migradas, pero el frontend ya no
+// la ofrece para tareas nuevas.
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];

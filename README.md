@@ -61,7 +61,7 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S5 — Migración activos Jira | ✅ Migrados 37 proyectos + 456 tareas |
 | S6 — Tarea: área, tienda, enlaces externos | ✅ Backend + Frontend (validado en demo) |
 | S7 — Gestión de usuarios y roles | ✅ Módulo admin + responsable como selector (validado en demo) |
-| S8 — Checklists + racionalización de tipos | Pendiente |
+| S8 — Checklists + racionalización de tipos | ✅ Hoja CHECKLIST + drawer + Subtarea deprecada (validado en demo) |
 | S9 — Vista Gantt | Pendiente |
 | S10 — Pulido (front, estructura, UX) | Pendiente |
 

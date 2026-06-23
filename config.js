@@ -9,16 +9,18 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.3.0',
+  number: '1.4.0',
   date:   '2026-06-23',
-  notes:  'Sprint 7 — Gestión de usuarios y roles + responsable como selector de usuarios.',
+  notes:  'Sprint 8 — Checklists en tareas/proyectos + Subtarea deprecada.',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
 
 const ESTADOS_PROYECTO = ['Por Hacer', 'En Análisis', 'En Curso', 'Bloqueado', 'Finalizado', 'Cancelado'];
 const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso', 'QA', 'Documentación', 'Revisión', 'Bloqueada', 'Finalizada', 'Cancelada'];
-const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
+// 'Subtarea' deprecada (S8: reemplazada por checklist). No se ofrece para tareas
+// nuevas; las migradas conservan su tipo (ver tipoOptions() en tareas.html).
+const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
 

@@ -64,6 +64,7 @@ function routePost_(action, params, user, body) {
   if (action === 'getComentarios')  return getComentarios_(params);
   if (action === 'getHistorial')    return getHistorial_(params);
   if (action === 'getAdjuntos')     return getAdjuntos_(params);
+  if (action === 'getChecklist')    return getChecklist_(params);
   if (action === 'getUsuariosBasico') return getUsuariosBasico_();
 
   // Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
@@ -74,6 +75,10 @@ function routePost_(action, params, user, body) {
   requireAdmin_(user);
 
   if (action === 'deleteAdjunto')  return deleteAdjunto_(params, user);
+
+  if (action === 'createChecklistItem') return createChecklistItem_(params, user);
+  if (action === 'toggleChecklistItem') return toggleChecklistItem_(params, user);
+  if (action === 'deleteChecklistItem') return deleteChecklistItem_(params, user);
 
   if (action === 'createProyecto') return createProyecto_(params, user);
   if (action === 'updateProyecto') return updateProyecto_(params, user);

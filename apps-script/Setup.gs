@@ -17,6 +17,7 @@ const _HEADERS = {
            'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable'],
   COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],
   ADJUNTOS: ['id','entidad','id_entidad','nombre_archivo','file_id','url','thumbnail_url','mime','tamano','subido_por','fecha_creacion'],
+  CHECKLIST: ['id','entidad','id_entidad','texto','hecho','orden','fecha_creacion','creado_por'],
   HISTORIAL: ['id','timestamp','entidad','id_entidad','campo','valor_anterior','valor_nuevo','usuario'],
   USUARIOS: ['id','nombre','email','password_hash','salt','id_rol','activo','fecha_creacion','ultimo_acceso','creado_por'],
   SESIONES: ['session_token','id_usuario','email','id_rol','expira_en','creada_en','activa'],

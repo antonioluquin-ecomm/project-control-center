@@ -63,6 +63,10 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 ### ADJUNTOS *(usada desde Sprint 3 — Google Drive)*
 `id · entidad · id_entidad · nombre_archivo · file_id · url · thumbnail_url · mime · tamano · subido_por · fecha_creacion`
 
+### CHECKLIST *(usada desde Sprint 8 — reemplaza subtareas)*
+`id · entidad (PROYECTO|TAREA) · id_entidad · texto · hecho (SI|NO) · orden · fecha_creacion · creado_por`
+Polimórfica como COMENTARIOS. Borrado físico (ítems efímeros, no auditados).
+
 ### HISTORIAL (AUDIT_LOG) — historial de cambios campo a campo
 `id · timestamp · entidad · id_entidad · campo · valor_anterior · valor_nuevo · usuario`
 Lo escribe el backend en cada `update*`/`delete*` (ya activo en Sprint 1).
@@ -75,7 +79,7 @@ Lo escribe el backend en cada `update*`/`delete*` (ya activo en Sprint 1).
 |------|-----------------|
 | CAT_ESTADOS_PROYECTO | Por Hacer · En Análisis · En Curso · Bloqueado · Finalizado · Cancelado |
 | CAT_ESTADOS_TAREA | Por Hacer · En Análisis · En Curso · Bloqueada · Finalizada · Cancelada |
-| CAT_TIPOS_TAREA | Historia · Tarea · Error · Subtarea |
+| CAT_TIPOS_TAREA | Historia · Tarea · Error · ~~Subtarea~~ *(legacy S8: no se ofrece, reemplazada por CHECKLIST)* |
 | CAT_PRIORIDADES | Highest · High · Medium · Low · Lowest |
 | CAT_SITIOS | Sporting · Woker · PIM · B2B · Todos |
 | CAT_RESPONSABLES | *(se completa desde la UI / migración)* |

@@ -14,6 +14,7 @@ function openActividad(entidad, idEntidad, titulo) {
     '<h3>Actividad — ' + escapeHtml(titulo || (entidad + ' #' + idEntidad)) + '</h3>' +
     '<div class="act-tabs">' +
       '<button class="act-tab active" id="act-tab-com" onclick="_actShow(\'com\')">Comentarios</button>' +
+      '<button class="act-tab" id="act-tab-chk" onclick="_actShow(\'chk\')">Checklist</button>' +
       '<button class="act-tab" id="act-tab-adj" onclick="_actShow(\'adj\')">Adjuntos</button>' +
       '<button class="act-tab" id="act-tab-his" onclick="_actShow(\'his\')">Historial</button>' +
     '</div>' +
@@ -21,6 +22,14 @@ function openActividad(entidad, idEntidad, titulo) {
       '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario…"></textarea></div>' +
       '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button id="act-send" class="sm" onclick="_actSend()">Comentar</button></div>' +
       '<div id="act-com-list"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
+    '</div>' +
+    '<div id="act-chk" hidden>' +
+      '<div id="act-chk-progress" class="chk-progress" style="margin-top:12px"></div>' +
+      '<div id="act-chk-list" style="margin:8px 0"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
+      '<div class="field" style="display:flex;gap:8px;align-items:center">' +
+        '<input id="act-chk-input" placeholder="Nuevo ítem…" class="admin-only" style="flex:1" onkeydown="if(event.key===\'Enter\'){event.preventDefault();_actAddChecklist();}" />' +
+        '<button id="act-chk-add" class="sm admin-only" onclick="_actAddChecklist()">Agregar</button>' +
+      '</div>' +
     '</div>' +
     '<div id="act-adj" hidden>' +
       '<div style="display:flex;align-items:center;gap:10px;margin:12px 0">' +
@@ -33,6 +42,7 @@ function openActividad(entidad, idEntidad, titulo) {
     '<div class="modal-actions"><button class="secondary" onclick="closeActividad()">Cerrar</button></div>' +
     '</div></div>';
   _actLoadComentarios();
+  _actLoadChecklist();
   _actLoadAdjuntos();
   _actLoadHistorial();
   const fi = document.getElementById('act-file');
@@ -42,7 +52,7 @@ function openActividad(entidad, idEntidad, titulo) {
 function closeActividad() { document.getElementById('modals').innerHTML = ''; }
 
 function _actShow(which) {
-  ['com', 'adj', 'his'].forEach(function (k) {
+  ['com', 'chk', 'adj', 'his'].forEach(function (k) {
     const panel = document.getElementById('act-' + k);
     const tab = document.getElementById('act-tab-' + k);
     if (panel) panel.hidden = k !== which;
@@ -90,6 +100,60 @@ async function _actSend() {
     _actLoadComentarios();
   } catch (e) { toast('✕', e.message, 'error'); }
   finally { btn.disabled = false; }
+}
+
+/* ─── CHECKLIST ──────────────────────────────────────────── */
+
+async function _actLoadChecklist() {
+  const wrap = document.getElementById('act-chk-list');
+  const prog = document.getElementById('act-chk-progress');
+  try {
+    const rows = await apiGetChecklist(_actCtx.entidad, _actCtx.id);
+    if (!wrap) return;
+    const total = rows.length;
+    const hechos = rows.filter(function (c) { return String(c.hecho) === 'SI'; }).length;
+    const pct = total ? Math.round(hechos / total * 100) : 0;
+    if (prog) {
+      prog.innerHTML = total
+        ? '<div class="chk-bar"><div class="chk-fill" style="width:' + pct + '%"></div></div>' +
+          '<span class="chk-count">' + hechos + '/' + total + ' (' + pct + '%)</span>'
+        : '';
+    }
+    wrap.innerHTML = total ? rows.map(function (c) {
+      const done = String(c.hecho) === 'SI';
+      return '<div class="chk-item' + (done ? ' chk-done' : '') + '">' +
+        '<label class="chk-label">' +
+        '<input type="checkbox" class="admin-only" ' + (done ? 'checked' : '') + ' onchange="_actToggleChecklist(' + c.id + ', this.checked)" />' +
+        '<span>' + escapeHtml(c.texto) + '</span></label>' +
+        '<button class="btn-icon admin-only" title="Eliminar" onclick="_actDeleteChecklist(' + c.id + ')">✕</button>' +
+        '</div>';
+    }).join('') : '<div class="text-muted" style="font-size:13px">Sin ítems. Agregá el primero.</div>';
+    if (typeof restrictWriteIfAgent === 'function') restrictWriteIfAgent();
+  } catch (e) { if (wrap) wrap.innerHTML = '<div class="status-bar error">' + escapeHtml(e.message) + '</div>'; }
+}
+
+async function _actAddChecklist() {
+  const input = document.getElementById('act-chk-input');
+  const texto = (input.value || '').trim();
+  if (!texto) return;
+  const btn = document.getElementById('act-chk-add'); if (btn) btn.disabled = true;
+  try {
+    await apiCreateChecklistItem(_actCtx.entidad, _actCtx.id, texto);
+    input.value = '';
+    _actLoadChecklist();
+  } catch (e) { toast('✕', e.message, 'error'); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function _actToggleChecklist(id, checked) {
+  try { await apiToggleChecklistItem(id, checked ? 'SI' : 'NO'); _actLoadChecklist(); }
+  catch (e) { toast('✕', e.message, 'error'); _actLoadChecklist(); }
+}
+
+async function _actDeleteChecklist(id) {
+  if (!confirm('¿Eliminar este ítem del checklist?')) return;
+  try { await apiDeleteChecklistItem(id); _actLoadChecklist(); }
+  catch (e) { toast('✕', e.message, 'error'); }
 }
 
 /* ─── ADJUNTOS ───────────────────────────────────────────── */

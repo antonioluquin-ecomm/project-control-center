@@ -134,6 +134,16 @@
       restrictWriteIfAgent();
     }
 
+    // Opciones de tipo; preserva valores legacy (ej. Subtarea migrada) como opción.
+    function tipoOptions(current) {
+      let html = '';
+      if (current && TIPOS_TAREA.indexOf(current) === -1) {
+        html += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (legacy)</option>';
+      }
+      html += TIPOS_TAREA.map(function (v) { return '<option' + (v === current ? ' selected' : '') + '>' + v + '</option>'; }).join('');
+      return html;
+    }
+
     // Chips de área y tienda bajo el título.
     function metaChips(t) {
       let out = '';
@@ -178,7 +188,7 @@
         '<div class="field"><label>Título *</label><input id="m_tit" value="' + escapeHtml(t.titulo || '') + '"></div>' +
         '<div class="field"><label>Descripción</label><textarea id="m_desc">' + escapeHtml(t.descripcion || '') + '</textarea></div>' +
         '<div class="field-row">' +
-          '<div class="field"><label>Tipo</label><select id="m_tipo">' + opt(TIPOS_TAREA, t.tipo || 'Tarea') + '</select></div>' +
+          '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
           '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
         '</div>' +
         '<div class="field-row">' +
