@@ -12,7 +12,14 @@
     <aside class="sidebar">
       <div class="sidebar-brand">
         <span class="brand-icon">PCC</span>
-        <span><span class="brand-name">Control Center</span><br /><span class="brand-sub">Proyectos</span></span>
+        <div>
+          <div class="brand-name">Control Center</div>
+          <div class="brand-meta" id="sidebarVersionBtn" title="Ver historial de cambios">
+            <span id="sidebarVersion">v…</span>
+            <span>· Proyectos</span>
+          </div>
+          <div class="sidebar-version-popover" id="versionPopover" style="display:none;"></div>
+        </div>
       </div>
       <nav class="nav">
         <a class="nav-item" href="../../index.html"><span class="nav-icon">▦</span> Inicio</a>
@@ -165,7 +172,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-      initTheme(); requireAdmin(); renderUserChip(); restrictWriteIfAgent(); load();
+      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent(); load();
     });
   </script>
 </body>

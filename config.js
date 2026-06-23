@@ -9,10 +9,41 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.6.2',
+  number: '1.6.3',
   date:   '2026-06-23',
-  notes:  'Layout: los m�dulos utilizan todo el ancho disponible del �rea de contenido.',
+  notes:  'Shell: version badge con popover changelog en sidebar brand de todas las páginas',
 };
+
+const CHANGELOG = [
+  { v: '1.6.3', date: '2026-06-23', desc: 'Shell: version badge con popover changelog en sidebar brand de todas las páginas' },
+  { v: '1.6.2', date: '2026-06-23', desc: 'Layout — módulos utilizan todo el ancho disponible del área de contenido' },
+  { v: '1.6.1', date: '2026-06-20', desc: 'S11 — mejoras módulo tareas: edición inline, filtros avanzados' },
+  { v: '1.6.0', date: '2026-06-18', desc: 'S10 — pulido: filtros, reportes por área/tienda, quick-create' },
+  { v: '1.5.0', date: '2026-06-15', desc: 'S9 — vista Gantt interactiva' },
+  { v: '1.4.0', date: '2026-06-10', desc: 'S8 — checklists de subtareas + tipo Subtarea deprecado' },
+];
+
+function initVersionBadge() {
+  const span    = document.getElementById('sidebarVersion');
+  const btn     = document.getElementById('sidebarVersionBtn');
+  const popover = document.getElementById('versionPopover');
+  if (!span) return;
+  span.textContent = `v${VERSION.number}`;
+  if (!btn || !popover || !CHANGELOG.length) return;
+  popover.innerHTML = CHANGELOG.map(c =>
+    `<div style="margin-bottom:7px;">` +
+      `<span style="font-weight:600;font-size:13px;">v${c.v}</span>` +
+      `<span style="color:var(--muted);font-size:12px;margin-left:6px;">${c.date}</span>` +
+      `<div style="font-size:13px;color:var(--text);margin-top:1px;">${c.desc}</div>` +
+    `</div>`
+  ).join('');
+  btn.style.cursor = 'pointer';
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    popover.style.display = popover.style.display !== 'none' ? 'none' : 'block';
+  });
+  document.addEventListener('click', function() { popover.style.display = 'none'; });
+}
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
 

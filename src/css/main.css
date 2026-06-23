@@ -77,7 +77,20 @@ a { color: var(--primary); text-decoration: none; }
   display: inline-flex; align-items: center; justify-content: center;
 }
 .brand-name { font-size: 14px; font-weight: 700; letter-spacing: -.2px; }
-.brand-sub { font-size: 11px; color: var(--muted); }
+.brand-meta {
+  display: flex; align-items: center; gap: 4px; margin-top: 3px;
+  font-size: 10.5px; color: var(--muted); font-family: var(--mono);
+  cursor: pointer; transition: color .15s; user-select: none;
+}
+.brand-meta:hover { color: var(--text); }
+.sidebar-version-popover {
+  position: fixed; top: 58px; left: 232px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+  padding: 14px 16px; min-width: 280px; max-width: 340px;
+  max-height: 70vh; overflow-y: auto; z-index: 200;
+  color: var(--text); line-height: 1.5;
+}
 
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
