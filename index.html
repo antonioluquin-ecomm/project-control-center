@@ -31,7 +31,7 @@
         <a class="nav-item admin-only" href="modules/admin/usuarios.html"><span class="nav-icon">⚇</span> Usuarios</a>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-footer">
+      <div class="sidebar-footer" id="sidebarFooter">
         <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
       </div>
     </aside>
@@ -119,6 +119,7 @@
       initTheme();
       initVersionBadge();
       requireAuth();
+      renderSidebarUser();
       renderUserChip();
       restrictWriteIfAgent();
       loadDashboard();

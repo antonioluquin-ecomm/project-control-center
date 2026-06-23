@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.6.3',
+  number: '1.6.4',
   date:   '2026-06-23',
-  notes:  'Shell: version badge con popover changelog en sidebar brand de todas las páginas',
+  notes:  'Shell: área de usuario en sidebar footer con rol, cambiar contraseña y logout',
 };
 
 const CHANGELOG = [
+  { v: '1.6.4', date: '2026-06-23', desc: 'Shell: área de usuario en sidebar footer con rol, cambiar contraseña y logout' },
   { v: '1.6.3', date: '2026-06-23', desc: 'Shell: version badge con popover changelog en sidebar brand de todas las páginas' },
   { v: '1.6.2', date: '2026-06-23', desc: 'Layout — módulos utilizan todo el ancho disponible del área de contenido' },
   { v: '1.6.1', date: '2026-06-20', desc: 'S11 — mejoras módulo tareas: edición inline, filtros avanzados' },

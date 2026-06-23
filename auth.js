@@ -68,6 +68,30 @@ function authLogout() {
   window.location.href = _loginPath();
 }
 
+/* ─── SIDEBAR FOOTER (index.html) ───────────────────────── */
+function renderSidebarUser() {
+  const footer = document.getElementById('sidebarFooter');
+  if (!footer || document.getElementById('sidebar-user-info')) return;
+  const u = SESSION.usuario;
+  if (!u) return;
+  const isAdmin = Number(u.id_rol) === 1;
+  const roleLabel = isAdmin ? 'Admin' : 'Agente';
+  const roleCls   = isAdmin ? 'auth-role-admin' : 'auth-role-agente';
+  const info = document.createElement('div');
+  info.id = 'sidebar-user-info';
+  info.style.cssText = 'padding:6px 0 8px;border-top:1px solid var(--border);margin-bottom:4px';
+  info.innerHTML =
+    '<div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">'
+    + escapeHtml(u.nombre || u.email) + '</div>'
+    + '<div style="padding:3px 4px 6px">'
+    + '<span class="auth-chip-role ' + roleCls + '" style="font-size:10px">' + roleLabel + '</span></div>'
+    + '<div class="nav-item" onclick="showChangePasswordModal()" style="cursor:pointer;font-size:12px">'
+    + '<span class="nav-icon" style="font-size:13px">⊙</span> Cambiar contraseña</div>'
+    + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px">'
+    + '<span class="nav-icon" style="font-size:13px">↩</span> Cerrar sesión</div>';
+  footer.insertBefore(info, footer.firstChild);
+}
+
 /* ─── USER CHIP (topbar) ─────────────────────────────────── */
 function renderUserChip() {
   const slot = document.getElementById('userChip');
