@@ -16,13 +16,24 @@ function getUsuarios_() {
   return { ok: true, data: usuarios };
 }
 
+// ── LISTAR BÁSICO (cualquier usuario autenticado) ─────────────
+// Solo id, nombre, email de usuarios activos. Para poblar el selector
+// de responsable sin exponer rol/hash/salt.
+function getUsuariosBasico_() {
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.USUARIOS);
+  if (!sheet) return { ok: true, data: [] };
+  const usuarios = getAllRows_(SHEETS.USUARIOS, USUARIOS_COLS)
+    .filter(function(u) { return String(u.activo) === 'SI'; })
+    .map(function(u) { return { id: u.id, nombre: u.nombre, email: u.email }; });
+  return { ok: true, data: usuarios };
+}
+
 // ── CREAR (admin) ─────────────────────────────────────────────
-function createUsuario_(body, user) {
-  const data   = body.data || {};
-  const nombre = String(data.nombre || '').trim();
-  const email  = String(data.email  || '').toLowerCase().trim();
-  const passwordHash = String(data.password_hash || '');
-  const idRol  = Number(data.id_rol || ROL_AGENTE);
+function createUsuario_(params, user) {
+  const nombre = String(params.nombre || '').trim();
+  const email  = String(params.email  || '').toLowerCase().trim();
+  const passwordHash = String(params.password_hash || '');
+  const idRol  = Number(params.id_rol || ROL_AGENTE);
 
   if (!nombre || !email || !passwordHash) return { ok: false, error: 'Nombre, email y contraseña son requeridos', code: 400 };
   if (idRol !== ROL_ADMIN && idRol !== ROL_AGENTE) return { ok: false, error: 'Rol inválido', code: 400 };
@@ -41,13 +52,12 @@ function createUsuario_(body, user) {
     idRol, 'SI', new Date().toISOString(), '', (user && user.email) || '',
   ]);
   writeLog_('createUsuario', 'USUARIOS', nextId, 'OK', email, user && user.email);
-  return { ok: true, id: nextId };
+  return { ok: true, data: { id: nextId } };
 }
 
 // ── ACTUALIZAR (admin) ────────────────────────────────────────
-function updateUsuario_(body, user) {
-  const id   = Number(body.id);
-  const data = body.data || {};
+function updateUsuario_(params, user) {
+  const id = Number(params.id);
   const sheet = getSheet_(SHEETS.USUARIOS);
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Usuario no encontrado', code: 404 };
@@ -55,8 +65,8 @@ function updateUsuario_(body, user) {
   const allData = sheet.getDataRange().getValues();
   const h = allData[0];
 
-  if (data.email !== undefined) {
-    const newEmail = String(data.email).toLowerCase().trim();
+  if (params.email !== undefined) {
+    const newEmail = String(params.email).toLowerCase().trim();
     const colId = h.indexOf('id'), colEm = h.indexOf('email');
     for (let j = 1; j < allData.length; j++) {
       if (Number(allData[j][colId]) !== id && String(allData[j][colEm]).toLowerCase() === newEmail) {
@@ -65,20 +75,20 @@ function updateUsuario_(body, user) {
     }
     sheet.getRange(rowNum, colEm + 1).setValue(newEmail);
   }
-  if (data.nombre !== undefined) sheet.getRange(rowNum, h.indexOf('nombre') + 1).setValue(String(data.nombre).trim());
-  if (data.id_rol !== undefined) {
-    const r = Number(data.id_rol);
+  if (params.nombre !== undefined) sheet.getRange(rowNum, h.indexOf('nombre') + 1).setValue(String(params.nombre).trim());
+  if (params.id_rol !== undefined) {
+    const r = Number(params.id_rol);
     if (r !== ROL_ADMIN && r !== ROL_AGENTE) return { ok: false, error: 'Rol inválido', code: 400 };
     sheet.getRange(rowNum, h.indexOf('id_rol') + 1).setValue(r);
   }
-  if (data.activo !== undefined) sheet.getRange(rowNum, h.indexOf('activo') + 1).setValue(data.activo === 'SI' ? 'SI' : 'NO');
-  if (data.password_hash && String(data.password_hash).trim()) {
+  if (params.activo !== undefined) sheet.getRange(rowNum, h.indexOf('activo') + 1).setValue(params.activo === 'SI' ? 'SI' : 'NO');
+  if (params.password_hash && String(params.password_hash).trim()) {
     const newSalt = Utilities.getUuid();
-    sheet.getRange(rowNum, h.indexOf('password_hash') + 1).setValue(hashPassword_(newSalt, String(data.password_hash)));
+    sheet.getRange(rowNum, h.indexOf('password_hash') + 1).setValue(hashPassword_(newSalt, String(params.password_hash)));
     sheet.getRange(rowNum, h.indexOf('salt') + 1).setValue(newSalt);
   }
   writeLog_('updateUsuario', 'USUARIOS', id, 'OK', '', user && user.email);
-  return { ok: true };
+  return { ok: true, data: { id: id } };
 }
 
 // ── CAMBIAR CONTRASEÑA (self-service) ─────────────────────────

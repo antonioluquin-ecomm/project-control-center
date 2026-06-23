@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Gabriel Luna", "email": "gabriel.luna@luquin.com.ar", "id_rol": 1, "nombre_rol": "Admin", "activo": "SI", "fecha_creacion": "2026-06-22T00:00:00.000Z", "ultimo_acceso": "" },
+  { "id": 2, "nombre": "Equipo PIM", "email": "pim@luquin.com.ar", "id_rol": 2, "nombre_rol": "Agente", "activo": "SI", "fecha_creacion": "2026-06-22T00:00:00.000Z", "ultimo_acceso": "" },
+  { "id": 3, "nombre": "Equipo Ecom", "email": "ecom@luquin.com.ar", "id_rol": 2, "nombre_rol": "Agente", "activo": "SI", "fecha_creacion": "2026-06-22T00:00:00.000Z", "ultimo_acceso": "" }
+]

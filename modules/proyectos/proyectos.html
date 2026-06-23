@@ -20,6 +20,7 @@
         <a class="nav-item" href="../tareas/tareas.html"><span class="nav-icon">☑</span> Tareas</a>
         <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
         <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+        <a class="nav-item admin-only" href="../admin/usuarios.html"><span class="nav-icon">⚇</span> Usuarios</a>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="sidebar-footer">
@@ -69,6 +70,7 @@
     async function load() {
       setStatus('statusBar', 'Cargando…', 'info');
       try {
+        await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
         const sel = document.getElementById('fEstado');
         sel.innerHTML = '<option value="">Todos los estados</option>' + ESTADOS_PROYECTO.map(function (e) { return '<option>' + e + '</option>'; }).join('');
@@ -131,7 +133,7 @@
           '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, p.prioridad || 'Medium') + '</select></div>' +
         '</div>' +
         '<div class="field-row">' +
-          '<div class="field"><label>Responsable</label><input id="m_resp" value="' + escapeHtml(p.responsable || '') + '"></div>' +
+          '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(p.responsable || '') + '</select></div>' +
           '<div class="field"><label>Sitio</label><select id="m_sitio"><option value="">—</option>' + opt(SITIOS, p.sitio || '') + '</select></div>' +
         '</div>' +
         '<div class="field-row">' +

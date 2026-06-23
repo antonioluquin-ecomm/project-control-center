@@ -9,9 +9,9 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.2.0',
-  date:   '2026-06-22',
-  notes:  'Sprint 6 — Tareas: área responsable, tienda y enlaces externos (Jira/GitLab/Figma).',
+  number: '1.3.0',
+  date:   '2026-06-23',
+  notes:  'Sprint 7 — Gestión de usuarios y roles + responsable como selector de usuarios.',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
@@ -65,6 +65,7 @@ const PRIORIDAD_CLASS = {
 const STATE = {
   proyectos: [],
   tareas:    [],
+  usuarios:  [],
   catalogos: null,
   resumen:   null,
   filtros:   { estado: '', responsable: '', sitio: '', q: '' },

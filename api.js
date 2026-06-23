@@ -98,6 +98,37 @@ function apiGetAdjuntos(entidad, id)           { return callApiRaw('getAdjuntos'
 function apiCreateAdjunto(payload)             { return callApiRaw('createAdjunto', payload); }
 function apiDeleteAdjunto(id)                  { return callApiRaw('deleteAdjunto', { id: id }); }
 
+function apiGetUsuarios()        { return callApiRaw('getUsuarios'); }
+function apiGetUsuariosBasico()  { return callApiRaw('getUsuariosBasico'); }
+function apiCreateUsuario(d)     { return callApiRaw('createUsuario', d); }
+function apiUpdateUsuario(d)     { return callApiRaw('updateUsuario', d); }
+
+/* ─── SELECTOR DE RESPONSABLE (usuarios reales) ──────────── */
+// El responsable se guarda como nombre (string), compatible con datos migrados.
+let _usuariosBasico = null;
+
+async function loadUsuariosBasico() {
+  if (_usuariosBasico) return _usuariosBasico;
+  try { _usuariosBasico = await apiGetUsuariosBasico(); }
+  catch (e) { _usuariosBasico = []; }
+  return _usuariosBasico;
+}
+
+// Opciones <option> para un <select> de responsable. Conserva el valor actual
+// aunque no sea un usuario del sistema (texto migrado de Jira) → "(externo)".
+function responsableOptions(current) {
+  const list = _usuariosBasico || [];
+  const names = list.map(function (u) { return u.nombre; });
+  let opts = '<option value="">— Sin asignar —</option>';
+  if (current && names.indexOf(current) === -1) {
+    opts += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (externo)</option>';
+  }
+  opts += names.map(function (n) {
+    return '<option value="' + escapeHtml(n) + '"' + (n === current ? ' selected' : '') + '>' + escapeHtml(n) + '</option>';
+  }).join('');
+  return opts;
+}
+
 /* ============================================================
    MODO DEMO (mock) — datos locales, CRUD en memoria.
    No persiste al recargar. Solo para ver la UI sin backend.
@@ -111,14 +142,15 @@ async function _mockLoad() {
   const fetchJson = function (path, fallback) {
     return fetch(base + path).then(function (r) { return r.ok ? r.json() : fallback; }).catch(function () { return fallback; });
   };
-  const [proyectos, tareas, comentarios, historial, adjuntos] = await Promise.all([
+  const [proyectos, tareas, comentarios, historial, adjuntos, usuarios] = await Promise.all([
     fetchJson('src/data/proyectos.json', []),
     fetchJson('src/data/tareas.json', []),
     fetchJson('src/data/comentarios.json', []),
     fetchJson('src/data/historial.json', []),
     fetchJson('src/data/adjuntos.json', []),
+    fetchJson('src/data/usuarios.json', []),
   ]);
-  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos };
+  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios };
   return _mock;
 }
 
@@ -267,6 +299,29 @@ async function _mockCall(action, p) {
     case 'deleteAdjunto': {
       _mock.adjuntos = _mock.adjuntos.filter(function (a) { return Number(a.id) !== Number(p.id); });
       return { id: p.id };
+    }
+
+    case 'getUsuarios': {
+      return _mock.usuarios.map(function (u) { return Object.assign({}, u); });
+    }
+    case 'getUsuariosBasico': {
+      return _mock.usuarios.filter(function (u) { return u.activo === 'SI'; })
+        .map(function (u) { return { id: u.id, nombre: u.nombre, email: u.email }; });
+    }
+    case 'createUsuario': {
+      const id = Math.max(0, ...(_mock.usuarios.map(function (u) { return Number(u.id); }))) + 1;
+      const rol = Number(p.id_rol) === 1 ? 'Admin' : 'Agente';
+      _mock.usuarios.push({ id: id, nombre: p.nombre, email: (p.email || '').toLowerCase(), id_rol: Number(p.id_rol) || 2, nombre_rol: rol, activo: 'SI', fecha_creacion: new Date().toISOString(), ultimo_acceso: '' });
+      return { id: id };
+    }
+    case 'updateUsuario': {
+      const u = _mock.usuarios.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
+      if (!u) throw new Error('Usuario no encontrado');
+      if (p.nombre !== undefined) u.nombre = p.nombre;
+      if (p.email !== undefined) u.email = (p.email || '').toLowerCase();
+      if (p.id_rol !== undefined) { u.id_rol = Number(p.id_rol); u.nombre_rol = u.id_rol === 1 ? 'Admin' : 'Agente'; }
+      if (p.activo !== undefined) u.activo = p.activo === 'SI' ? 'SI' : 'NO';
+      return { id: u.id };
     }
 
     default: throw new Error('Acción demo no soportada: ' + action);

@@ -20,6 +20,7 @@
         <a class="nav-item active" href="tareas.html"><span class="nav-icon">☑</span> Tareas</a>
         <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
         <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
+        <a class="nav-item admin-only" href="../admin/usuarios.html"><span class="nav-icon">⚇</span> Usuarios</a>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="sidebar-footer">
@@ -76,6 +77,7 @@
     async function init() {
       setStatus('statusBar', 'Cargando…', 'info');
       try {
+        await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = STATE.proyectos.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>'; }).join('');
@@ -181,7 +183,7 @@
         '</div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
-          '<div class="field"><label>Responsable</label><input id="m_resp" value="' + escapeHtml(t.responsable || '') + '"></div>' +
+          '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(t.responsable || '') + '</select></div>' +
         '</div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Fecha inicio</label><input id="m_ini" type="date" value="' + (t.fecha_inicio || '').slice(0, 10) + '"></div>' +

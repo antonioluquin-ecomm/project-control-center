@@ -60,7 +60,7 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S4 — Seguimiento + Reportes | ✅ Frontend (agrega sobre datos existentes, validado en demo) |
 | S5 — Migración activos Jira | ✅ Migrados 37 proyectos + 456 tareas |
 | S6 — Tarea: área, tienda, enlaces externos | ✅ Backend + Frontend (validado en demo) |
-| S7 — Gestión de usuarios y roles | Pendiente |
+| S7 — Gestión de usuarios y roles | ✅ Módulo admin + responsable como selector (validado en demo) |
 | S8 — Checklists + racionalización de tipos | Pendiente |
 | S9 — Vista Gantt | Pendiente |
 | S10 — Pulido (front, estructura, UX) | Pendiente |

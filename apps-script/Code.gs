@@ -64,6 +64,7 @@ function routePost_(action, params, user, body) {
   if (action === 'getComentarios')  return getComentarios_(params);
   if (action === 'getHistorial')    return getHistorial_(params);
   if (action === 'getAdjuntos')     return getAdjuntos_(params);
+  if (action === 'getUsuariosBasico') return getUsuariosBasico_();
 
   // Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
   if (action === 'createComentario') return createComentario_(params, user);
@@ -83,8 +84,8 @@ function routePost_(action, params, user, body) {
   if (action === 'deleteTarea')    return deleteTarea_(params, user);
 
   if (action === 'getUsuarios')    return getUsuarios_();
-  if (action === 'createUsuario')  return createUsuario_(body, user);
-  if (action === 'updateUsuario')  return updateUsuario_(body, user);
+  if (action === 'createUsuario')  return createUsuario_(params, user);
+  if (action === 'updateUsuario')  return updateUsuario_(params, user);
 
   return { ok: false, error: 'Acción desconocida: ' + action, code: 400 };
 }
