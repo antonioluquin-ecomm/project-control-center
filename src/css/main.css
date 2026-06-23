@@ -179,6 +179,16 @@ h3 { font-size: 15px; font-weight: 600; }
 [data-theme="dark"] .st-docs        { background: rgba(21,128,61,.18);  color: #4ade80; }
 [data-theme="dark"] .st-revision    { background: rgba(29,78,216,.18);  color: #93c5fd; }
 
+/* Enlaces externos (Jira / GitLab / Figma) en filas de tarea */
+.link-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.link-chip {
+  display: inline-flex; align-items: center; font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: var(--radius-pill);
+  background: var(--primary-soft); color: var(--primary);
+  border: 1px solid var(--primary-mid); text-decoration: none;
+}
+.link-chip:hover { background: var(--primary-mid); }
+
 .pr-highest, .pr-high { color: var(--danger); font-weight: 700; }
 .pr-medium { color: var(--warning); }
 .pr-low, .pr-lowest { color: var(--muted); }

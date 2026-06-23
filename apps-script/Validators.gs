@@ -49,6 +49,17 @@ function optionalDate_(value, name) {
   return d;
 }
 
+// URL opcional: '' (→ '') o URL http/https válida. Tope 1000 chars.
+function optionalUrl_(value, name) {
+  if (value === undefined || value === null || value === '') return '';
+  if (typeof value !== 'string') throw _vErr_(name + ' debe ser texto');
+  const v = value.trim();
+  if (v.length === 0) return '';
+  if (v.length > 1000) throw _vErr_(name + ' supera el máximo de 1000 caracteres');
+  if (!/^https?:\/\/.+/i.test(v)) throw _vErr_(name + ' debe ser una URL válida (http/https)');
+  return v;
+}
+
 // Error de validación (esperado): lleva code 400, no se loguea en ERRORS.
 function _vErr_(mensaje) {
   const e = new Error(mensaje);

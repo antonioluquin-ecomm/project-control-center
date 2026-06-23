@@ -22,6 +22,8 @@ const SHEETS = {
   CAT_PRIORIDADES:      'CAT_PRIORIDADES',
   CAT_RESPONSABLES:     'CAT_RESPONSABLES',
   CAT_SITIOS:           'CAT_SITIOS',
+  CAT_AREAS:            'CAT_AREAS',
+  CAT_TIENDAS:          'CAT_TIENDAS',
 };
 
 // ── MAPAS DE COLUMNAS (1-indexed para getRange) ───────────────
@@ -61,6 +63,13 @@ const TAREAS_COLS = {
   fecha_modificacion: 14,  // N
   creado_por:         15,  // O
   modificado_por:     16,  // P
+  // ── S6: dimensiones y enlaces externos (append al final) ──
+  area:               17,  // Q  — Ecom | InfraCommerce | PIM
+  tienda:             18,  // R  — Sporting | Woker | B2B
+  url_jira:           19,  // S  — enlace Jira (cuando area = InfraCommerce)
+  url_gitlab:         20,  // T  — enlace GitLab (cuando area = PIM)
+  url_figma_prototipo: 21, // U  — prototipo Figma (maquetación)
+  url_figma_editable:  22, // V  — editable Figma (maquetación)
 };
 
 const COMENTARIOS_COLS = {
@@ -123,6 +132,12 @@ const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
+
+// ── S6: dimensiones de tarea ──────────────────────────────────
+// Área responsable (equipo que ejecuta) — distinta del responsable (persona).
+const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];
+// Tienda a la que corresponde la tarea.
+const TIENDAS          = ['Sporting', 'Woker', 'B2B'];
 
 // Entidades válidas para COMENTARIOS / ADJUNTOS / HISTORIAL (relación polimórfica).
 const ENTIDADES = ['PROYECTO', 'TAREA'];

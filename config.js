@@ -9,9 +9,9 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.1.0',
+  number: '1.2.0',
   date:   '2026-06-22',
-  notes:  'Sprint 5 — Estados extendidos (Maquetación, QA, Documentación, Revisión) + migración Jira.',
+  notes:  'Sprint 6 — Tareas: área responsable, tienda y enlaces externos (Jira/GitLab/Figma).',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
@@ -21,6 +21,16 @@ const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
+
+// S6: dimensiones de tarea. Área = equipo que ejecuta (≠ responsable persona).
+const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];
+const TIENDAS          = ['Sporting', 'Woker', 'B2B'];
+
+// Qué enlace externo corresponde a cada área.
+const AREA_LINK = {
+  'InfraCommerce': 'url_jira',
+  'PIM':           'url_gitlab',
+};
 
 const ESTADOS_PROYECTO_CERRADOS = ['Finalizado', 'Cancelado'];
 const ESTADOS_TAREA_CERRADOS    = ['Finalizada', 'Cancelada'];

@@ -53,6 +53,8 @@ function getCatalogos_() {
       prioridades:      getCatValues_(SHEETS.CAT_PRIORIDADES).length      ? getCatValues_(SHEETS.CAT_PRIORIDADES)      : PRIORIDADES,
       responsables:     getCatValues_(SHEETS.CAT_RESPONSABLES),
       sitios:           getCatValues_(SHEETS.CAT_SITIOS).length           ? getCatValues_(SHEETS.CAT_SITIOS)           : SITIOS,
+      areas:            getCatValues_(SHEETS.CAT_AREAS).length            ? getCatValues_(SHEETS.CAT_AREAS)            : AREAS,
+      tiendas:          getCatValues_(SHEETS.CAT_TIENDAS).length          ? getCatValues_(SHEETS.CAT_TIENDAS)          : TIENDAS,
     },
   };
 }

@@ -13,7 +13,8 @@ const _HEADERS = {
               'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
   TAREAS: ['id','id_proyecto','titulo','descripcion','tipo','estado','prioridad','responsable',
            'fecha_inicio','fecha_limite','avance_pct','orden',
-           'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
+           'fecha_creacion','fecha_modificacion','creado_por','modificado_por',
+           'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable'],
   COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],
   ADJUNTOS: ['id','entidad','id_entidad','nombre_archivo','file_id','url','thumbnail_url','mime','tamano','subido_por','fecha_creacion'],
   HISTORIAL: ['id','timestamp','entidad','id_entidad','campo','valor_anterior','valor_nuevo','usuario'],
@@ -31,6 +32,8 @@ const _CATALOGOS = {
   CAT_TIPOS_TAREA:      TIPOS_TAREA,
   CAT_PRIORIDADES:      PRIORIDADES,
   CAT_SITIOS:           SITIOS,
+  CAT_AREAS:            AREAS,
+  CAT_TIENDAS:          TIENDAS,
   CAT_RESPONSABLES:     [], // se llena desde la UI / migración
 };
 
@@ -105,6 +108,26 @@ function actualizarCatalogos() {
     _CATALOGOS[name].forEach(function(v) { sheet.appendRow([v]); });
     Logger.log('✓ ' + name + ' actualizado.');
   });
+}
+
+// S6: agrega los headers nuevos de TAREAS a una hoja YA poblada, sin tocar datos.
+// Idempotente: solo escribe los headers que falten (a partir de la columna actual).
+// Correr UNA vez en el editor tras desplegar el código de S6.
+function agregarColumnasTareas() {
+  const sheet = getSheet_(SHEETS.TAREAS);
+  const headersDeseados = _HEADERS.TAREAS;
+  const ultimaCol = sheet.getLastColumn();
+  const actuales = sheet.getRange(1, 1, 1, ultimaCol).getValues()[0];
+
+  let agregadas = 0;
+  for (let i = 0; i < headersDeseados.length; i++) {
+    if (String(actuales[i] || '').trim() !== headersDeseados[i]) {
+      sheet.getRange(1, i + 1).setValue(headersDeseados[i]);
+      agregadas++;
+    }
+  }
+  sheet.setFrozenRows(1);
+  Logger.log('✓ TAREAS: headers sincronizados (' + agregadas + ' celdas escritas). Total columnas: ' + headersDeseados.length);
 }
 
 // ── internos ──────────────────────────────────────────────────

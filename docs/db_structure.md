@@ -48,6 +48,12 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | K | avance_pct | entero 0–100 | |
 | L | orden | entero | orden de visualización |
 | M–P | fecha_creacion · fecha_modificacion · creado_por · modificado_por | auditoría | |
+| Q | area | lista | CAT_AREAS (Ecom/InfraCommerce/PIM). Equipo que ejecuta ≠ responsable *(S6)* |
+| R | tienda | lista | CAT_TIENDAS (Sporting/Woker/B2B) *(S6)* |
+| S | url_jira | URL | enlace Jira Infracommerce (cuando area = InfraCommerce) *(S6)* |
+| T | url_gitlab | URL | enlace GitLab PIM (cuando area = PIM) *(S6)* |
+| U | url_figma_prototipo | URL | prototipo Figma (maquetación) *(S6)* |
+| V | url_figma_editable | URL | editable Figma (maquetación) *(S6)* |
 
 `vencida` se calcula al servir (estado no cerrado + `fecha_limite < hoy`).
 
@@ -108,3 +114,5 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 | estado | TAREAS | `=CAT_ESTADOS_TAREA!A:A` |
 | tipo | TAREAS | `=CAT_TIPOS_TAREA!A:A` |
 | sitio | PROYECTOS | `=CAT_SITIOS!A:A` |
+| area | TAREAS | `=CAT_AREAS!A:A` |
+| tienda | TAREAS | `=CAT_TIENDAS!A:A` |

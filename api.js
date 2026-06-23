@@ -147,6 +147,7 @@ async function _mockCall(action, p) {
       return {
         estados_proyecto: ESTADOS_PROYECTO, estados_tarea: ESTADOS_TAREA,
         tipos_tarea: TIPOS_TAREA, prioridades: PRIORIDADES, sitios: SITIOS,
+        areas: AREAS, tiendas: TIENDAS,
         responsables: [],
       };
 

@@ -43,6 +43,13 @@ function createTarea_(params, user) {
   const fechaLimite = optionalDate_(params.fecha_limite, 'fecha_limite');
   const avance = params.avance_pct !== undefined ? _clampPct_(params.avance_pct) : 0;
   const orden  = params.orden !== undefined ? (parseInt(params.orden, 10) || 0) : 0;
+  // S6: dimensiones y enlaces externos.
+  const area    = optionalEnum_(params.area, 'area', AREAS, '');
+  const tienda  = optionalEnum_(params.tienda, 'tienda', TIENDAS, '');
+  const urlJira    = optionalUrl_(params.url_jira, 'url_jira');
+  const urlGitlab  = optionalUrl_(params.url_gitlab, 'url_gitlab');
+  const urlFigmaP  = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
+  const urlFigmaE  = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
 
   const sheet = getSheet_(SHEETS.TAREAS);
   const id = getNextId_(sheet);
@@ -52,6 +59,7 @@ function createTarea_(params, user) {
   sheet.appendRow([
     id, idProyecto, titulo, descripcion, tipo, estado, prioridad, responsable,
     fechaInicio, fechaLimite, avance, orden, now, now, email, email,
+    area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
   return { ok: true, data: { id: id } };
@@ -78,6 +86,13 @@ function updateTarea_(params, user) {
   if (params.fecha_limite !== undefined) updates.fecha_limite = optionalDate_(params.fecha_limite, 'fecha_limite');
   if (params.avance_pct !== undefined)  updates.avance_pct = _clampPct_(params.avance_pct);
   if (params.orden !== undefined)       updates.orden = parseInt(params.orden, 10) || 0;
+  // S6: dimensiones y enlaces externos.
+  if (params.area !== undefined)        updates.area = params.area ? validateEnum_(params.area, 'area', AREAS) : '';
+  if (params.tienda !== undefined)      updates.tienda = params.tienda ? validateEnum_(params.tienda, 'tienda', TIENDAS) : '';
+  if (params.url_jira !== undefined)            updates.url_jira = optionalUrl_(params.url_jira, 'url_jira');
+  if (params.url_gitlab !== undefined)          updates.url_gitlab = optionalUrl_(params.url_gitlab, 'url_gitlab');
+  if (params.url_figma_prototipo !== undefined) updates.url_figma_prototipo = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
+  if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
 
   Object.keys(updates).forEach(function(campo) {
     const anterior = actual[campo];

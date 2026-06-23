@@ -58,8 +58,12 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S2 — Comentarios + Historial | ✅ Backend + Frontend (validado en modo demo) |
 | S3 — Adjuntos (Drive) | ✅ Backend + Frontend (validado en modo demo) |
 | S4 — Seguimiento + Reportes | ✅ Frontend (agrega sobre datos existentes, validado en demo) |
-| S5 — Migración activos Jira | Pendiente |
-| S6 — Pulido | Pendiente |
+| S5 — Migración activos Jira | ✅ Migrados 37 proyectos + 456 tareas |
+| S6 — Tarea: área, tienda, enlaces externos | ✅ Backend + Frontend (validado en demo) |
+| S7 — Gestión de usuarios y roles | Pendiente |
+| S8 — Checklists + racionalización de tipos | Pendiente |
+| S9 — Vista Gantt | Pendiente |
+| S10 — Pulido (front, estructura, UX) | Pendiente |
 
 Plan completo y decisiones: ver `CLAUDE.md` y la planificación aprobada.
 
