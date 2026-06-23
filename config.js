@@ -9,9 +9,9 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.6.0',
+  number: '1.6.1',
   date:   '2026-06-23',
-  notes:  'Sprint 10 — Pulido: filtros área/tienda, reportes por área/tienda, quick-create global.',
+  notes:  'Tareas: búsqueda de texto, sort por columna, barra de avance, filtro responsable, Escape cierra modal.',
 };
 
 /* ─── DOMINIOS (espejo de apps-script/Config.gs) ──────────── */
