@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usuarios — Project Control Center</title>
+  <title>Configuración — Project Control Center</title>
   <script>(function(){var t=localStorage.getItem('pcc_theme')==='dark'?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
   <link rel="stylesheet" href="../../src/css/main.css" />
 </head>
@@ -28,7 +28,7 @@
         <a class="nav-item" href="../seguimiento/seguimiento.html"><span class="nav-icon">◎</span> Seguimiento</a>
         <a class="nav-item" href="../reportes/reportes.html"><span class="nav-icon">▤</span> Reportes</a>
         <a class="nav-item" href="../gantt/gantt.html"><span class="nav-icon">▦</span> Gantt</a>
-        <a class="nav-item active admin-only" href="usuarios.html"><span class="nav-icon">⚇</span> Usuarios</a>
+        <a class="nav-item active admin-only" href="usuarios.html"><span class="nav-icon">⚙</span> Configuración</a>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="sidebar-footer">
@@ -38,44 +38,120 @@
 
     <div class="content-area">
       <header class="topbar">
-        <div class="topbar-copy"><p class="eyebrow">Administración</p><h1>Usuarios</h1></div>
+        <div class="topbar-copy">
+          <p class="eyebrow">Administración</p><h1>Configuración</h1>
+          <p style="font-size:12px;color:var(--muted);margin-top:3px">Gestión de usuarios, permisos y configuración del sistema</p>
+        </div>
         <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
       </header>
 
       <main class="container">
-        <section class="panel">
-          <div class="toolbar">
-            <input type="search" id="q" placeholder="Buscar usuario…" style="max-width:260px" oninput="render()" />
-            <span class="spacer"></span>
-            <button class="sm admin-only" onclick="openModal()">+ Nuevo usuario</button>
-          </div>
-          <div id="statusBar" class="status-bar">Cargando…</div>
-          <div class="table-wrap" style="margin-top:12px">
-            <table>
-              <thead><tr>
-                <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th>
-                <th>Último acceso</th><th style="text-align:right">Acciones</th>
-              </tr></thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-        </section>
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-btn-usuarios" onclick="_showTab('usuarios')">Usuarios</button>
+          <button class="tab-btn" id="tab-btn-roles" onclick="_showTab('roles')">Roles y permisos</button>
+          <button class="tab-btn" id="tab-btn-conexion" onclick="_showTab('conexion')">Conexión al Google Sheet</button>
+        </div>
 
-        <section class="panel admin-only" style="margin-top:16px">
-          <div class="toolbar">
-            <h3 style="margin:0;font-size:15px">Permisos por módulo — Agente</h3>
-            <span class="spacer"></span>
-            <button class="sm admin-only" id="permSave" onclick="savePermisos()">Guardar permisos</button>
-          </div>
-          <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Qué módulos puede <b>ver</b> el rol Agente. El Admin siempre ve y edita todo.</p>
-          <div id="permStatus" class="status-bar">Cargando…</div>
-          <div class="table-wrap" style="margin-top:12px">
-            <table>
-              <thead><tr><th>Módulo</th><th style="text-align:center;width:90px">Ver</th></tr></thead>
-              <tbody id="permBody"></tbody>
-            </table>
-          </div>
-        </section>
+        <!-- ══ TAB: USUARIOS ══════════════════════════════════ -->
+        <div id="tab-usuarios" class="tab-panel">
+          <section class="panel">
+            <div class="toolbar">
+              <input type="search" id="q" placeholder="Buscar usuario…" style="max-width:260px" oninput="render()" />
+              <span class="spacer"></span>
+              <button class="sm admin-only" onclick="openModal()">+ Nuevo usuario</button>
+            </div>
+            <div id="statusBar" class="status-bar">Cargando…</div>
+            <div class="table-wrap" style="margin-top:12px">
+              <table>
+                <thead><tr>
+                  <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th>
+                  <th>Último acceso</th><th style="text-align:right">Acciones</th>
+                </tr></thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- ══ TAB: ROLES Y PERMISOS ══════════════════════════ -->
+        <div id="tab-roles" class="tab-panel" hidden>
+          <section class="panel">
+            <div class="toolbar">
+              <h3 style="margin:0;font-size:15px">Roles del sistema</h3>
+              <span class="spacer"></span>
+              <button class="sm admin-only" onclick="openRolForm()">+ Nuevo rol</button>
+            </div>
+            <div id="rolesStatus" class="status-bar">Cargando…</div>
+            <div class="table-wrap" style="margin-top:12px">
+              <table>
+                <thead><tr>
+                  <th>Rol</th><th>Tipo</th><th>Estado</th><th style="text-align:right">Acciones</th>
+                </tr></thead>
+                <tbody id="rolesBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel" id="permisosPanel" style="display:none">
+            <div class="toolbar">
+              <h3 style="margin:0;font-size:15px" id="permisosTitle">Permisos</h3>
+              <span class="spacer"></span>
+              <button class="sm admin-only" id="permSave" onclick="savePermisosMatrix()">Guardar permisos</button>
+            </div>
+            <p class="muted" style="font-size:12.5px;margin:0 0 10px">Definí el acceso de este rol a cada módulo.</p>
+            <div id="permStatus" class="status-bar" hidden></div>
+            <div class="table-wrap" style="margin-top:12px">
+              <table>
+                <thead><tr>
+                  <th>Módulo</th>
+                  <th style="text-align:center;width:110px">Oculto</th>
+                  <th style="text-align:center;width:110px">Solo ver</th>
+                  <th style="text-align:center;width:120px">Ver + editar</th>
+                </tr></thead>
+                <tbody id="permBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- ══ TAB: CONEXIÓN ══════════════════════════════════ -->
+        <div id="tab-conexion" class="tab-panel" hidden>
+          <section class="panel">
+            <h3 style="margin:0 0 14px;font-size:15px">Conexión al Google Sheet</h3>
+            <div class="field">
+              <label>URL del Web App</label>
+              <input id="cfg-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+              <span class="muted" style="font-size:12px">Opcional. Si se deja vacío, se usa la URL configurada por defecto en el proyecto.</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="sm" onclick="saveConexion()">Guardar configuración</button>
+              <button class="secondary sm" onclick="testConexion()">Probar conexión</button>
+            </div>
+            <div id="cfg-status" class="status-bar" style="margin-top:12px" hidden></div>
+          </section>
+
+          <section class="panel">
+            <h3 style="margin:0 0 14px;font-size:15px">Estado de la conexión</h3>
+            <div class="table-wrap">
+              <table style="min-width:0">
+                <tbody>
+                  <tr><td>Fuente de datos</td><td class="mono" id="cfg-source" style="text-align:right">—</td></tr>
+                  <tr><td>URL activa</td><td class="mono" id="cfg-active-url" style="text-align:right">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3 style="margin:0 0 10px;font-size:15px">Estructura del Google Sheet requerida</h3>
+            <p class="muted" style="font-size:12.5px;margin:0">
+              Hojas necesarias:
+              <span class="mono">PROYECTOS · TAREAS · COMENTARIOS · ADJUNTOS · CHECKLIST · HISTORIAL · USUARIOS · ROLES · PERMISOS_MODULOS · SESIONES · CONFIG</span>.
+              Ejecutá <span class="mono">setupAll()</span> en Apps Script para crearlas.
+            </p>
+          </section>
+        </div>
       </main>
     </div>
   </div>
@@ -86,9 +162,49 @@
   <script src="../../auth.js"></script>
   <script src="../../api.js"></script>
   <script>
+    /* ─── Estado compartido ────────────────────────────────── */
+    const PERM_MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
+    const MODULO_LABELS = { proyectos: 'Proyectos', tareas: 'Tareas', seguimiento: 'Seguimiento', reportes: 'Reportes', gantt: 'Gantt' };
+    let _rolesData = [];
     let _editId = null;
-    const ROLES = [{ id: 1, nombre: 'Admin' }, { id: 2, nombre: 'Agente' }];
+    let _editRolId = null;
+    let _permRolId = null;
 
+    /* ─── Tabs ─────────────────────────────────────────────── */
+    function _showTab(tab) {
+      ['usuarios', 'roles', 'conexion'].forEach(function (t) {
+        const panel = document.getElementById('tab-' + t);
+        const btn = document.getElementById('tab-btn-' + t);
+        if (panel) panel.hidden = (t !== tab);
+        if (btn) btn.classList.toggle('active', t === tab);
+      });
+      if (tab === 'conexion') renderConexion();
+    }
+
+    /* ─── Roles (lista compartida) ─────────────────────────── */
+    function _rolNombre(idRol) {
+      const r = _rolesData.filter(function (x) { return Number(x.id) === Number(idRol); })[0];
+      return r ? r.nombre : ('Rol ' + idRol);
+    }
+
+    function _populateRolSelect(selectEl, selectedId) {
+      if (!selectEl) return;
+      const activos = _rolesData.filter(function (r) { return String(r.activo) !== 'NO'; });
+      selectEl.innerHTML = activos.map(function (r) {
+        return '<option value="' + r.id + '"' + (Number(selectedId) === Number(r.id) ? ' selected' : '') + '>' + escapeHtml(r.nombre) + '</option>';
+      }).join('');
+    }
+
+    async function loadRoles() {
+      setStatus('rolesStatus', 'Cargando…', 'info');
+      try {
+        _rolesData = await apiGetRoles();
+        renderRolesTable();
+        setStatus('rolesStatus', _rolesData.length + ' rol' + (_rolesData.length !== 1 ? 'es' : '') + '.', 'success');
+      } catch (e) { setStatus('rolesStatus', 'Error: ' + e.message, 'error'); }
+    }
+
+    /* ─── USUARIOS ─────────────────────────────────────────── */
     async function load() {
       setStatus('statusBar', 'Cargando…', 'info');
       try {
@@ -105,11 +221,6 @@
       });
     }
 
-    function rolNombre(idRol) {
-      const r = ROLES.filter(function (x) { return x.id === Number(idRol); })[0];
-      return r ? r.nombre : '—';
-    }
-
     function render() {
       const rows = filtered();
       const tb = document.getElementById('tbody');
@@ -120,7 +231,7 @@
         return '<tr>' +
           '<td><b>' + escapeHtml(u.nombre || '—') + '</b></td>' +
           '<td>' + escapeHtml(u.email || '—') + '</td>' +
-          '<td><span class="badge ' + rolCls + '">' + escapeHtml(rolNombre(u.id_rol)) + '</span></td>' +
+          '<td><span class="badge ' + rolCls + '">' + escapeHtml(_rolNombre(u.id_rol)) + '</span></td>' +
           '<td>' + (activo ? '<span class="badge st-done">Activo</span>' : '<span class="badge st-cancel">Inactivo</span>') + '</td>' +
           '<td class="mono">' + (u.ultimo_acceso ? fmtDate(u.ultimo_acceso) : '—') + '</td>' +
           '<td class="row-actions">' +
@@ -134,19 +245,19 @@
     function openModal(id) {
       _editId = id || null;
       const u = id ? (STATE.usuarios || []).filter(function (x) { return Number(x.id) === Number(id); })[0] : {};
-      const opt = ROLES.map(function (r) { return '<option value="' + r.id + '"' + (Number(u.id_rol) === r.id ? ' selected' : '') + '>' + r.nombre + '</option>'; }).join('');
       document.getElementById('modals').innerHTML =
         '<div class="modal-overlay"><div class="modal" style="max-width:420px"><h3>' + (id ? 'Editar' : 'Nuevo') + ' usuario</h3>' +
         '<div class="field"><label>Nombre *</label><input id="m_nombre" value="' + escapeHtml(u.nombre || '') + '"></div>' +
         '<div class="field"><label>Email *</label><input id="m_email" type="email" value="' + escapeHtml(u.email || '') + '"></div>' +
         '<div class="field-row">' +
-          '<div class="field"><label>Rol</label><select id="m_rol">' + opt + '</select></div>' +
+          '<div class="field"><label>Rol</label><select id="m_rol"></select></div>' +
           '<div class="field"><label>Estado</label><select id="m_activo"><option value="SI"' + (String(u.activo) !== 'NO' ? ' selected' : '') + '>Activo</option><option value="NO"' + (String(u.activo) === 'NO' ? ' selected' : '') + '>Inactivo</option></select></div>' +
         '</div>' +
         '<div class="field"><label>' + (id ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *') + '</label><input id="m_pass" type="password" autocomplete="new-password" placeholder="' + (id ? '••••••' : 'Mínimo 6 caracteres') + '"></div>' +
         '<div id="m_err" class="status-bar error" hidden></div>' +
         '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancelar</button>' +
         '<button id="m_save" onclick="save()">Guardar</button></div></div></div>';
+      _populateRolSelect(document.getElementById('m_rol'), u.id_rol || 2);
     }
 
     function closeModal() { document.getElementById('modals').innerHTML = ''; }
@@ -187,42 +298,160 @@
       catch (e) { toast('✕', e.message, 'error'); }
     }
 
-    /* ─── PERMISOS POR MÓDULO ─────────────────────────────── */
-    const PERM_MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
-    const MODULO_LABELS = { proyectos: 'Proyectos', tareas: 'Tareas', seguimiento: 'Seguimiento', reportes: 'Reportes', gantt: 'Gantt' };
-    const ROL_AGENTE_ID = 2;
-
-    async function loadPermisos() {
-      setStatus('permStatus', 'Cargando…', 'info');
-      try {
-        const rows = await apiGetPermisos();
-        const idx = {};
-        rows.forEach(function (r) { if (Number(r.id_rol) === ROL_AGENTE_ID) idx[r.modulo] = String(r.puede_ver) === 'SI'; });
-        document.getElementById('permBody').innerHTML = PERM_MODULOS.map(function (m) {
-          const on = idx[m] !== false; // por defecto: ve
-          return '<tr><td>' + escapeHtml(MODULO_LABELS[m] || m) + '</td>' +
-            '<td style="text-align:center"><input type="checkbox" data-mod="' + m + '"' + (on ? ' checked' : '') + '></td></tr>';
-        }).join('');
-        setStatus('permStatus', 'Permisos del Agente.', 'success');
-      } catch (e) { setStatus('permStatus', 'Error: ' + e.message, 'error'); }
+    /* ─── ROLES (tabla + CRUD) ─────────────────────────────── */
+    function renderRolesTable() {
+      const tb = document.getElementById('rolesBody');
+      if (!_rolesData.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-row">Sin roles</td></tr>'; return; }
+      tb.innerHTML = _rolesData.map(function (r) {
+        const sistema = String(r.es_sistema) === 'SI';
+        const activo = String(r.activo) !== 'NO';
+        const tipo = sistema ? '<span class="badge st-analysis">Sistema</span>' : '<span class="badge st-todo">Personalizado</span>';
+        const estado = activo ? '<span class="badge st-done">Activo</span>' : '<span class="badge st-cancel">Inactivo</span>';
+        let acciones = '<button class="secondary sm admin-only" onclick="selectRolForPermisos(' + r.id + ')">Permisos</button>';
+        if (!sistema) {
+          acciones += '<button class="secondary sm admin-only" onclick="openRolForm(' + r.id + ')">Editar</button>' +
+            '<button class="' + (activo ? 'danger' : 'secondary') + ' sm admin-only" onclick="toggleRolActivo(' + r.id + ')">' + (activo ? 'Desactivar' : 'Activar') + '</button>';
+        }
+        return '<tr>' +
+          '<td><b>' + escapeHtml(r.nombre) + '</b></td>' +
+          '<td>' + tipo + '</td>' +
+          '<td>' + estado + '</td>' +
+          '<td class="row-actions">' + acciones + '</td></tr>';
+      }).join('');
+      restrictWriteIfAgent();
     }
 
-    async function savePermisos() {
-      const boxes = document.querySelectorAll('#permBody input[type=checkbox]');
+    function openRolForm(id) {
+      _editRolId = id || null;
+      const r = id ? _rolesData.filter(function (x) { return Number(x.id) === Number(id); })[0] : {};
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal" style="max-width:420px"><h3>' + (id ? 'Editar' : 'Nuevo') + ' rol</h3>' +
+        '<div class="field"><label>Nombre *</label><input id="r_nombre" value="' + escapeHtml(r.nombre || '') + '" placeholder="Ej: Líder de proyecto"></div>' +
+        '<div class="field"><label>Descripción</label><input id="r_desc" value="' + escapeHtml(r.descripcion || '') + '" placeholder="Opcional"></div>' +
+        '<div id="r_err" class="status-bar error" hidden></div>' +
+        '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancelar</button>' +
+        '<button id="r_save" onclick="saveRol()">Guardar</button></div></div></div>';
+    }
+
+    async function saveRol() {
+      const nombre = document.getElementById('r_nombre').value.trim();
+      const desc = document.getElementById('r_desc').value.trim();
+      const err = document.getElementById('r_err');
+      const show = function (m) { err.textContent = m; err.hidden = false; };
+      err.hidden = true;
+      if (!nombre) return show('El nombre del rol es obligatorio.');
+      const btn = document.getElementById('r_save'); btn.disabled = true;
+      try {
+        if (_editRolId) await apiUpdateRol({ id: _editRolId, nombre: nombre, descripcion: desc });
+        else await apiCreateRol({ nombre: nombre, descripcion: desc });
+        closeModal(); toast('✓', _editRolId ? 'Rol actualizado' : 'Rol creado', 'success');
+        await loadRoles();
+        if (document.getElementById('m_rol')) _populateRolSelect(document.getElementById('m_rol'));
+      } catch (e) { btn.disabled = false; show(e.message); }
+    }
+
+    async function toggleRolActivo(id) {
+      const r = _rolesData.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      if (!r) return;
+      const nuevo = String(r.activo) === 'SI' ? 'NO' : 'SI';
+      if (!confirm('¿' + (nuevo === 'NO' ? 'Desactivar' : 'Activar') + ' el rol "' + r.nombre + '"?')) return;
+      try { await apiUpdateRol({ id: id, activo: nuevo }); toast('✓', 'Rol actualizado', 'success'); await loadRoles(); }
+      catch (e) { toast('✕', e.message, 'error'); }
+    }
+
+    /* ─── MATRIZ DE PERMISOS (3 estados) ───────────────────── */
+    async function selectRolForPermisos(idRol) {
+      _permRolId = idRol;
+      const rol = _rolesData.filter(function (x) { return Number(x.id) === Number(idRol); })[0];
+      const sistema = rol && String(rol.es_sistema) === 'SI';
+      document.getElementById('permisosPanel').style.display = '';
+      document.getElementById('permisosTitle').textContent = 'Permisos — ' + (rol ? rol.nombre : '');
+      document.getElementById('permSave').style.display = sistema ? 'none' : '';
+      document.getElementById('permStatus').hidden = true;
+      const tb = document.getElementById('permBody');
+      tb.innerHTML = '<tr><td colspan="4" class="empty-row">Cargando…</td></tr>';
+      document.getElementById('permisosPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      let permisos = {};
+      if (sistema) {
+        PERM_MODULOS.forEach(function (m) { permisos[m] = { ver: true, editar: true }; });
+      } else {
+        try {
+          const rows = await apiGetPermisos();
+          rows.forEach(function (r) {
+            if (Number(r.id_rol) === Number(idRol)) permisos[r.modulo] = { ver: String(r.puede_ver) === 'SI', editar: String(r.puede_editar) === 'SI' };
+          });
+        } catch (e) {
+          tb.innerHTML = '<tr><td colspan="4" class="empty-row" style="color:var(--danger)">Error: ' + escapeHtml(e.message) + '</td></tr>';
+          return;
+        }
+      }
+
+      tb.innerHTML = PERM_MODULOS.map(function (m) {
+        const p = permisos[m] || { ver: false, editar: false };
+        const estado = p.editar ? 'editar' : (p.ver ? 'ver' : 'oculto');
+        const dis = sistema ? ' disabled' : '';
+        const radio = function (val) {
+          return '<input type="radio" name="perm-' + m + '" value="' + val + '"' + (estado === val ? ' checked' : '') + dis + '>';
+        };
+        return '<tr><td>' + escapeHtml(MODULO_LABELS[m] || m) + '</td>' +
+          '<td style="text-align:center">' + radio('oculto') + '</td>' +
+          '<td style="text-align:center">' + radio('ver') + '</td>' +
+          '<td style="text-align:center">' + radio('editar') + '</td></tr>';
+      }).join('');
+    }
+
+    async function savePermisosMatrix() {
+      if (!_permRolId) return;
+      const MAP = { oculto: { ver: 'NO', editar: 'NO' }, ver: { ver: 'SI', editar: 'NO' }, editar: { ver: 'SI', editar: 'SI' } };
       const btn = document.getElementById('permSave'); btn.disabled = true;
+      const stEl = document.getElementById('permStatus'); stEl.hidden = false;
       setStatus('permStatus', 'Guardando…', 'info');
       try {
-        for (const cb of boxes) {
-          await apiUpdatePermisos({ id_rol: ROL_AGENTE_ID, modulo: cb.getAttribute('data-mod'), puede_ver: cb.checked ? 'SI' : 'NO' });
+        for (const m of PERM_MODULOS) {
+          const sel = document.querySelector('input[name="perm-' + m + '"]:checked');
+          const est = sel ? sel.value : 'oculto';
+          const v = MAP[est] || MAP.oculto;
+          await apiUpdatePermisos({ id_rol: _permRolId, modulo: m, puede_ver: v.ver, puede_editar: v.editar });
         }
         setStatus('permStatus', '✓ Permisos guardados.', 'success');
         toast('✓', 'Permisos actualizados', 'success');
-      } catch (e) { setStatus('permStatus', 'Error: ' + e.message, 'error'); btn.disabled = false; return; }
+      } catch (e) { setStatus('permStatus', 'Error: ' + e.message, 'error'); }
       btn.disabled = false;
     }
 
+    /* ─── CONEXIÓN ─────────────────────────────────────────── */
+    function renderConexion() {
+      const mock = CFG.isMock();
+      const input = document.getElementById('cfg-url');
+      if (input && !input.value) input.value = localStorage.getItem('pcc_api_url') || '';
+      document.getElementById('cfg-source').textContent = mock ? 'Datos locales (demo)' : 'Apps Script (Google Sheets)';
+      const url = CFG.apiUrl || '';
+      document.getElementById('cfg-active-url').textContent = url ? (url.slice(0, 42) + '…') : '—';
+    }
+
+    function saveConexion() {
+      const v = document.getElementById('cfg-url').value.trim();
+      CFG.apiUrl = v;  // setter: vacío → remueve override
+      toast('✓', v ? 'URL guardada' : 'Override eliminado (se usa la URL por defecto)', 'success');
+      renderConexion();
+    }
+
+    async function testConexion() {
+      const st = document.getElementById('cfg-status');
+      st.hidden = false; st.className = 'status-bar info'; st.textContent = 'Probando…';
+      if (CFG.isMock()) { st.className = 'status-bar warning'; st.textContent = 'Modo demo: no hay backend que probar.'; return; }
+      try {
+        const r = await callApiRaw('checkSetup');
+        st.className = 'status-bar success';
+        st.textContent = '✓ Conexión OK. ' + (r && r.usuarios_configured ? 'Usuarios configurados.' : 'Sin usuarios — ejecutá setupAll().');
+      } catch (e) { st.className = 'status-bar error'; st.textContent = 'Error: ' + e.message; }
+    }
+
+    /* ─── Init ─────────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', function () {
-      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent(); load(); loadPermisos();
+      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent();
+      loadRoles().then(load);  // roles antes que usuarios (para mostrar nombres de rol)
     });
   </script>
 </body>

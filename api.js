@@ -111,6 +111,10 @@ function apiUpdateUsuario(d)     { return callApiRaw('updateUsuario', d); }
 function apiGetPermisos()        { return callApiRaw('getPermisos'); }
 function apiUpdatePermisos(d)    { return callApiRaw('updatePermisos', d); }
 
+function apiGetRoles()           { return callApiRaw('getRoles'); }
+function apiCreateRol(d)         { return callApiRaw('createRol', d); }
+function apiUpdateRol(d)         { return callApiRaw('updateRol', d); }
+
 /* ─── SELECTOR DE RESPONSABLE (usuarios reales) ──────────── */
 // El responsable se guarda como nombre (string), compatible con datos migrados.
 let _usuariosBasico = null;
@@ -144,6 +148,7 @@ function responsableOptions(current) {
 
 let _mock = null;
 let _mockPermisos = null;
+let _mockRoles = null;
 
 async function _mockLoad() {
   if (_mock) return _mock;
@@ -172,6 +177,22 @@ function _assetBase() {
 }
 
 function _today() { return new Date().toISOString().slice(0, 10); }
+
+// Roles demo: Administrador (sistema) + Agente (personalizado).
+function _mockRolesInit() {
+  if (_mockRoles) return;
+  _mockRoles = [
+    { id: 1, nombre: 'Administrador', descripcion: 'Acceso total. Rol del sistema.', activo: 'SI', es_sistema: 'SI' },
+    { id: 2, nombre: 'Agente',        descripcion: 'Ve todos los módulos, sin edición.', activo: 'SI', es_sistema: 'NO' },
+  ];
+}
+
+// Permisos demo del rol Agente (id=2): ve todo, no edita.
+function _mockPermisosInit() {
+  if (_mockPermisos) return;
+  const mods = (typeof MODULOS_FRONT !== 'undefined') ? MODULOS_FRONT : [];
+  _mockPermisos = mods.map(function (m) { return { id_rol: 2, modulo: m, puede_ver: 'SI', puede_editar: 'NO' }; });
+}
 
 function _mockAvance(pid) {
   const ts = _mock.tareas.filter(function (t) { return Number(t.id_proyecto) === Number(pid) && t.estado !== 'Cancelada'; });
@@ -343,31 +364,62 @@ async function _mockCall(action, p) {
     }
     case 'createUsuario': {
       const id = Math.max(0, ...(_mock.usuarios.map(function (u) { return Number(u.id); }))) + 1;
-      const rol = Number(p.id_rol) === 1 ? 'Admin' : 'Agente';
-      _mock.usuarios.push({ id: id, nombre: p.nombre, email: (p.email || '').toLowerCase(), id_rol: Number(p.id_rol) || 2, nombre_rol: rol, activo: 'SI', fecha_creacion: new Date().toISOString(), ultimo_acceso: '' });
+      _mockRolesInit();
+      const r = _mockRoles.filter(function (x) { return Number(x.id) === Number(p.id_rol); })[0];
+      _mock.usuarios.push({ id: id, nombre: p.nombre, email: (p.email || '').toLowerCase(), id_rol: Number(p.id_rol) || 2, nombre_rol: r ? r.nombre : 'Rol ' + p.id_rol, activo: 'SI', fecha_creacion: new Date().toISOString(), ultimo_acceso: '' });
       return { id: id };
     }
     case 'updateUsuario': {
       const u = _mock.usuarios.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
       if (!u) throw new Error('Usuario no encontrado');
+      _mockRolesInit();
       if (p.nombre !== undefined) u.nombre = p.nombre;
       if (p.email !== undefined) u.email = (p.email || '').toLowerCase();
-      if (p.id_rol !== undefined) { u.id_rol = Number(p.id_rol); u.nombre_rol = u.id_rol === 1 ? 'Admin' : 'Agente'; }
+      if (p.id_rol !== undefined) {
+        u.id_rol = Number(p.id_rol);
+        const r = _mockRoles.filter(function (x) { return Number(x.id) === u.id_rol; })[0];
+        u.nombre_rol = r ? r.nombre : 'Rol ' + u.id_rol;
+      }
       if (p.activo !== undefined) u.activo = p.activo === 'SI' ? 'SI' : 'NO';
       return { id: u.id };
     }
 
-    case 'getPermisos': {
+    case 'getRoles': {
+      _mockRolesInit();
+      return _mockRoles.map(function (r) { return Object.assign({}, r); });
+    }
+    case 'createRol': {
+      _mockRolesInit();
+      const id = Math.max(0, ...(_mockRoles.map(function (r) { return Number(r.id); }))) + 1;
+      _mockRoles.push({ id: id, nombre: p.nombre, descripcion: p.descripcion || 'Rol personalizado.', activo: 'SI', es_sistema: 'NO' });
       const mods = (typeof MODULOS_FRONT !== 'undefined') ? MODULOS_FRONT : [];
-      if (!_mockPermisos) _mockPermisos = mods.map(function (m) { return { id_rol: 2, modulo: m, puede_ver: 'SI', puede_editar: 'NO' }; });
+      if (!_mockPermisos) _mockPermisos = [];
+      mods.forEach(function (m) { _mockPermisos.push({ id_rol: id, modulo: m, puede_ver: 'NO', puede_editar: 'NO' }); });
+      return { id: id };
+    }
+    case 'updateRol': {
+      _mockRolesInit();
+      const r = _mockRoles.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
+      if (!r) throw new Error('Rol no encontrado');
+      if (String(r.es_sistema) === 'SI') throw new Error('El rol del sistema no se puede modificar');
+      if (p.nombre !== undefined) r.nombre = p.nombre;
+      if (p.descripcion !== undefined) r.descripcion = p.descripcion;
+      if (p.activo !== undefined) r.activo = p.activo === 'SI' ? 'SI' : 'NO';
+      return { id: r.id };
+    }
+
+    case 'getPermisos': {
+      _mockPermisosInit();
       return _mockPermisos.map(function (r) { return Object.assign({}, r); });
     }
     case 'updatePermisos': {
-      if (!_mockPermisos) _mockPermisos = [];
-      const v = (p.puede_ver === 'SI' || p.puede_ver === true) ? 'SI' : 'NO';
+      _mockPermisosInit();
+      let ver = (p.puede_ver === 'SI' || p.puede_ver === true) ? 'SI' : 'NO';
+      let edt = (p.puede_editar === 'SI' || p.puede_editar === true) ? 'SI' : 'NO';
+      if (ver === 'NO') edt = 'NO';
       const row = _mockPermisos.filter(function (r) { return Number(r.id_rol) === Number(p.id_rol) && r.modulo === p.modulo; })[0];
-      if (row) row.puede_ver = v;
-      else _mockPermisos.push({ id_rol: Number(p.id_rol), modulo: p.modulo, puede_ver: v, puede_editar: 'NO' });
+      if (row) { row.puede_ver = ver; row.puede_editar = edt; }
+      else _mockPermisos.push({ id_rol: Number(p.id_rol), modulo: p.modulo, puede_ver: ver, puede_editar: edt });
       return { ok: true };
     }
 

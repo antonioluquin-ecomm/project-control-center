@@ -36,13 +36,16 @@ function getPermisos_() {
 }
 
 // ── ACTUALIZAR (admin) ────────────────────────────────────────
-// Solo se pueden modificar los permisos del Agente (no los del Admin).
+// Persiste puede_ver Y puede_editar de un módulo para un rol personalizado.
+// Bloquea los roles de sistema (Administrador). Coherencia: ver=NO ⇒ editar=NO.
 function updatePermisos_(params, user) {
   const idRol  = Number(params.id_rol);
   const modulo = String(params.modulo || '');
-  const puedeVer = (params.puede_ver === 'SI' || params.puede_ver === true) ? 'SI' : 'NO';
+  let puedeVer = (params.puede_ver === 'SI' || params.puede_ver === true) ? 'SI' : 'NO';
+  let puedeEdt = (params.puede_editar === 'SI' || params.puede_editar === true) ? 'SI' : 'NO';
+  if (puedeVer === 'NO') puedeEdt = 'NO';  // no se puede editar lo que no se ve
 
-  if (idRol === ROL_ADMIN) return { ok: false, error: 'El Admin tiene acceso total; no se configura', code: 403 };
+  if (_esRolSistema_(idRol)) return { ok: false, error: 'El Administrador tiene acceso total; no se configura', code: 403 };
   if (MODULOS.indexOf(modulo) === -1) return { ok: false, error: 'Módulo inválido: ' + modulo, code: 400 };
 
   const sheet = getSheet_(SHEETS.PERMISOS_MODULOS);
@@ -51,16 +54,18 @@ function updatePermisos_(params, user) {
   const idxRol = h.indexOf('id_rol');
   const idxMod = h.indexOf('modulo');
   const idxVer = h.indexOf('puede_ver');
+  const idxEdt = h.indexOf('puede_editar');
 
   for (let i = 1; i < data.length; i++) {
     if (Number(data[i][idxRol]) === idRol && String(data[i][idxMod]) === modulo) {
       sheet.getRange(i + 1, idxVer + 1).setValue(puedeVer);
-      writeLog_('updatePermisos', 'PERMISOS_MODULOS', modulo, 'OK', puedeVer, user && user.email);
+      sheet.getRange(i + 1, idxEdt + 1).setValue(puedeEdt);
+      writeLog_('updatePermisos', 'PERMISOS_MODULOS', modulo, 'OK', puedeVer + '/' + puedeEdt, user && user.email);
       return { ok: true };
     }
   }
   // No existía la fila → crearla (rol/módulo nuevo).
-  sheet.appendRow([idRol, modulo, puedeVer, 'NO']);
-  writeLog_('updatePermisos', 'PERMISOS_MODULOS', modulo, 'OK', puedeVer, user && user.email);
+  sheet.appendRow([idRol, modulo, puedeVer, puedeEdt]);
+  writeLog_('updatePermisos', 'PERMISOS_MODULOS', modulo, 'OK', puedeVer + '/' + puedeEdt, user && user.email);
   return { ok: true };
 }

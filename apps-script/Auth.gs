@@ -22,17 +22,61 @@ function checkSetup_() {
 // ── ROLES ─────────────────────────────────────────────────────
 function getNombreRol_(idRol) {
   const sheet = getSpreadsheet_().getSheetByName(SHEETS.ROLES);
-  if (!sheet) return idRol === ROL_ADMIN ? 'Admin' : 'Agente';
+  if (!sheet) return idRol === ROL_ADMIN ? 'Administrador' : 'Rol ' + idRol;
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
     if (Number(data[i][0]) === Number(idRol)) return String(data[i][1]);
   }
-  return 'Agente';
+  return 'Rol ' + idRol;
 }
 
-// Lanza error si el usuario no es admin (router lo llama antes de escrituras).
+// Lee la fila del rol como objeto { id, nombre, descripcion, activo, es_sistema }.
+function _getRolRow_(idRol) {
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.ROLES);
+  if (!sheet) return null;
+  const data = sheet.getDataRange().getValues();
+  const h = data[0];
+  for (let i = 1; i < data.length; i++) {
+    if (Number(data[i][0]) === Number(idRol)) {
+      const o = {};
+      h.forEach(function(col, k) { o[col] = data[i][k]; });
+      return o;
+    }
+  }
+  return null;
+}
+
+// True si el rol es de sistema (Administrador). El id 1 siempre lo es.
+function _esRolSistema_(idRol) {
+  if (Number(idRol) === ROL_ADMIN) return true;
+  const r = _getRolRow_(idRol);
+  return !!r && String(r.es_sistema) === 'SI';
+}
+
+// True si el rol está activo (los de sistema siempre lo están).
+function _rolActivo_(idRol) {
+  if (_esRolSistema_(idRol)) return true;
+  const r = _getRolRow_(idRol);
+  return !!r && String(r.activo) !== 'NO';
+}
+
+// Lanza error si el usuario no es admin (router lo llama antes de escrituras de gestión).
 function requireAdmin_(user) {
   if (!user || Number(user.id_rol) !== ROL_ADMIN) {
+    const err = new Error('Sin permisos para esta operación');
+    err.code = 403;
+    throw err;
+  }
+}
+
+// Lanza error si el rol no puede editar ALGÚN módulo que gobierna la acción.
+// El Administrador siempre puede. (apps_script_standards §7.2 — enforcement por módulo)
+function requireModuleEdit_(user, action) {
+  if (user && Number(user.id_rol) === ROL_ADMIN) return;
+  const mods = ACTION_MODULE_MAP[action] || [];
+  const perm = (user && getPermisosForRol_(user.id_rol)) || {};
+  const puede = mods.some(function(m) { return perm[m] && perm[m].editar === true; });
+  if (!puede) {
     const err = new Error('Sin permisos para esta operación');
     err.code = 403;
     throw err;
@@ -80,6 +124,8 @@ function validateSessionToken_(sessionToken) {
           }
         }
       }
+
+      if (!_rolActivo_(rolActual)) return { ok: false, error: 'Rol desactivado. Contactá al administrador.' };
 
       return { ok: true, id_usuario: idUsuario, email: String(data[i][emlIdx]), id_rol: rolActual };
     }
@@ -129,6 +175,8 @@ function login_(body) {
   const userId = userRow[idIdx];
   const idRol  = Number(userRow[rolIdx]);
   const nombre = String(userRow[nomIdx]);
+
+  if (!_rolActivo_(idRol)) return { ok: false, error: 'Tu rol está desactivado. Contactá al administrador.', code: 403 };
 
   sheet.getRange(userRowNum, ultIdx + 1).setValue(new Date().toISOString());
 

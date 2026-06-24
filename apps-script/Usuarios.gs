@@ -28,6 +28,75 @@ function getUsuariosBasico_() {
   return { ok: true, data: usuarios };
 }
 
+// ============================================================
+// ROLES (gestión admin) — modelo flexible
+// ============================================================
+
+// ── LISTAR roles (admin) ──────────────────────────────────────
+function getRoles_() {
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.ROLES);
+  if (!sheet) return { ok: true, data: [] };
+  const roles = getAllRows_(SHEETS.ROLES, ROLES_COLS);
+  return { ok: true, data: roles };
+}
+
+// ── CREAR rol personalizado (admin) ───────────────────────────
+// Siembra todos los módulos en Oculto (ver=NO, editar=NO) por defecto.
+function createRol_(params, user) {
+  const nombre = String(params.nombre || '').trim();
+  const desc   = String(params.descripcion || '').trim();
+  if (!nombre) return { ok: false, error: 'El nombre del rol es requerido', code: 400 };
+
+  const sheet = getSheet_(SHEETS.ROLES);
+  const data = sheet.getDataRange().getValues();
+  const nIdx = data[0].indexOf('nombre');
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][nIdx]).toLowerCase() === nombre.toLowerCase()) {
+      return { ok: false, error: 'Ya existe un rol con ese nombre', code: 409 };
+    }
+  }
+
+  const nextId = getNextId_(sheet);
+  sheet.appendRow([nextId, nombre, desc || 'Rol personalizado.', 'SI', 'NO']);
+
+  // Siembra de permisos: todos los módulos en Oculto.
+  const permisos = getSheet_(SHEETS.PERMISOS_MODULOS);
+  MODULOS.forEach(function(modulo) { permisos.appendRow([nextId, modulo, 'NO', 'NO']); });
+
+  writeLog_('createRol', 'ROLES', nextId, 'OK', nombre, user && user.email);
+  return { ok: true, data: { id: nextId } };
+}
+
+// ── ACTUALIZAR rol (admin) ────────────────────────────────────
+// Renombrar y/o activar/desactivar. Bloquea los roles de sistema.
+function updateRol_(params, user) {
+  const id = Number(params.id);
+  if (_esRolSistema_(id)) return { ok: false, error: 'El rol del sistema no se puede modificar', code: 403 };
+
+  const sheet = getSheet_(SHEETS.ROLES);
+  const rowNum = findRowNumber_(sheet, id);
+  if (!rowNum) return { ok: false, error: 'Rol no encontrado', code: 404 };
+  const h = sheet.getDataRange().getValues()[0];
+
+  if (params.nombre !== undefined) {
+    const nombre = String(params.nombre).trim();
+    if (!nombre) return { ok: false, error: 'El nombre del rol es requerido', code: 400 };
+    const data = sheet.getDataRange().getValues();
+    const nIdx = h.indexOf('nombre'), idIdx = h.indexOf('id');
+    for (let i = 1; i < data.length; i++) {
+      if (Number(data[i][idIdx]) !== id && String(data[i][nIdx]).toLowerCase() === nombre.toLowerCase()) {
+        return { ok: false, error: 'Ya existe un rol con ese nombre', code: 409 };
+      }
+    }
+    sheet.getRange(rowNum, h.indexOf('nombre') + 1).setValue(nombre);
+  }
+  if (params.descripcion !== undefined) sheet.getRange(rowNum, h.indexOf('descripcion') + 1).setValue(String(params.descripcion).trim());
+  if (params.activo !== undefined) sheet.getRange(rowNum, h.indexOf('activo') + 1).setValue(params.activo === 'SI' ? 'SI' : 'NO');
+
+  writeLog_('updateRol', 'ROLES', id, 'OK', '', user && user.email);
+  return { ok: true, data: { id: id } };
+}
+
 // ── CREAR (admin) ─────────────────────────────────────────────
 function createUsuario_(params, user) {
   const nombre = String(params.nombre || '').trim();
@@ -36,7 +105,7 @@ function createUsuario_(params, user) {
   const idRol  = Number(params.id_rol || ROL_AGENTE);
 
   if (!nombre || !email || !passwordHash) return { ok: false, error: 'Nombre, email y contraseña son requeridos', code: 400 };
-  if (idRol !== ROL_ADMIN && idRol !== ROL_AGENTE) return { ok: false, error: 'Rol inválido', code: 400 };
+  if (!_getRolRow_(idRol)) return { ok: false, error: 'Rol inválido', code: 400 };
 
   const sheet = getSheet_(SHEETS.USUARIOS);
   const existing = sheet.getDataRange().getValues();
@@ -65,6 +134,24 @@ function updateUsuario_(params, user) {
   const allData = sheet.getDataRange().getValues();
   const h = allData[0];
 
+  // ── Invariante: el sistema nunca queda sin ≥1 Administrador activo ──
+  const colIdU = h.indexOf('id'), colRol = h.indexOf('id_rol'), colAct = h.indexOf('activo');
+  const filaActual = allData[findRowNumber_(sheet, id) - 1];
+  const eraAdmin = Number(filaActual[colRol]) === ROL_ADMIN && String(filaActual[colAct]) === 'SI';
+  if (eraAdmin) {
+    const quitaAdmin = params.id_rol !== undefined && Number(params.id_rol) !== ROL_ADMIN;
+    const desactiva  = params.activo  !== undefined && params.activo !== 'SI';
+    if (quitaAdmin || desactiva) {
+      let otrosAdmins = 0;
+      for (let k = 1; k < allData.length; k++) {
+        if (Number(allData[k][colIdU]) !== id &&
+            Number(allData[k][colRol]) === ROL_ADMIN &&
+            String(allData[k][colAct]) === 'SI') otrosAdmins++;
+      }
+      if (otrosAdmins === 0) return { ok: false, error: 'No se puede: debe quedar al menos un Administrador activo', code: 409 };
+    }
+  }
+
   if (params.email !== undefined) {
     const newEmail = String(params.email).toLowerCase().trim();
     const colId = h.indexOf('id'), colEm = h.indexOf('email');
@@ -78,7 +165,7 @@ function updateUsuario_(params, user) {
   if (params.nombre !== undefined) sheet.getRange(rowNum, h.indexOf('nombre') + 1).setValue(String(params.nombre).trim());
   if (params.id_rol !== undefined) {
     const r = Number(params.id_rol);
-    if (r !== ROL_ADMIN && r !== ROL_AGENTE) return { ok: false, error: 'Rol inválido', code: 400 };
+    if (!_getRolRow_(r)) return { ok: false, error: 'Rol inválido', code: 400 };
     sheet.getRange(rowNum, h.indexOf('id_rol') + 1).setValue(r);
   }
   if (params.activo !== undefined) sheet.getRange(rowNum, h.indexOf('activo') + 1).setValue(params.activo === 'SI' ? 'SI' : 'NO');

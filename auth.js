@@ -87,14 +87,24 @@ function requireAdmin() {
   if (!isAdmin()) { window.location.href = _loginPath().replace('login.html', 'index.html'); }
 }
 
-// Deshabilita/oculta los controles de escritura para Agentes.
+// Módulo de la página actual (derivado de la ruta modules/<x>/...).
+function _currentModule() {
+  const m = (location.pathname || '').match(/modules\/([^/]+)\//);
+  return m ? m[1] : '';
+}
+
+// Deshabilita los controles de escritura si el rol no puede editar este módulo.
+// Admin edita todo; un rol personalizado edita solo los módulos con puede_editar=SI.
+// (El backend valida igual cada escritura por módulo — esto es solo UX.)
 function restrictWriteIfAgent() {
-  if (isAdmin()) { document.body.classList.remove('no-edit'); return; }
+  const mod = _currentModule();
+  const puedeEditar = isAdmin() || (mod && canEdit(mod));
+  if (puedeEditar) { document.body.classList.remove('no-edit'); return; }
   document.body.classList.add('no-edit');
   document.querySelectorAll('.admin-only').forEach(function (el) {
     el.disabled = true;
     el.classList.add('agent-disabled');
-    el.title = 'Solo administradores pueden ejecutar esta acción';
+    el.title = 'No tenés permisos de edición en este módulo';
   });
 }
 
@@ -115,7 +125,7 @@ function renderSidebarUser() {
   const u = SESSION.usuario;
   if (!u) return;
   const isAdmin = Number(u.id_rol) === 1;
-  const roleLabel = isAdmin ? 'Admin' : 'Agente';
+  const roleLabel = u.nombre_rol || (isAdmin ? 'Administrador' : 'Rol ' + u.id_rol);
   const roleCls   = isAdmin ? 'auth-role-admin' : 'auth-role-agente';
   const info = document.createElement('div');
   info.id = 'sidebar-user-info';

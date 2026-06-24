@@ -133,10 +133,20 @@ const USUARIOS_COLS = {
 };
 
 // ── ROLES ─────────────────────────────────────────────────────
-// RBAC por módulo (canónico CLAUDE.md): Admin ve+edita todo; el Agente
-// ve solo los módulos habilitados en PERMISOS_MODULOS (configurable por el Admin).
-const ROL_ADMIN  = 1;
-const ROL_AGENTE = 2;
+// RBAC por módulo (canónico CLAUDE.md — modelo flexible):
+//   1 = Administrador (es_sistema=SI): acceso total, no se renombra ni desactiva.
+//   resto = roles personalizados (es_sistema=NO): creables/editables desde la UI,
+//   con permisos por módulo en 3 estados (Oculto / Solo ver / Ver + editar).
+const ROL_ADMIN  = 1;            // rol de sistema (Administrador)
+const ROL_AGENTE = 2;            // legacy: id del rol semilla no-admin (compat seed)
+
+const ROLES_COLS = {
+  id:          1,
+  nombre:      2,
+  descripcion: 3,
+  activo:      4,
+  es_sistema:  5,
+};
 
 const PERMISOS_MODULOS_COLS = {
   id_rol:       1,
@@ -147,6 +157,25 @@ const PERMISOS_MODULOS_COLS = {
 
 // Módulos gobernados por PERMISOS_MODULOS (coinciden con las páginas del frontend).
 const MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
+
+// Etiquetas legibles de cada módulo (espejo en el frontend).
+const MODULO_LABELS = {
+  proyectos: 'Proyectos', tareas: 'Tareas', seguimiento: 'Seguimiento',
+  reportes: 'Reportes', gantt: 'Gantt',
+};
+
+// Mapea cada acción de escritura de dominio a los módulos que la habilitan.
+// El router permite la escritura si el rol tiene puede_editar=SI en ALGUNO de
+// esos módulos (el Administrador siempre puede). Las acciones que no figuran acá
+// son de colaboración (cualquier sesión) o de gestión (solo Administrador).
+const ACTION_MODULE_MAP = {
+  createProyecto: ['proyectos'], updateProyecto: ['proyectos'], deleteProyecto: ['proyectos'],
+  createTarea:    ['tareas'],    updateTarea:    ['tareas'],    deleteTarea:    ['tareas'],
+  createChecklistItem: ['proyectos', 'tareas'],
+  toggleChecklistItem: ['proyectos', 'tareas'],
+  deleteChecklistItem: ['proyectos', 'tareas'],
+  deleteAdjunto:       ['proyectos', 'tareas'],
+};
 
 // ── DOMINIOS CONTROLADOS ──────────────────────────────────────
 // Replican las hojas CAT_ (google_sheets_standards §7.2).

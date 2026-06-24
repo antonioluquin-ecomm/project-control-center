@@ -21,7 +21,7 @@ const _HEADERS = {
   HISTORIAL: ['id','timestamp','entidad','id_entidad','campo','valor_anterior','valor_nuevo','usuario'],
   USUARIOS: ['id','nombre','email','password_hash','salt','id_rol','activo','fecha_creacion','ultimo_acceso','creado_por'],
   SESIONES: ['session_token','id_usuario','email','id_rol','expira_en','creada_en','activa'],
-  ROLES: ['id','nombre'],
+  ROLES: ['id','nombre','descripcion','activo','es_sistema'],
   PERMISOS_MODULOS: ['id_rol','modulo','puede_ver','puede_editar'],
   LOGS: ['id','timestamp','accion','entidad','entidad_id','usuario','resultado','detalle'],
   ERRORS: ['id','timestamp','accion','usuario','mensaje','stack'],
@@ -57,15 +57,17 @@ function setupAll() {
     }
   });
 
-  // 3) ROLES.
+  // 3) ROLES — migrar schema viejo (id,nombre) → (id,nombre,descripcion,activo,es_sistema)
+  // antes de sembrar, para hojas preexistentes. Idempotente.
   const roles = ss.getSheetByName(SHEETS.ROLES);
+  migrateRolesSchema(roles);
   if (roles.getLastRow() <= 1) {
-    roles.appendRow([ROL_ADMIN, 'Admin']);
-    roles.appendRow([ROL_AGENTE, 'Agente']);
+    roles.appendRow([ROL_ADMIN,  'Administrador', 'Acceso total. Rol del sistema.', 'SI', 'SI']);
+    roles.appendRow([ROL_AGENTE, 'Agente',        'Ve todos los módulos, sin edición.', 'SI', 'NO']);
   }
 
-  // 3b) PERMISOS_MODULOS — seed del Agente (por defecto: ve todo, no edita).
-  // El Admin no necesita filas: su rol da acceso total.
+  // 3b) PERMISOS_MODULOS — seed del rol semilla no-admin (por defecto: ve todo, no edita).
+  // El Administrador no necesita filas: su rol da acceso total.
   const permisos = ss.getSheetByName(SHEETS.PERMISOS_MODULOS);
   if (permisos.getLastRow() <= 1) {
     MODULOS.forEach(function(modulo) {
@@ -139,6 +141,57 @@ function agregarColumnasTareas() {
   }
   sheet.setFrozenRows(1);
   Logger.log('✓ TAREAS: headers sincronizados (' + agregadas + ' celdas escritas). Total columnas: ' + headersDeseados.length);
+}
+
+// Migra la hoja ROLES del schema viejo (id, nombre) al actual
+// (id, nombre, descripcion, activo, es_sistema). Idempotente: se puede correr
+// N veces. Corre dentro de setupAll() antes de sembrar.
+function migrateRolesSchema(sheet) {
+  if (!sheet || sheet.getLastRow() === 0) return;  // hoja vacía → la siembra se encarga
+  const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 5)).getValues()[0];
+
+  // 1) Headers faltantes (append, no reordena).
+  const want = ['id', 'nombre', 'descripcion', 'activo', 'es_sistema'];
+  let changed = false;
+  want.forEach(function(hName, i) {
+    if (String(headers[i] || '').trim() !== hName) { sheet.getRange(1, i + 1).setValue(hName); changed = true; }
+  });
+  if (changed) Logger.log('  [MIGRACION] ROLES: headers normalizados');
+
+  const last = sheet.getLastRow();
+  if (last < 2) return;
+  const data = sheet.getRange(2, 1, last - 1, 5).getValues();
+
+  // 2) Renombres conocidos (solo nombres viejos; no pisa personalizados).
+  const RENAMES = { 'Admin': 'Administrador' };
+
+  for (let i = 0; i < data.length; i++) {
+    const rowNum = i + 2;
+    const id     = Number(data[i][0]);
+    const nombre = String(data[i][1] || '');
+    let desc     = String(data[i][2] || '');
+    let activo   = String(data[i][3] || '');
+    let esSist   = String(data[i][4] || '');
+
+    // es_sistema: SI solo para id=1, NO para el resto.
+    const esSistDeseado = (id === ROL_ADMIN) ? 'SI' : 'NO';
+    if (esSist !== esSistDeseado) { sheet.getRange(rowNum, ROLES_COLS.es_sistema).setValue(esSistDeseado); }
+
+    // activo: SI si está vacío.
+    if (activo !== 'SI' && activo !== 'NO') { sheet.getRange(rowNum, ROLES_COLS.activo).setValue('SI'); }
+
+    // descripcion: default si está vacía.
+    if (!desc) {
+      const d = (id === ROL_ADMIN) ? 'Acceso total. Rol del sistema.' : 'Rol personalizado.';
+      sheet.getRange(rowNum, ROLES_COLS.descripcion).setValue(d);
+    }
+
+    // nombre: renombrar solo si es un nombre viejo conocido.
+    if (RENAMES[nombre]) {
+      sheet.getRange(rowNum, ROLES_COLS.nombre).setValue(RENAMES[nombre]);
+      Logger.log('  [MIGRACION] ROLES: "' + nombre + '" → "' + RENAMES[nombre] + '"');
+    }
+  }
 }
 
 // ── internos ──────────────────────────────────────────────────

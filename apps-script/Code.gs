@@ -53,9 +53,15 @@ function doPost(e) {
   }
 }
 
+// Acciones de gestión (usuarios / roles / permisos) — solo Administrador.
+const ADMIN_ACTIONS = [
+  'getUsuarios', 'createUsuario', 'updateUsuario',
+  'getRoles', 'createRol', 'updateRol', 'updatePermisos',
+];
+
 // ── Router ────────────────────────────────────────────────────
 function routePost_(action, params, user, body) {
-  // Solo lectura — cualquier usuario autenticado.
+  // 1) Solo lectura — cualquier usuario autenticado.
   if (action === 'getProyectos')    return getProyectos_(params);
   if (action === 'getProyectoById') return getProyectoById_(params);
   if (action === 'getTareas')       return getTareas_(params);
@@ -68,32 +74,36 @@ function routePost_(action, params, user, body) {
   if (action === 'getUsuariosBasico') return getUsuariosBasico_();
   if (action === 'getPermisos')     return getPermisos_();
 
-  // Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
+  // 2) Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
   if (action === 'createComentario') return createComentario_(params, user);
   if (action === 'createAdjunto')    return createAdjunto_(params, user);
 
-  // Escritura y administración — solo Admin.
-  requireAdmin_(user);
+  // 3) Gestión (usuarios / roles / permisos) — solo Administrador.
+  if (ADMIN_ACTIONS.indexOf(action) !== -1) {
+    requireAdmin_(user);
+    if (action === 'getUsuarios')    return getUsuarios_();
+    if (action === 'createUsuario')  return createUsuario_(params, user);
+    if (action === 'updateUsuario')  return updateUsuario_(params, user);
+    if (action === 'getRoles')       return getRoles_();
+    if (action === 'createRol')      return createRol_(params, user);
+    if (action === 'updateRol')      return updateRol_(params, user);
+    if (action === 'updatePermisos') return updatePermisos_(params, user);
+  }
 
-  if (action === 'deleteAdjunto')  return deleteAdjunto_(params, user);
-
-  if (action === 'createChecklistItem') return createChecklistItem_(params, user);
-  if (action === 'toggleChecklistItem') return toggleChecklistItem_(params, user);
-  if (action === 'deleteChecklistItem') return deleteChecklistItem_(params, user);
-
-  if (action === 'createProyecto') return createProyecto_(params, user);
-  if (action === 'updateProyecto') return updateProyecto_(params, user);
-  if (action === 'deleteProyecto') return deleteProyecto_(params, user);
-
-  if (action === 'createTarea')    return createTarea_(params, user);
-  if (action === 'updateTarea')    return updateTarea_(params, user);
-  if (action === 'deleteTarea')    return deleteTarea_(params, user);
-
-  if (action === 'getUsuarios')    return getUsuarios_();
-  if (action === 'createUsuario')  return createUsuario_(params, user);
-  if (action === 'updateUsuario')  return updateUsuario_(params, user);
-
-  if (action === 'updatePermisos') return updatePermisos_(params, user);
+  // 4) Escrituras de dominio — enforcement por módulo (Admin siempre puede).
+  if (ACTION_MODULE_MAP[action]) {
+    requireModuleEdit_(user, action);
+    if (action === 'deleteAdjunto')       return deleteAdjunto_(params, user);
+    if (action === 'createChecklistItem') return createChecklistItem_(params, user);
+    if (action === 'toggleChecklistItem') return toggleChecklistItem_(params, user);
+    if (action === 'deleteChecklistItem') return deleteChecklistItem_(params, user);
+    if (action === 'createProyecto')      return createProyecto_(params, user);
+    if (action === 'updateProyecto')      return updateProyecto_(params, user);
+    if (action === 'deleteProyecto')      return deleteProyecto_(params, user);
+    if (action === 'createTarea')         return createTarea_(params, user);
+    if (action === 'updateTarea')         return updateTarea_(params, user);
+    if (action === 'deleteTarea')         return deleteTarea_(params, user);
+  }
 
   return { ok: false, error: 'Acción desconocida: ' + action, code: 400 };
 }
