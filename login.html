@@ -9,36 +9,76 @@
   <link rel="stylesheet" href="src/css/main.css" />
   <style>
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-    .login-wrap { width: 100%; max-width: 380px; }
-    .login-header { text-align: center; margin-bottom: 22px; }
-    .login-logo { width: 48px; height: 48px; margin: 0 auto 12px; border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff;
-      font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-    .login-name { font-size: 18px; font-weight: 700; }
-    .login-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
-    .login-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 26px; }
-    .login-foot { text-align: center; margin-top: 18px; font-size: 12px; color: var(--muted); }
-    .login-foot a { cursor: pointer; }
+    .login-wrap    { width: 100%; max-width: 380px; }
+    .login-header  { text-align: center; margin-bottom: 24px; }
+    .login-logo-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      border-radius: var(--radius-lg);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.5px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+    .login-app-name { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
+    .login-app-sub  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .login-card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 28px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 9px 12px; font-size: 14px; font-family: inherit;
+      border: 1px solid var(--line); border-radius: var(--radius-sm);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      color: var(--text); background: var(--card2); box-sizing: border-box;
+    }
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+    .btn-login {
+      width: 100%; padding: 10px; font-family: inherit; font-size: 14px; font-weight: 600;
+      border: none; background: var(--primary); color: #fff;
+      border-radius: var(--radius-sm); cursor: pointer; transition: background .15s; margin-top: 4px;
+    }
+    .btn-login:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-login:disabled { opacity: .6; cursor: default; }
+    .alert-err {
+      margin-top: 14px; padding: 10px 14px;
+      background: #fef2f2; border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+      border-radius: var(--radius-sm); color: var(--danger); font-size: 13px;
+    }
+    .login-footer { text-align: center; margin-top: 20px; font-size: 12px; color: var(--muted); }
+    .login-footer a { cursor: pointer; color: var(--muted); }
+    .login-footer a:hover { color: var(--text); }
   </style>
 </head>
 <body>
   <div class="login-wrap">
     <div class="login-header">
-      <div class="login-logo">PCC</div>
-      <div class="login-name">Project Control Center</div>
-      <div class="login-sub">Gestión de Proyectos · Luquin</div>
+      <div class="login-logo-icon">PCC</div>
+      <div class="login-app-name">Project Control Center</div>
+      <div class="login-app-sub">Gestión de Proyectos · Luquin</div>
     </div>
     <div class="login-card">
-      <form id="loginForm">
-        <div class="field"><label for="email">Correo electrónico</label>
-          <input type="email" id="email" autocomplete="email" placeholder="usuario@empresa.com" autofocus /></div>
-        <div class="field"><label for="pwd">Contraseña</label>
-          <input type="password" id="pwd" autocomplete="current-password" placeholder="••••••••" /></div>
-        <button type="submit" id="btn" style="width:100%;justify-content:center">Ingresar</button>
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="login-email">Correo electrónico</label>
+          <input type="email" id="login-email" name="email"
+                 placeholder="usuario@empresa.com" autocomplete="email" autofocus />
+        </div>
+        <div class="field">
+          <label for="login-pwd">Contraseña</label>
+          <input type="password" id="login-pwd" name="password"
+                 placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-login" id="btn-login">Ingresar</button>
       </form>
-      <div id="err" class="status-bar error" style="margin-top:14px" hidden></div>
+      <div class="alert-err" id="login-err" hidden></div>
     </div>
-    <div class="login-foot">
+    <div class="login-footer">
       Herramienta interna — acceso restringido<br />
       <a onclick="_configApi()">Configurar URL de API</a>
     </div>
@@ -47,44 +87,51 @@
   <script src="config.js"></script>
   <script src="auth.js"></script>
   <script>
-    // Si ya hay sesión válida, ir al inicio.
+    // Redirigir si ya hay sesión válida
     if (SESSION.isLoggedIn()) window.location.href = 'index.html';
-    // Sin API configurada → modo demo: entrar directo.
-    if (CFG.isMock()) { /* permitir configurar o entrar a demo */ }
 
     function _configApi() {
-      const cur = CFG.apiUrl;
-      const v = prompt('URL del Web App de Apps Script (vacío = modo demo):', cur);
+      const v = prompt('URL del Web App de Apps Script (vacío = modo demo):', CFG.apiUrl);
       if (v !== null) { CFG.apiUrl = v.trim(); location.reload(); }
     }
 
-    const form = document.getElementById('loginForm');
-    const err = document.getElementById('err');
-    const btn = document.getElementById('btn');
+    const form  = document.getElementById('loginForm');
+    const errEl = document.getElementById('login-err');
+    const btn   = document.getElementById('btn-login');
 
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
-      err.hidden = true;
+      errEl.hidden = true;
 
-      // Modo demo: sin backend, entrar directo.
+      // Modo demo: entrar directo sin backend.
       if (CFG.isMock()) { window.location.href = 'index.html'; return; }
 
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const password = document.getElementById('pwd').value;
-      if (!email || !password) { err.textContent = 'Completá los dos campos.'; err.hidden = false; return; }
+      const email    = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-pwd').value;
+      if (!email || !password) {
+        errEl.textContent = 'Completá los dos campos.';
+        errEl.hidden = false;
+        return;
+      }
 
-      btn.disabled = true; btn.textContent = 'Verificando…';
+      btn.disabled    = true;
+      btn.textContent = 'Verificando…';
       try {
         const password_hash = await sha256(password);
-        const res = await fetch(CFG.apiUrl, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password_hash: password_hash }) });
+        const res = await fetch(CFG.apiUrl, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', email: email, password_hash: password_hash }),
+        });
         if (!res.ok) throw new Error('Error de conexión (' + res.status + ').');
         const json = await res.json();
         if (!json.ok) throw new Error(json.error || 'Credenciales incorrectas.');
         setSession({ session_token: json.session_token, usuario: json.usuario, permisos: json.permisos, expira_en: json.expira_en });
         window.location.href = 'index.html';
       } catch (e2) {
-        err.textContent = e2.message || 'Error al iniciar sesión.'; err.hidden = false;
-        btn.disabled = false; btn.textContent = 'Ingresar';
+        errEl.textContent = e2.message || 'Error al iniciar sesión. Verificá tu conexión.';
+        errEl.hidden = false;
+        btn.disabled    = false;
+        btn.textContent = 'Ingresar';
       }
     });
   </script>
