@@ -106,7 +106,7 @@ a { color: var(--primary); text-decoration: none; }
 }
 .nav-item:hover { background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--text); }
 .nav-item.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; border-color: color-mix(in srgb, var(--primary) 20%, transparent); }
-.nav-icon { font-size: 15px; width: 18px; text-align: center; opacity: .7; }
+.nav-icon { width: 15px; height: 15px; flex-shrink: 0; opacity: .7; }
 .nav-item.active .nav-icon { opacity: 1; }
 .sidebar-spacer { flex: 1; }
 .sidebar-footer { border-top: 1px solid var(--sidebar-line); padding: 10px 8px; flex-shrink: 0; }

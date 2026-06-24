@@ -133,8 +133,12 @@ function getCurrentTheme() {
 }
 
 function _updateThemeToggles(theme) {
-  document.querySelectorAll('.theme-toggle').forEach(function (btn) {
-    btn.textContent = theme === 'dark' ? '☀ Modo claro' : '☾ Modo oscuro';
+  var t = theme || document.documentElement.getAttribute('data-theme') || 'light';
+  document.querySelectorAll('.th-icon').forEach(function(el) {
+    el.textContent = t === 'dark' ? '🌙' : '☀️';
+  });
+  document.querySelectorAll('.th-text').forEach(function(el) {
+    el.textContent = t === 'dark' ? 'Oscuro' : 'Claro';
   });
 }
 

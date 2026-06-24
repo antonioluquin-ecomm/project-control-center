@@ -133,12 +133,12 @@ function renderSidebarUser() {
   info.innerHTML =
     '<div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">'
     + escapeHtml(u.nombre || u.email) + '</div>'
-    + '<div style="padding:3px 4px 6px">'
-    + '<span class="auth-chip-role ' + roleCls + '" style="font-size:10px">' + roleLabel + '</span></div>'
-    + '<button class="nav-item theme-toggle" onclick="toggleTheme()" style="width:100%;text-align:left;background:none;border:1px solid transparent;font-family:inherit;font-size:12px;color:var(--text2);cursor:pointer">☾ Modo oscuro</button>'
-    + '<div class="nav-item" onclick="showChangePasswordModal()" style="cursor:pointer;font-size:12px">'
+    + '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;padding:0 4px">' + escapeHtml(roleLabel) + '</div>'
+    + '<button class="nav-item theme-toggle" type="button" onclick="toggleTheme()" style="width:100%;text-align:left;background:none;border:1px solid transparent;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer">'
+    + '<span class="nav-icon th-icon" style="font-size:13px">☀️</span><span class="th-text"> Claro</span></button>'
+    + '<div class="nav-item" onclick="showChangePasswordModal()" style="cursor:pointer;font-size:12px;color:var(--muted)">'
     + '<span class="nav-icon" style="font-size:13px">⊙</span> Cambiar contraseña</div>'
-    + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px">'
+    + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px;color:var(--muted)">'
     + '<span class="nav-icon" style="font-size:13px">↩</span> Cerrar sesión</div>';
   footer.insertBefore(info, footer.firstChild);
   _updateThemeToggles(document.documentElement.getAttribute('data-theme') || 'light');
