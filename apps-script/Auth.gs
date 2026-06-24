@@ -143,6 +143,7 @@ function login_(body) {
     ok: true,
     session_token: sessionToken,
     usuario: { id: userId, nombre: nombre, email: email, id_rol: idRol, nombre_rol: getNombreRol_(idRol) },
+    permisos: getPermisosForRol_(idRol),
     expira_en: expiraEn,
   };
 }
@@ -166,5 +167,9 @@ function logout_(body) {
 function validateSession_(body) {
   const res = validateSessionToken_(body.session_token);
   if (!res.ok) return { ok: false, error: res.error, code: 401 };
-  return { ok: true, usuario: { id: res.id_usuario, email: res.email, id_rol: res.id_rol, nombre_rol: getNombreRol_(res.id_rol) } };
+  return {
+    ok: true,
+    usuario: { id: res.id_usuario, email: res.email, id_rol: res.id_rol, nombre_rol: getNombreRol_(res.id_rol) },
+    permisos: getPermisosForRol_(res.id_rol),
+  };
 }

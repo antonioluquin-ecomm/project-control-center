@@ -60,6 +60,22 @@
             </table>
           </div>
         </section>
+
+        <section class="panel admin-only" style="margin-top:16px">
+          <div class="toolbar">
+            <h3 style="margin:0;font-size:15px">Permisos por módulo — Agente</h3>
+            <span class="spacer"></span>
+            <button class="sm admin-only" id="permSave" onclick="savePermisos()">Guardar permisos</button>
+          </div>
+          <p class="muted" style="font-size:12.5px;margin:4px 0 10px">Qué módulos puede <b>ver</b> el rol Agente. El Admin siempre ve y edita todo.</p>
+          <div id="permStatus" class="status-bar">Cargando…</div>
+          <div class="table-wrap" style="margin-top:12px">
+            <table>
+              <thead><tr><th>Módulo</th><th style="text-align:center;width:90px">Ver</th></tr></thead>
+              <tbody id="permBody"></tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
   </div>
@@ -171,8 +187,42 @@
       catch (e) { toast('✕', e.message, 'error'); }
     }
 
+    /* ─── PERMISOS POR MÓDULO ─────────────────────────────── */
+    const PERM_MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
+    const MODULO_LABELS = { proyectos: 'Proyectos', tareas: 'Tareas', seguimiento: 'Seguimiento', reportes: 'Reportes', gantt: 'Gantt' };
+    const ROL_AGENTE_ID = 2;
+
+    async function loadPermisos() {
+      setStatus('permStatus', 'Cargando…', 'info');
+      try {
+        const rows = await apiGetPermisos();
+        const idx = {};
+        rows.forEach(function (r) { if (Number(r.id_rol) === ROL_AGENTE_ID) idx[r.modulo] = String(r.puede_ver) === 'SI'; });
+        document.getElementById('permBody').innerHTML = PERM_MODULOS.map(function (m) {
+          const on = idx[m] !== false; // por defecto: ve
+          return '<tr><td>' + escapeHtml(MODULO_LABELS[m] || m) + '</td>' +
+            '<td style="text-align:center"><input type="checkbox" data-mod="' + m + '"' + (on ? ' checked' : '') + '></td></tr>';
+        }).join('');
+        setStatus('permStatus', 'Permisos del Agente.', 'success');
+      } catch (e) { setStatus('permStatus', 'Error: ' + e.message, 'error'); }
+    }
+
+    async function savePermisos() {
+      const boxes = document.querySelectorAll('#permBody input[type=checkbox]');
+      const btn = document.getElementById('permSave'); btn.disabled = true;
+      setStatus('permStatus', 'Guardando…', 'info');
+      try {
+        for (const cb of boxes) {
+          await apiUpdatePermisos({ id_rol: ROL_AGENTE_ID, modulo: cb.getAttribute('data-mod'), puede_ver: cb.checked ? 'SI' : 'NO' });
+        }
+        setStatus('permStatus', '✓ Permisos guardados.', 'success');
+        toast('✓', 'Permisos actualizados', 'success');
+      } catch (e) { setStatus('permStatus', 'Error: ' + e.message, 'error'); btn.disabled = false; return; }
+      btn.disabled = false;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent(); load();
+      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent(); load(); loadPermisos();
     });
   </script>
 </body>

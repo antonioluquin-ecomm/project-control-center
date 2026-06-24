@@ -108,6 +108,9 @@ function apiGetUsuariosBasico()  { return callApiRaw('getUsuariosBasico'); }
 function apiCreateUsuario(d)     { return callApiRaw('createUsuario', d); }
 function apiUpdateUsuario(d)     { return callApiRaw('updateUsuario', d); }
 
+function apiGetPermisos()        { return callApiRaw('getPermisos'); }
+function apiUpdatePermisos(d)    { return callApiRaw('updatePermisos', d); }
+
 /* ─── SELECTOR DE RESPONSABLE (usuarios reales) ──────────── */
 // El responsable se guarda como nombre (string), compatible con datos migrados.
 let _usuariosBasico = null;
@@ -140,6 +143,7 @@ function responsableOptions(current) {
    ============================================================ */
 
 let _mock = null;
+let _mockPermisos = null;
 
 async function _mockLoad() {
   if (_mock) return _mock;
@@ -351,6 +355,20 @@ async function _mockCall(action, p) {
       if (p.id_rol !== undefined) { u.id_rol = Number(p.id_rol); u.nombre_rol = u.id_rol === 1 ? 'Admin' : 'Agente'; }
       if (p.activo !== undefined) u.activo = p.activo === 'SI' ? 'SI' : 'NO';
       return { id: u.id };
+    }
+
+    case 'getPermisos': {
+      const mods = (typeof MODULOS_FRONT !== 'undefined') ? MODULOS_FRONT : [];
+      if (!_mockPermisos) _mockPermisos = mods.map(function (m) { return { id_rol: 2, modulo: m, puede_ver: 'SI', puede_editar: 'NO' }; });
+      return _mockPermisos.map(function (r) { return Object.assign({}, r); });
+    }
+    case 'updatePermisos': {
+      if (!_mockPermisos) _mockPermisos = [];
+      const v = (p.puede_ver === 'SI' || p.puede_ver === true) ? 'SI' : 'NO';
+      const row = _mockPermisos.filter(function (r) { return Number(r.id_rol) === Number(p.id_rol) && r.modulo === p.modulo; })[0];
+      if (row) row.puede_ver = v;
+      else _mockPermisos.push({ id_rol: Number(p.id_rol), modulo: p.modulo, puede_ver: v, puede_editar: 'NO' });
+      return { ok: true };
     }
 
     default: throw new Error('Acción demo no soportada: ' + action);

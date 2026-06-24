@@ -14,6 +14,7 @@ const SHEETS = {
   USUARIOS:    'USUARIOS',
   SESIONES:    'SESIONES',
   ROLES:       'ROLES',
+  PERMISOS_MODULOS: 'PERMISOS_MODULOS',
   LOGS:        'LOGS',
   ERRORS:      'ERRORS',
   CONFIG:      'CONFIG',
@@ -132,9 +133,20 @@ const USUARIOS_COLS = {
 };
 
 // ── ROLES ─────────────────────────────────────────────────────
-// Modelo simple (canónico CLAUDE.md): Admin escribe, Agente solo lectura.
+// RBAC por módulo (canónico CLAUDE.md): Admin ve+edita todo; el Agente
+// ve solo los módulos habilitados en PERMISOS_MODULOS (configurable por el Admin).
 const ROL_ADMIN  = 1;
 const ROL_AGENTE = 2;
+
+const PERMISOS_MODULOS_COLS = {
+  id_rol:       1,
+  modulo:       2,
+  puede_ver:    3,
+  puede_editar: 4,
+};
+
+// Módulos gobernados por PERMISOS_MODULOS (coinciden con las páginas del frontend).
+const MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
 
 // ── DOMINIOS CONTROLADOS ──────────────────────────────────────
 // Replican las hojas CAT_ (google_sheets_standards §7.2).

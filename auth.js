@@ -19,6 +19,7 @@ const SESSION = {
   isLoggedIn() { const d = this.data; return !!d && !!d.expira_en && new Date(d.expira_en) > new Date(); },
   get token() { return (this.data && this.data.session_token) || ''; },
   get usuario() { return (this.data && this.data.usuario) || null; },
+  get permisos() { return (this.data && this.data.permisos) || null; },
 };
 
 function getSession() { return SESSION.data; }
@@ -27,6 +28,45 @@ function isAdmin() {
   if (CFG.isMock()) return true;                 // demo: acceso total
   return SESSION.isLoggedIn() && Number(SESSION.usuario && SESSION.usuario.id_rol) === 1;
 }
+
+/* ─── PERMISOS POR MÓDULO (RBAC) ─────────────────────────── */
+// Módulos gobernados por PERMISOS_MODULOS (espejo de MODULOS en Config.gs).
+const MODULOS_FRONT = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];
+
+// canView/canEdit: el Admin y el modo demo ven/editan todo. Si la sesión no
+// trae permisos (sesión vieja, pre-RBAC), no se restringe (default-allow) para
+// no romper el acceso hasta el próximo login; la autorización de escritura la
+// sigue exigiendo el backend por rol.
+function canView(mod) {
+  if (CFG.isMock() || isAdmin()) return true;
+  if (!SESSION.isLoggedIn()) return false;
+  const p = SESSION.permisos;
+  if (!p) return true;
+  return !p[mod] || p[mod].ver !== false;
+}
+
+function canEdit(mod) {
+  if (CFG.isMock() || isAdmin()) return true;
+  if (!SESSION.isLoggedIn()) return false;
+  const p = SESSION.permisos;
+  if (!p || !p[mod]) return false;
+  return p[mod].editar === true;
+}
+
+// Oculta los nav-links de los módulos que el usuario no puede ver.
+// El módulo se deriva del segmento de carpeta tras "modules/" en el href.
+function applyPermissionsToNav() {
+  if (CFG.isMock() || !SESSION.isLoggedIn() || isAdmin()) return;
+  document.querySelectorAll('.nav-item[href]').forEach(function (el) {
+    const m = (el.getAttribute('href') || '').match(/modules\/([^/]+)\//);
+    const mod = m ? m[1] : '';
+    if (MODULOS_FRONT.indexOf(mod) !== -1 && !canView(mod)) el.style.display = 'none';
+  });
+}
+
+// Hook común a todas las páginas (auth.js se carga en todas): ocultar nav
+// según permisos. requireAuth() de cada página corre por separado.
+document.addEventListener('DOMContentLoaded', applyPermissionsToNav);
 
 /* ─── LOGIN PATH dinámico ────────────────────────────────── */
 function _loginPath() {

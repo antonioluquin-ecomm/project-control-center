@@ -22,6 +22,7 @@ const _HEADERS = {
   USUARIOS: ['id','nombre','email','password_hash','salt','id_rol','activo','fecha_creacion','ultimo_acceso','creado_por'],
   SESIONES: ['session_token','id_usuario','email','id_rol','expira_en','creada_en','activa'],
   ROLES: ['id','nombre'],
+  PERMISOS_MODULOS: ['id_rol','modulo','puede_ver','puede_editar'],
   LOGS: ['id','timestamp','accion','entidad','entidad_id','usuario','resultado','detalle'],
   ERRORS: ['id','timestamp','accion','usuario','mensaje','stack'],
   CONFIG: ['clave','valor','descripcion'],
@@ -61,6 +62,15 @@ function setupAll() {
   if (roles.getLastRow() <= 1) {
     roles.appendRow([ROL_ADMIN, 'Admin']);
     roles.appendRow([ROL_AGENTE, 'Agente']);
+  }
+
+  // 3b) PERMISOS_MODULOS — seed del Agente (por defecto: ve todo, no edita).
+  // El Admin no necesita filas: su rol da acceso total.
+  const permisos = ss.getSheetByName(SHEETS.PERMISOS_MODULOS);
+  if (permisos.getLastRow() <= 1) {
+    MODULOS.forEach(function(modulo) {
+      permisos.appendRow([ROL_AGENTE, modulo, 'SI', 'NO']);
+    });
   }
 
   // 4) CONFIG.

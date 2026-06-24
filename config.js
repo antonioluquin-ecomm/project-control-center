@@ -107,11 +107,21 @@ const STATE = {
 
 /* ─── CONFIG (localStorage) ───────────────────────────────── */
 
-const CFG = {
-  get apiUrl()  { return localStorage.getItem('pcc_api_url') || ''; },
-  set apiUrl(v) { localStorage.setItem('pcc_api_url', v); },
+// URL canónica del Web App de Apps Script. Pegá acá la URL del deploy de pcc
+// para que la app funcione out-of-the-box; queda vacía = modo demo por defecto.
+const APPS_SCRIPT_URL = '';
 
-  isMock() { return !this.apiUrl; },
+const CFG = {
+  // Override de localStorage (opcional) → si no, la constante canónica.
+  get apiUrl()  { return localStorage.getItem('pcc_api_url') || APPS_SCRIPT_URL; },
+  set apiUrl(v) { if (v) { localStorage.setItem('pcc_api_url', v); } else { localStorage.removeItem('pcc_api_url'); } },
+
+  // Modo demo (datos locales): solo con flag explícito o sin URL efectiva.
+  isMock() {
+    if (localStorage.getItem('pcc_demo') === '1') return true;
+    if (/[?&]demo=1\b/.test(location.search)) return true;
+    return !this.apiUrl;
+  },
 };
 
 /* ─── THEME ───────────────────────────────────────────────── */

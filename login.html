@@ -79,7 +79,7 @@
         if (!res.ok) throw new Error('Error de conexión (' + res.status + ').');
         const json = await res.json();
         if (!json.ok) throw new Error(json.error || 'Credenciales incorrectas.');
-        setSession({ session_token: json.session_token, usuario: json.usuario, expira_en: json.expira_en });
+        setSession({ session_token: json.session_token, usuario: json.usuario, permisos: json.permisos, expira_en: json.expira_en });
         window.location.href = 'index.html';
       } catch (e2) {
         err.textContent = e2.message || 'Error al iniciar sesión.'; err.hidden = false;

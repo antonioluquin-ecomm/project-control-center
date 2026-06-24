@@ -66,6 +66,7 @@ function routePost_(action, params, user, body) {
   if (action === 'getAdjuntos')     return getAdjuntos_(params);
   if (action === 'getChecklist')    return getChecklist_(params);
   if (action === 'getUsuariosBasico') return getUsuariosBasico_();
+  if (action === 'getPermisos')     return getPermisos_();
 
   // Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
   if (action === 'createComentario') return createComentario_(params, user);
@@ -91,6 +92,8 @@ function routePost_(action, params, user, body) {
   if (action === 'getUsuarios')    return getUsuarios_();
   if (action === 'createUsuario')  return createUsuario_(params, user);
   if (action === 'updateUsuario')  return updateUsuario_(params, user);
+
+  if (action === 'updatePermisos') return updatePermisos_(params, user);
 
   return { ok: false, error: 'Acción desconocida: ' + action, code: 400 };
 }
