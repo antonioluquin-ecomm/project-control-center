@@ -90,7 +90,7 @@ a { color: var(--primary); text-decoration: none; }
 .brand-meta:hover { color: var(--text); }
 .sidebar-version-popover {
   position: fixed; top: 58px; left: 232px;
-  background: var(--card); border: 1px solid var(--border);
+  background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
   padding: 14px 16px; min-width: 280px; max-width: 340px;
   max-height: 70vh; overflow-y: auto; z-index: 1000;

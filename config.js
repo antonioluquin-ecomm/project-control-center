@@ -31,13 +31,15 @@ function initVersionBadge() {
   if (!span) return;
   span.textContent = `v${VERSION.number}`;
   if (!btn || !popover || !CHANGELOG.length) return;
-  popover.innerHTML = CHANGELOG.map(c =>
-    `<div style="margin-bottom:7px;">` +
-      `<span style="font-weight:600;font-size:13px;">v${c.v}</span>` +
-      `<span style="color:var(--muted);font-size:12px;margin-left:6px;">${c.date}</span>` +
-      `<div style="font-size:13px;color:var(--text);margin-top:1px;">${c.desc}</div>` +
-    `</div>`
-  ).join('');
+  popover.innerHTML =
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--sidebar-line)">Historial de cambios</div>'
+    + CHANGELOG.map(c =>
+      `<div style="margin-bottom:8px;">`
+      + `<span style="font-weight:600;font-size:13px;">v${c.v}</span>`
+      + `<span style="color:var(--muted);font-size:11px;margin-left:6px;">${c.date}</span>`
+      + `<div style="font-size:12px;margin-top:2px;line-height:1.4;">${c.desc}</div>`
+      + `</div>`
+    ).join('');
   btn.style.cursor = 'pointer';
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
