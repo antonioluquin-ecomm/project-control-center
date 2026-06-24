@@ -124,12 +124,11 @@ function renderSidebarUser() {
   if (!footer || document.getElementById('sidebar-user-info')) return;
   const u = SESSION.usuario;
   if (!u) return;
-  const isAdmin = Number(u.id_rol) === 1;
-  const roleLabel = u.nombre_rol || (isAdmin ? 'Administrador' : 'Rol ' + u.id_rol);
-  const roleCls   = isAdmin ? 'auth-role-admin' : 'auth-role-agente';
+  const isAdm = Number(u.id_rol) === 1;
+  const roleLabel = u.nombre_rol || (isAdm ? 'Administrador' : 'Rol ' + u.id_rol);
   const info = document.createElement('div');
   info.id = 'sidebar-user-info';
-  info.style.cssText = 'padding:6px 0 8px;border-top:1px solid var(--border);margin-bottom:4px';
+  info.style.cssText = 'padding:6px 0 8px;border-top:1px solid var(--sidebar-line);margin-top:4px';
   info.innerHTML =
     '<div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">'
     + escapeHtml(u.nombre || u.email) + '</div>'
@@ -140,7 +139,7 @@ function renderSidebarUser() {
     + '<span class="nav-icon" style="font-size:13px">⊙</span> Cambiar contraseña</div>'
     + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px;color:var(--muted)">'
     + '<span class="nav-icon" style="font-size:13px">↩</span> Cerrar sesión</div>';
-  footer.insertBefore(info, footer.firstChild);
+  footer.appendChild(info);
   _updateThemeToggles(document.documentElement.getAttribute('data-theme') || 'light');
 }
 
