@@ -116,16 +116,26 @@ a { color: var(--primary); text-decoration: none; }
 
 /* ─── 4. Topbar ──────────────────────────────────────────── */
 .topbar {
-  position: sticky; top: 0; z-index: 10; background: var(--card);
+  height: 50px;
   border-bottom: 1px solid var(--line);
-  padding: 14px 32px; display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center;
+  padding: 0 22px; gap: 10px;
+  background: var(--card);
+  position: sticky; top: 0; z-index: 40;
+  flex-shrink: 0;
 }
-.topbar-copy { flex: 1; min-width: 0; }
-.topbar h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
-.topbar .subtitle { font-size: 13px; color: var(--muted); }
+.topbar-brand  { font-size: 13px; font-weight: 600; color: var(--muted); }
+.topbar-sep    { color: var(--muted); font-size: 12px; }
+.topbar-crumb  { font-size: 13px; color: var(--text); font-weight: 600; }
+.topbar-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+
+/* Cabecera de página — H1 + subtítulo dentro de <main>, no en el topbar */
+.page-header { padding: 24px 0 20px; }
+.page-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0; }
+.page-header .subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .eyebrow {
   font-size: 11px; font-weight: 500; text-transform: uppercase;
-  letter-spacing: .14em; color: var(--muted); margin-bottom: 2px;
+  letter-spacing: .14em; color: var(--muted); margin-bottom: 4px;
 }
 .user-chip {
   display: flex; align-items: center; gap: 8px; font-size: 12.5px;
