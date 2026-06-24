@@ -109,7 +109,7 @@ const STATE = {
 
 // URL canónica del Web App de Apps Script. Pegá acá la URL del deploy de pcc
 // para que la app funcione out-of-the-box; queda vacía = modo demo por defecto.
-const APPS_SCRIPT_URL = '';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw6rZf-6EJrLN3aJ3aCxOzjNrv6j5PcfAJjpvu8BZ3am1r0F3WKvgOT2qH_4w3GiZ3sQ/exec';
 
 const CFG = {
   // Override de localStorage (opcional) → si no, la constante canónica.
