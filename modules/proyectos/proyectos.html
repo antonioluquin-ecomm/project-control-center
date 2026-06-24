@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -31,15 +31,12 @@
         <a class="nav-item admin-only" href="../admin/usuarios.html"><span class="nav-icon">⚙</span> Configuración</a>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-footer">
-        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
-      </div>
+      <div class="sidebar-footer" id="sidebarFooter"></div>
     </aside>
 
     <div class="content-area">
       <header class="topbar">
         <div class="topbar-copy"><p class="eyebrow">Gestión</p><h1>Proyectos</h1></div>
-        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
       </header>
 
       <main class="container">
@@ -192,7 +189,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-      initTheme(); initVersionBadge(); requireAuth(); renderUserChip(); restrictWriteIfAgent(); load();
+      initTheme(); initVersionBadge(); requireAuth(); renderSidebarUser(); restrictWriteIfAgent(); load();
     });
   </script>
 </body>

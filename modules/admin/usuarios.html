@@ -31,9 +31,7 @@
         <a class="nav-item active admin-only" href="usuarios.html"><span class="nav-icon">⚙</span> Configuración</a>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="sidebar-footer">
-        <a class="nav-item" onclick="toggleTheme()"><span class="nav-icon" id="theme-toggle-icon">☀️</span> Tema</a>
-      </div>
+      <div class="sidebar-footer" id="sidebarFooter"></div>
     </aside>
 
     <div class="content-area">
@@ -42,7 +40,6 @@
           <p class="eyebrow">Administración</p><h1>Configuración</h1>
           <p style="font-size:12px;color:var(--muted);margin-top:3px">Gestión de usuarios, permisos y configuración del sistema</p>
         </div>
-        <div id="userChip" style="display:flex;gap:8px;align-items:center"></div>
       </header>
 
       <main class="container">
@@ -450,7 +447,7 @@
 
     /* ─── Init ─────────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', function () {
-      initTheme(); initVersionBadge(); requireAdmin(); renderUserChip(); restrictWriteIfAgent();
+      initTheme(); initVersionBadge(); requireAdmin(); renderSidebarUser(); restrictWriteIfAgent();
       loadRoles().then(load);  // roles antes que usuarios (para mostrar nombres de rol)
     });
   </script>

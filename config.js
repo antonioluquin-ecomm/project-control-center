@@ -132,12 +132,17 @@ function getCurrentTheme() {
   return document.documentElement.getAttribute('data-theme') || 'light';
 }
 
+function _updateThemeToggles(theme) {
+  document.querySelectorAll('.theme-toggle').forEach(function (btn) {
+    btn.textContent = theme === 'dark' ? '☀ Modo claro' : '☾ Modo oscuro';
+  });
+}
+
 function setTheme(theme) {
   const next = theme === 'dark' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem(THEME_KEY, next);
-  const icon = document.getElementById('theme-toggle-icon');
-  if (icon) icon.textContent = next === 'dark' ? '🌙' : '☀️';
+  _updateThemeToggles(next);
 }
 
 function toggleTheme() {
