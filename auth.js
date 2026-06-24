@@ -135,11 +135,14 @@ function renderSidebarUser() {
     + escapeHtml(u.nombre || u.email) + '</div>'
     + '<div style="padding:3px 4px 6px">'
     + '<span class="auth-chip-role ' + roleCls + '" style="font-size:10px">' + roleLabel + '</span></div>'
+    + '<div class="nav-item" onclick="toggleTheme()" style="cursor:pointer;font-size:12px">'
+    + '<button class="theme-toggle" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;font-family:inherit;color:var(--text)">☾ Modo oscuro</button></div>'
     + '<div class="nav-item" onclick="showChangePasswordModal()" style="cursor:pointer;font-size:12px">'
     + '<span class="nav-icon" style="font-size:13px">⊙</span> Cambiar contraseña</div>'
     + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px">'
     + '<span class="nav-icon" style="font-size:13px">↩</span> Cerrar sesión</div>';
   footer.insertBefore(info, footer.firstChild);
+  _updateThemeToggles(document.documentElement.getAttribute('data-theme') || 'light');
 }
 
 /* ─── USER CHIP (topbar) ─────────────────────────────────── */
