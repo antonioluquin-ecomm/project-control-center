@@ -1,9 +1,9 @@
 # CLAUDE.md — Project Control Center
 
 Instrucciones para Claude Code / Codex en este proyecto. Hereda las reglas
-compartidas de `../CLAUDE.md` y los documentos maestros de `Documentación/IA/`
-(`style_guide.md`, `apps_script_standards.md`, `google_sheets_standards.md`,
-`ai_rules.md`). Esto NO los reemplaza, los especializa.
+compartidas de `../project-standards/` (`ai_rules.md`, `style_guide.md`,
+`apps_script_standards.md`, `google_sheets_standards.md`). Esto NO los reemplaza,
+los especializa.
 
 ## Qué es
 
@@ -58,3 +58,21 @@ Actualizar `config.js` → `VERSION` (y su nota) **antes del commit** de cada ca
 - No reescribir layout, estilos ni auth sin consultar.
 - En refactors o cambios con riesgo, validar por etapas antes de continuar.
 - Verificar visualmente con el preview antes de reportar una tarea como completa.
+
+## Documentación estándar compartida
+
+La documentación estándar compartida se encuentra en `../project-standards/`:
+
+- [`../project-standards/ai_rules.md`](../project-standards/ai_rules.md) — reglas de colaboración con IA
+- [`../project-standards/style_guide.md`](../project-standards/style_guide.md) — colores, tipografía, componentes CSS, Git
+- [`../project-standards/apps_script_standards.md`](../project-standards/apps_script_standards.md) — convenciones GAS
+- [`../project-standards/google_sheets_standards.md`](../project-standards/google_sheets_standards.md) — estructura de Sheets
+- [`../project-standards/login_standard.md`](../project-standards/login_standard.md) — patrón de autenticación
+- [`../project-standards/application_shell.md`](../project-standards/application_shell.md) — shell de aplicación
+
+### Entorno de trabajo
+
+- El desarrollo se realiza desde `C:\Users\gluna\Documents\Repos`
+- No usar OneDrive/SharePoint como carpeta de desarrollo
+- GitHub es la fuente principal para versionado y colaboración
+- OneDrive/SharePoint queda reservado para documentación funcional: archivos compartidos, PDFs, presentaciones, actas e imágenes
