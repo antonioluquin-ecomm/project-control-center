@@ -119,45 +119,102 @@ function authLogout() {
 }
 
 /* ─── SIDEBAR FOOTER (index.html) ───────────────────────── */
+// ── Helpers: dropdown de usuario en sidebar (navigation_standard §3) ──
+function _openUserDropdown() {
+  const drop = document.getElementById('user-dropdown');
+  const chip = document.getElementById('sidebar-user-chip');
+  if (!drop || !chip) return;
+  drop.style.display = 'block';
+  if (window.innerWidth <= 900) {
+    // Mobile: el sidebar está oculto — panel bottom-center
+    drop.style.bottom = '12px';
+    drop.style.left   = '12px';
+    drop.style.right  = '12px';
+    drop.style.width  = 'auto';
+  } else {
+    const rect = chip.getBoundingClientRect();
+    drop.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    drop.style.left   = rect.left + 'px';
+    drop.style.right  = 'auto';
+    drop.style.width  = rect.width + 'px';
+  }
+  chip.setAttribute('aria-expanded', 'true');
+  chip.classList.add('open');
+}
+
+function _closeUserDropdown() {
+  const drop = document.getElementById('user-dropdown');
+  const chip = document.getElementById('sidebar-user-chip');
+  if (drop) drop.style.display = 'none';
+  if (chip) { chip.setAttribute('aria-expanded', 'false'); chip.classList.remove('open'); }
+}
+
 function renderSidebarUser() {
   const footer = document.getElementById('sidebarFooter');
-  if (!footer || document.getElementById('sidebar-user-info')) return;
+  if (!footer || document.getElementById('sidebar-user-chip')) return;
   const u = SESSION.usuario;
   if (!u) return;
   const isAdm = Number(u.id_rol) === 1;
   const roleLabel = u.nombre_rol || (isAdm ? 'Administrador' : 'Rol ' + u.id_rol);
-  const info = document.createElement('div');
-  info.id = 'sidebar-user-info';
-  info.style.cssText = 'padding:6px 0 8px;border-top:1px solid var(--sidebar-line);margin-top:4px';
-  info.innerHTML =
-    '<div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px">'
-    + escapeHtml(u.nombre || u.email) + '</div>'
-    + '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;padding:0 4px">' + escapeHtml(roleLabel) + '</div>'
-    + '<button class="nav-item theme-toggle" type="button" onclick="toggleTheme()" style="width:100%;text-align:left;background:none;border:1px solid transparent;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer">'
-    + '<span class="nav-icon th-icon" style="font-size:13px">☀️</span><span class="th-text"> Claro</span></button>'
-    + '<div class="nav-item" onclick="showChangePasswordModal()" style="cursor:pointer;font-size:12px;color:var(--muted)">'
-    + '<span class="nav-icon" style="font-size:13px">⊙</span> Cambiar contraseña</div>'
-    + '<div class="nav-item" onclick="authLogout()" style="cursor:pointer;font-size:12px;color:var(--muted)">'
-    + '<span class="nav-icon" style="font-size:13px">↩</span> Cerrar sesión</div>';
-  footer.appendChild(info);
-  _updateThemeToggles(document.documentElement.getAttribute('data-theme') || 'light');
-}
 
-/* ─── USER CHIP (topbar) ─────────────────────────────────── */
-function renderUserChip() {
-  const slot = document.getElementById('userChip');
-  if (!slot) return;
-  if (CFG.isMock()) {
-    slot.innerHTML = '<span class="user-chip"><b>Modo demo</b><span class="role">datos locales</span></span>';
-    return;
+  // Chip compacto de dos líneas (sin avatar) en el footer
+  const chip = document.createElement('div');
+  chip.id = 'sidebar-user-chip';
+  chip.className = 'user-chip';
+  chip.setAttribute('role', 'button');
+  chip.setAttribute('aria-haspopup', 'true');
+  chip.setAttribute('aria-expanded', 'false');
+  chip.setAttribute('title', u.nombre || u.email || '');
+  chip.innerHTML =
+    '<div class="user-chip-info">' +
+      '<span class="user-chip-name">' + escapeHtml(u.nombre || u.email) +
+        ' <span class="user-chip-chevron" aria-hidden="true">▾</span></span>' +
+      '<span class="user-chip-role">' + escapeHtml(roleLabel) + '</span>' +
+    '</div>';
+  chip.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const drop = document.getElementById('user-dropdown');
+    if (drop && drop.style.display !== 'none') _closeUserDropdown();
+    else _openUserDropdown();
+  });
+  footer.appendChild(chip);
+
+  // Dropdown adjunto a <body> para evitar el clipping del overflow del sidebar
+  if (!document.getElementById('user-dropdown')) {
+    const isDark = (document.documentElement.getAttribute('data-theme') || 'light') === 'dark';
+    const drop = document.createElement('div');
+    drop.id = 'user-dropdown';
+    drop.className = 'user-dropdown';
+    drop.setAttribute('role', 'menu');
+    drop.style.display = 'none';
+    drop.innerHTML =
+      '<div class="user-dropdown-header">' +
+        '<div class="sidebar-user-name">' + escapeHtml(u.nombre || u.email) + '</div>' +
+        '<div class="sidebar-user-email">' + escapeHtml(u.email || '') + '</div>' +
+        '<div class="sidebar-user-meta"><span class="auth-chip-role">' + escapeHtml(roleLabel) + '</span></div>' +
+      '</div>' +
+      '<div class="user-dropdown-sep"></div>' +
+      '<button class="user-dropdown-item theme-toggle" type="button" onclick="toggleTheme()">' +
+        '<span class="nav-icon th-icon" style="font-size:13px">' + (isDark ? '🌙' : '☀️') + '</span>' +
+        '<span class="th-text">' + (isDark ? 'Oscuro' : 'Claro') + '</span>' +
+      '</button>' +
+      '<div class="user-dropdown-sep"></div>' +
+      '<button class="user-dropdown-item" type="button" onclick="showChangePasswordModal()">Cambiar contraseña</button>' +
+      '<div class="user-dropdown-sep"></div>' +
+      '<button class="user-dropdown-item danger" type="button" onclick="authLogout()">Cerrar sesión</button>';
+    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+    document.body.appendChild(drop);
+
+    // Cerrar el dropdown al ejecutar cualquier acción
+    drop.querySelectorAll('.user-dropdown-item').forEach(function (btn) {
+      btn.addEventListener('click', _closeUserDropdown);
+    });
   }
-  const u = SESSION.usuario;
-  if (!u) return;
-  slot.innerHTML =
-    '<span class="user-chip"><b>' + escapeHtml(u.nombre || u.email) + '</b>' +
-    '<span class="role">' + escapeHtml(u.nombre_rol || '') + '</span></span>' +
-    '<button class="btn-icon" title="Cambiar contraseña" onclick="showChangePasswordModal()">⊙</button>' +
-    '<button class="btn-icon" title="Cerrar sesión" onclick="authLogout()">↩</button>';
+
+  document.addEventListener('click', _closeUserDropdown);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') _closeUserDropdown(); });
+
+  _updateThemeToggles(document.documentElement.getAttribute('data-theme') || 'light');
 }
 
 /* ─── CAMBIAR CONTRASEÑA ─────────────────────────────────── */

@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.6.4',
-  date:   '2026-06-23',
-  notes:  'Shell: área de usuario en sidebar footer con rol, cambiar contraseña y logout',
+  number: '1.7.0',
+  date:   '2026-06-28',
+  notes:  'Navegación estándar — área de usuario como chip + dropdown, tab Integraciones',
 };
 
 const CHANGELOG = [
+  { v: '1.7.0', date: '2026-06-28', desc: 'Navegación alineada al estándar Luquin — área de usuario como chip compacto + dropdown (reemplaza botones apilados en el footer); elimina renderUserChip muerto (topbar); tab de admin "Conexión" → "Integraciones"' },
   { v: '1.6.4', date: '2026-06-23', desc: 'Shell: área de usuario en sidebar footer con rol, cambiar contraseña y logout' },
   { v: '1.6.3', date: '2026-06-23', desc: 'Shell: version badge con popover changelog en sidebar brand de todas las páginas' },
   { v: '1.6.2', date: '2026-06-23', desc: 'Layout — módulos utilizan todo el ancho disponible del área de contenido' },
