@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.9.1',
+  number: '1.9.2',
   date:   '2026-06-29',
-  notes:  'Tareas: ver todas sin filtro de proyecto',
+  notes:  'Proyectos: filtro por responsable',
 };
 
 const CHANGELOG = [
+  { v: '1.9.2', date: '2026-06-29', desc: 'Proyectos: filtro de responsable en toolbar; Tareas: label mejorado en filtro de resp.' },
   { v: '1.9.1', date: '2026-06-29', desc: 'Tareas: opción "Todos los proyectos" en el selector — carga todas las tareas; + Nueva tarea se deshabilita al seleccionar "Todos"' },
   { v: '1.9.0', date: '2026-06-29', desc: 'Comentarios: edición inline del texto propio — botón Editar en hover, textarea inline con Guardar/Cancelar, badge (editado); backend valida autoría' },
   { v: '1.8.1', date: '2026-06-29', desc: 'Checklist: checkbox custom, hover states, botón eliminar oculto, barra de progreso con gradiente y clase chk-complete al 100%' },

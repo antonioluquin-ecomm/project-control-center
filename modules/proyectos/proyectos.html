@@ -52,6 +52,7 @@
           <div class="toolbar">
             <input type="search" id="q" placeholder="Buscar proyecto…" style="max-width:260px" oninput="render()" />
             <select id="fEstado" onchange="render()" style="max-width:170px"><option value="">Todos los estados</option></select>
+            <select id="fResp" onchange="render()" style="max-width:170px"><option value="">Todos los responsables</option></select>
             <span class="spacer"></span>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="sm admin-only" onclick="openModal()">+ Nuevo proyecto</button>
@@ -87,6 +88,9 @@
         STATE.proyectos = await apiGetProyectos({});
         const sel = document.getElementById('fEstado');
         sel.innerHTML = '<option value="">Todos los estados</option>' + ESTADOS_PROYECTO.map(function (e) { return '<option>' + e + '</option>'; }).join('');
+        const resps = [...new Set(STATE.proyectos.map(function (p) { return p.responsable || ''; }).filter(Boolean))].sort();
+        const selR = document.getElementById('fResp');
+        selR.innerHTML = '<option value="">Todos los responsables</option>' + resps.map(function (r) { return '<option>' + escapeHtml(r) + '</option>'; }).join('');
         render();
         setStatus('statusBar', STATE.proyectos.length + ' proyectos.', 'success');
         if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
@@ -96,8 +100,10 @@
     function filtered() {
       const q = normalizeText(document.getElementById('q').value);
       const est = document.getElementById('fEstado').value;
+      const resp = document.getElementById('fResp').value;
       return STATE.proyectos.filter(function (p) {
         if (est && p.estado !== est) return false;
+        if (resp && (p.responsable || '') !== resp) return false;
         if (q && normalizeText(p.nombre + ' ' + (p.responsable || '')).indexOf(q) === -1) return false;
         return true;
       });
