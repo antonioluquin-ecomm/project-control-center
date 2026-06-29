@@ -365,9 +365,10 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 
 /* ─── 12b. Actividad (comentarios + historial) ───────────── */
 .act-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
-.act-tab { background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 12px; font-size: 13px; }
-.act-tab:hover { background: transparent; transform: none; color: var(--text); }
-.act-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.act-tabs .act-tab { background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 12px; font-size: 13px; box-shadow: none; outline: none; }
+.act-tabs .act-tab:hover, .act-tabs .act-tab:focus, .act-tabs .act-tab:focus-visible, .act-tabs .act-tab:active { background: transparent; transform: none; box-shadow: none; outline: none; }
+.act-tabs .act-tab:hover { color: var(--text); }
+.act-tabs .act-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 .act-item { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; background: var(--card2); }
 .act-item:hover .act-edit-btn { opacity: 1; }
 .act-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; }
