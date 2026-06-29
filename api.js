@@ -90,6 +90,12 @@ function apiCreateTarea(d)      { return callApiRaw('createTarea', d); }
 function apiUpdateTarea(d)      { return callApiRaw('updateTarea', d); }
 function apiDeleteTarea(id)     { return callApiRaw('deleteTarea', { id: id }); }
 
+function apiGetSprints(p)       { return callApiRaw('getSprints', p); }
+function apiGetSprint(id)       { return callApiRaw('getSprintById', { id: id }); }
+function apiCreateSprint(d)     { return callApiRaw('createSprint', d); }
+function apiUpdateSprint(d)     { return callApiRaw('updateSprint', d); }
+function apiDeleteSprint(id)    { return callApiRaw('deleteSprint', { id: id }); }
+
 function apiGetComentarios(entidad, id)        { return callApiRaw('getComentarios', { entidad: entidad, id_entidad: id }); }
 function apiCreateComentario(entidad, id, txt) { return callApiRaw('createComentario', { entidad: entidad, id_entidad: id, texto: txt }); }
 function apiUpdateComentario(id, txt)          { return callApiRaw('updateComentario', { id: id, texto: txt }); }
@@ -157,7 +163,7 @@ async function _mockLoad() {
   const fetchJson = function (path, fallback) {
     return fetch(base + path).then(function (r) { return r.ok ? r.json() : fallback; }).catch(function () { return fallback; });
   };
-  const [proyectos, tareas, comentarios, historial, adjuntos, usuarios, checklist] = await Promise.all([
+  const [proyectos, tareas, comentarios, historial, adjuntos, usuarios, checklist, sprints] = await Promise.all([
     fetchJson('src/data/proyectos.json', []),
     fetchJson('src/data/tareas.json', []),
     fetchJson('src/data/comentarios.json', []),
@@ -165,8 +171,9 @@ async function _mockLoad() {
     fetchJson('src/data/adjuntos.json', []),
     fetchJson('src/data/usuarios.json', []),
     fetchJson('src/data/checklist.json', []),
+    fetchJson('src/data/sprints.json', []),
   ]);
-  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios, checklist: checklist };
+  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios, checklist: checklist, sprints: sprints };
   return _mock;
 }
 
@@ -296,6 +303,39 @@ async function _mockCall(action, p) {
     case 'deleteTarea': {
       const x = _mock.tareas.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
       if (x) x.estado = 'Cancelada';
+      return { id: p.id };
+    }
+
+    case 'getSprints': {
+      let rows = _mock.sprints.slice();
+      if (p.estado) rows = rows.filter(function (x) { return x.estado === p.estado; });
+      if (p.incluir_cancelados !== true) rows = rows.filter(function (x) { return x.estado !== 'Cancelado'; });
+      rows.sort(function (a, b) {
+        const fa = a.fecha_inicio ? String(a.fecha_inicio) : '9999';
+        const fb = b.fecha_inicio ? String(b.fecha_inicio) : '9999';
+        return fa < fb ? -1 : (fa > fb ? 1 : 0);
+      });
+      return rows;
+    }
+    case 'getSprintById': {
+      const x = _mock.sprints.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
+      if (!x) throw new Error('Sprint no encontrado');
+      return x;
+    }
+    case 'createSprint': {
+      const id = Math.max(0, ...(_mock.sprints.map(function (x) { return Number(x.id); }))) + 1;
+      _mock.sprints.push(Object.assign({ id: id, estado: 'Planificado' }, p));
+      return { id: id };
+    }
+    case 'updateSprint': {
+      const x = _mock.sprints.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
+      if (!x) throw new Error('Sprint no encontrado');
+      Object.assign(x, p);
+      return { id: x.id };
+    }
+    case 'deleteSprint': {
+      const x = _mock.sprints.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
+      if (x) x.estado = 'Cancelado';
       return { id: p.id };
     }
 

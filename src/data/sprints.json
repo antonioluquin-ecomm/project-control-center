@@ -1,0 +1,5 @@
+[
+  { "id": 1, "nombre": "Sprint 1 · Fundaciones", "objetivo": "Modelo de datos y backend CRUD base.", "estado": "Cerrado", "fecha_inicio": "2026-06-01", "fecha_fin": "2026-06-14" },
+  { "id": 2, "nombre": "Sprint 2 · Frontend + integraciones", "objetivo": "Dashboard, ABM y enlaces externos.", "estado": "Activo", "fecha_inicio": "2026-06-15", "fecha_fin": "2026-06-28" },
+  { "id": 3, "nombre": "Sprint 3 · Sprints y adjuntos", "objetivo": "Gestión por sprints y adjuntos en Drive.", "estado": "Planificado", "fecha_inicio": "2026-06-29", "fecha_fin": "2026-07-12" }
+]

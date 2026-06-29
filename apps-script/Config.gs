@@ -7,6 +7,7 @@
 const SHEETS = {
   PROYECTOS:   'PROYECTOS',
   TAREAS:      'TAREAS',
+  SPRINTS:     'SPRINTS',
   COMENTARIOS: 'COMENTARIOS',
   ADJUNTOS:    'ADJUNTOS',
   CHECKLIST:   'CHECKLIST',
@@ -20,6 +21,7 @@ const SHEETS = {
   CONFIG:      'CONFIG',
   CAT_ESTADOS_PROYECTO: 'CAT_ESTADOS_PROYECTO',
   CAT_ESTADOS_TAREA:    'CAT_ESTADOS_TAREA',
+  CAT_ESTADOS_SPRINT:   'CAT_ESTADOS_SPRINT',
   CAT_TIPOS_TAREA:      'CAT_TIPOS_TAREA',
   CAT_PRIORIDADES:      'CAT_PRIORIDADES',
   CAT_RESPONSABLES:     'CAT_RESPONSABLES',
@@ -72,6 +74,22 @@ const TAREAS_COLS = {
   url_gitlab:         20,  // T  — enlace GitLab (cuando area = PIM)
   url_figma_prototipo: 21, // U  — prototipo Figma (maquetación)
   url_figma_editable:  22, // V  — editable Figma (maquetación)
+  // ── Sprints (append al final) ──
+  id_sprint:          23,  // W  — FK → SPRINTS.id (nullable; '' = sin sprint)
+};
+
+// Sprints globales (multi-proyecto): agrupan TAREAS por id_sprint.
+const SPRINTS_COLS = {
+  id:                 1,   // A
+  nombre:             2,   // B
+  objetivo:           3,   // C  — meta del sprint (opcional)
+  estado:             4,   // D  — Planificado | Activo | Cerrado | Cancelado
+  fecha_inicio:       5,   // E
+  fecha_fin:          6,   // F
+  fecha_creacion:     7,   // G
+  fecha_modificacion: 8,   // H
+  creado_por:         9,   // I
+  modificado_por:     10,  // J
 };
 
 const COMENTARIOS_COLS = {
@@ -176,6 +194,8 @@ const ACTION_MODULE_MAP = {
   toggleChecklistItem: ['proyectos', 'tareas'],
   deleteChecklistItem: ['proyectos', 'tareas'],
   deleteAdjunto:       ['proyectos', 'tareas'],
+  // Sprints: se gestionan desde el módulo tareas.
+  createSprint:   ['tareas'], updateSprint: ['tareas'], deleteSprint: ['tareas'],
 };
 
 // ── DOMINIOS CONTROLADOS ──────────────────────────────────────
@@ -189,6 +209,7 @@ const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error', 'Subtarea'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
+const ESTADOS_SPRINT   = ['Planificado', 'Activo', 'Cerrado', 'Cancelado'];
 
 // ── S6: dimensiones de tarea ──────────────────────────────────
 // Área responsable (equipo que ejecuta) — distinta del responsable (persona).
@@ -197,11 +218,12 @@ const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];
 const TIENDAS          = ['Sporting', 'Woker', 'B2B'];
 
 // Entidades válidas para COMENTARIOS / ADJUNTOS / HISTORIAL (relación polimórfica).
-const ENTIDADES = ['PROYECTO', 'TAREA'];
+const ENTIDADES = ['PROYECTO', 'TAREA', 'SPRINT'];
 
 // Estados que cuentan como "cerrados" (no vencen, no entran en pendientes).
 const ESTADOS_PROYECTO_CERRADOS = ['Finalizado', 'Cancelado'];
 const ESTADOS_TAREA_CERRADOS    = ['Finalizada', 'Cancelada'];
+const ESTADOS_SPRINT_CERRADOS   = ['Cerrado', 'Cancelado'];
 
 // Estados que cuentan como "completados" para el cálculo de avance.
 const ESTADO_TAREA_COMPLETADA = 'Finalizada';

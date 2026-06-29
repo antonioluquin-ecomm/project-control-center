@@ -50,6 +50,8 @@ function createTarea_(params, user) {
   const urlGitlab  = optionalUrl_(params.url_gitlab, 'url_gitlab');
   const urlFigmaP  = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   const urlFigmaE  = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
+  // Sprint (global, opcional).
+  const idSprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
 
   const sheet = getSheet_(SHEETS.TAREAS);
   const id = getNextId_(sheet);
@@ -59,7 +61,7 @@ function createTarea_(params, user) {
   sheet.appendRow([
     id, idProyecto, titulo, descripcion, tipo, estado, prioridad, responsable,
     fechaInicio, fechaLimite, avance, orden, now, now, email, email,
-    area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE,
+    area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE, idSprint,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
   return { ok: true, data: { id: id } };
@@ -93,6 +95,7 @@ function updateTarea_(params, user) {
   if (params.url_gitlab !== undefined)          updates.url_gitlab = optionalUrl_(params.url_gitlab, 'url_gitlab');
   if (params.url_figma_prototipo !== undefined) updates.url_figma_prototipo = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
+  if (params.id_sprint !== undefined)           updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
 
   Object.keys(updates).forEach(function(campo) {
     const anterior = actual[campo];

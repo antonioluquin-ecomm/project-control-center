@@ -66,12 +66,14 @@
         <section class="panel">
           <div class="toolbar">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
+            <select id="fSprint" onchange="render()" style="max-width:170px"><option value="">Todos los sprints</option></select>
             <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
             <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
             <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
             <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
             <span class="spacer"></span>
+            <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
           </div>
@@ -104,6 +106,7 @@
   <script src="../../actividad.js"></script>
   <script>
     let _editId  = null;
+    let _editSprintId = null;
     let _sortCol = null;
     let _sortDir = 1;
 
@@ -123,6 +126,8 @@
       try {
         await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
+        STATE.sprints   = await apiGetSprints({});
+        _rebuildSprintFilter();
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = '<option value="">Todos los proyectos</option>' +
           STATE.proyectos.map(function (p) {
@@ -172,6 +177,42 @@
         names.map(function (n) { return '<option>' + escapeHtml(n) + '</option>'; }).join('');
     }
 
+    /* ─── Sprints (helpers) ─────────────────────────────────── */
+
+    function _sprintById(id) {
+      if (!id) return null;
+      return (STATE.sprints || []).filter(function (s) { return Number(s.id) === Number(id); })[0] || null;
+    }
+
+    // Repuebla el filtro #fSprint conservando la selección actual si sigue válida.
+    function _rebuildSprintFilter() {
+      const sel = document.getElementById('fSprint');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Todos los sprints</option>' +
+        (STATE.sprints || []).map(function (s) {
+          return '<option value="' + s.id + '">' + escapeHtml(s.nombre) + '</option>';
+        }).join('');
+      if (prev && _sprintById(prev)) sel.value = prev;
+    }
+
+    // <option> para el <select> de sprint en el form de tarea ("Sin sprint" + sprints).
+    function _sprintOptions(current) {
+      let html = '<option value="">Sin sprint</option>';
+      html += (STATE.sprints || []).map(function (s) {
+        return '<option value="' + s.id + '"' + (Number(current) === Number(s.id) ? ' selected' : '') + '>' + escapeHtml(s.nombre) + '</option>';
+      }).join('');
+      return html;
+    }
+
+    // Chip con el nombre del sprint (clase de color por estado).
+    function _sprintChip(id, fontSize) {
+      const s = _sprintById(id);
+      if (!s) return '';
+      const cls = (typeof ESTADO_CLASS_SPRINT !== 'undefined' && ESTADO_CLASS_SPRINT[s.estado]) || 'st-todo';
+      return '<span class="badge ' + cls + '" style="font-size:' + (fontSize || '10px') + '">🏃 ' + escapeHtml(s.nombre) + '</span>';
+    }
+
     /* ─── Sort ──────────────────────────────────────────────── */
 
     function sortBy(col) {
@@ -215,11 +256,13 @@
       const area = document.getElementById('fArea').value;
       const tda  = document.getElementById('fTienda').value;
       const resp = document.getElementById('fResp').value;
+      const spr  = document.getElementById('fSprint').value;
       const rows = STATE.tareas.filter(function (t) {
         if (est  && t.estado    !== est)  return false;
         if (area && t.area      !== area) return false;
         if (tda  && t.tienda    !== tda)  return false;
         if (resp && t.responsable !== resp) return false;
+        if (spr  && Number(t.id_sprint) !== Number(spr)) return false;
         if (q && normalizeText(t.titulo + ' ' + (t.descripcion || '') + ' ' + (t.responsable || '')).indexOf(q) === -1) return false;
         return true;
       });
@@ -286,6 +329,7 @@
       let out = '';
       if (t.area)   out += ' <span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
       if (t.tienda) out += ' <span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
+      if (t.id_sprint) { const chip = _sprintChip(t.id_sprint); if (chip) out += ' ' + chip; }
       return out;
     }
 
@@ -341,6 +385,7 @@
           '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
           '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
         '</div>' +
+        '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint) + '</select></div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
           '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(t.responsable || '') + '</select></div>' +
@@ -388,6 +433,7 @@
         descripcion:          document.getElementById('m_desc').value.trim(),
         tipo:                 document.getElementById('m_tipo').value,
         estado:               document.getElementById('m_estado').value,
+        id_sprint:            document.getElementById('m_sprint').value || '',
         prioridad:            document.getElementById('m_prio').value,
         responsable:          document.getElementById('m_resp').value.trim(),
         fecha_inicio:         document.getElementById('m_ini').value,
@@ -425,6 +471,7 @@
         t.responsable ? '<span style="font-size:12px;color:var(--muted)">👤 ' + escapeHtml(t.responsable) + '</span>' : '',
         t.area        ? '<span class="badge st-analysis" style="font-size:11px">' + escapeHtml(t.area) + '</span>' : '',
         t.tienda      ? '<span class="badge st-todo" style="font-size:11px">' + escapeHtml(t.tienda) + '</span>' : '',
+        t.id_sprint   ? _sprintChip(t.id_sprint, '11px') : '',
       ].filter(Boolean).join('');
 
       const metaParts = [
@@ -506,6 +553,106 @@
       if (!confirm('¿Eliminar la tarea "' + (t ? t.titulo : id) + '"? (soft delete)')) return;
       try { await apiDeleteTarea(id); toast('✓', 'Tarea cancelada', 'success'); loadTareas(); }
       catch (e) { toast('✕', e.message, 'error'); }
+    }
+
+    /* ─── ABM de sprints (gestor) ───────────────────────────── */
+
+    // Recarga sprints, repuebla el filtro y re-renderiza la tabla de tareas.
+    async function _refreshSprints() {
+      STATE.sprints = await apiGetSprints({});
+      _rebuildSprintFilter();
+      render();
+    }
+
+    function openSprintsManager() {
+      const rows = (STATE.sprints || []);
+      const body = rows.length ? rows.map(function (s) {
+        const cls = (typeof ESTADO_CLASS_SPRINT !== 'undefined' && ESTADO_CLASS_SPRINT[s.estado]) || 'st-todo';
+        const rango = (s.fecha_inicio ? fmtDate(s.fecha_inicio) : '—') + ' → ' + (s.fecha_fin ? fmtDate(s.fecha_fin) : '—');
+        return '<tr>' +
+          '<td><b>' + escapeHtml(s.nombre) + '</b>' + (s.objetivo ? '<div class="text-muted" style="font-size:11px;margin-top:2px">' + escapeHtml(s.objetivo) + '</div>' : '') + '</td>' +
+          '<td><span class="badge ' + cls + '">' + escapeHtml(s.estado) + '</span></td>' +
+          '<td class="mono" style="font-size:12px">' + rango + '</td>' +
+          '<td class="row-actions" style="text-align:right">' +
+            '<button class="secondary sm admin-only" onclick="openSprintForm(' + s.id + ')">Editar</button>' +
+            '<button class="danger sm admin-only" onclick="delSprint(' + s.id + ')">Cancelar</button>' +
+          '</td></tr>';
+      }).join('') : '<tr><td colspan="4" class="empty-row">Sin sprints todavía.</td></tr>';
+
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal" style="max-width:640px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+          '<h3 style="margin:0">Sprints</h3>' +
+          '<button class="sm admin-only" style="margin-left:auto" onclick="openSprintForm()">+ Nuevo sprint</button>' +
+        '</div>' +
+        '<div class="table-wrap"><table>' +
+          '<thead><tr><th>Sprint</th><th>Estado</th><th>Rango</th><th style="text-align:right">Acciones</th></tr></thead>' +
+          '<tbody>' + body + '</tbody>' +
+        '</table></div>' +
+        '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cerrar</button></div>' +
+        '</div></div>';
+      restrictWriteIfAgent();
+    }
+
+    function openSprintForm(id) {
+      _editSprintId = id || null;
+      const s = id ? (STATE.sprints.filter(function (x) { return Number(x.id) === Number(id); })[0] || {}) : {};
+      const opt = function (arr, sel) {
+        return arr.map(function (v) { return '<option' + (v === sel ? ' selected' : '') + '>' + v + '</option>'; }).join('');
+      };
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal"><h3>' + (id ? 'Editar' : 'Nuevo') + ' sprint</h3>' +
+        '<div class="field"><label>Nombre *</label><input id="s_nom" value="' + escapeHtml(s.nombre || '') + '"></div>' +
+        '<div class="field"><label>Objetivo</label><textarea id="s_obj">' + escapeHtml(s.objetivo || '') + '</textarea></div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Estado</label><select id="s_estado">' + opt(ESTADOS_SPRINT, s.estado || 'Planificado') + '</select></div>' +
+          '<div class="field"><label>&nbsp;</label><div></div></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Fecha inicio</label><input id="s_ini" type="date" value="' + (s.fecha_inicio || '').slice(0, 10) + '"></div>' +
+          '<div class="field"><label>Fecha fin</label><input id="s_fin" type="date" value="' + (s.fecha_fin || '').slice(0, 10) + '"></div>' +
+        '</div>' +
+        '<div id="s_err" class="status-bar error" hidden></div>' +
+        '<div class="modal-actions">' +
+          '<button class="secondary" onclick="openSprintsManager()">Cancelar</button>' +
+          '<button id="s_save" onclick="saveSprint()">Guardar</button>' +
+        '</div></div></div>';
+      const first = document.getElementById('s_nom');
+      if (first) first.focus();
+    }
+
+    async function saveSprint() {
+      const nombre = document.getElementById('s_nom').value.trim();
+      const err    = document.getElementById('s_err');
+      if (!nombre) { err.textContent = 'El nombre es obligatorio.'; err.hidden = false; return; }
+      const ini = document.getElementById('s_ini').value;
+      const fin = document.getElementById('s_fin').value;
+      if (ini && fin && fin < ini) { err.textContent = 'La fecha fin no puede ser anterior al inicio.'; err.hidden = false; return; }
+      const data = {
+        nombre:       nombre,
+        objetivo:     document.getElementById('s_obj').value.trim(),
+        estado:       document.getElementById('s_estado').value,
+        fecha_inicio: ini,
+        fecha_fin:    fin,
+      };
+      const btn = document.getElementById('s_save'); btn.disabled = true;
+      try {
+        if (_editSprintId) { data.id = _editSprintId; await apiUpdateSprint(data); } else { await apiCreateSprint(data); }
+        toast('✓', 'Sprint guardado', 'success');
+        await _refreshSprints();
+        openSprintsManager();
+      } catch (e) { btn.disabled = false; err.textContent = e.message; err.hidden = false; }
+    }
+
+    async function delSprint(id) {
+      const s = STATE.sprints.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      if (!confirm('¿Cancelar el sprint "' + (s ? s.nombre : id) + '"? Las tareas asignadas quedan sin sprint en el filtro. (soft delete)')) return;
+      try {
+        await apiDeleteSprint(id);
+        toast('✓', 'Sprint cancelado', 'success');
+        await _refreshSprints();
+        openSprintsManager();
+      } catch (e) { toast('✕', e.message, 'error'); }
     }
 
     /* ─── Boot ──────────────────────────────────────────────── */

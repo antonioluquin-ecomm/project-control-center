@@ -65,6 +65,8 @@ function routePost_(action, params, user, body) {
   if (action === 'getProyectos')    return getProyectos_(params);
   if (action === 'getProyectoById') return getProyectoById_(params);
   if (action === 'getTareas')       return getTareas_(params);
+  if (action === 'getSprints')      return getSprints_(params);
+  if (action === 'getSprintById')   return getSprintById_(params);
   if (action === 'getResumen')      return getResumen_();
   if (action === 'getCatalogos')    return getCatalogos_();
   if (action === 'getComentarios')  return getComentarios_(params);
@@ -104,6 +106,9 @@ function routePost_(action, params, user, body) {
     if (action === 'createTarea')         return createTarea_(params, user);
     if (action === 'updateTarea')         return updateTarea_(params, user);
     if (action === 'deleteTarea')         return deleteTarea_(params, user);
+    if (action === 'createSprint')        return createSprint_(params, user);
+    if (action === 'updateSprint')        return updateSprint_(params, user);
+    if (action === 'deleteSprint')        return deleteSprint_(params, user);
   }
 
   return { ok: false, error: 'Acción desconocida: ' + action, code: 400 };

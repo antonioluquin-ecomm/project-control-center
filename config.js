@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.9.3',
+  number: '1.10.0',
   date:   '2026-06-29',
-  notes:  'Tareas: fila clickeable abre modal de detalle con actividad embebida',
+  notes:  'Sprints: gestión por sprints globales, asignación y filtro de tareas',
 };
 
 const CHANGELOG = [
+  { v: '1.10.0', date: '2026-06-29', desc: 'Sprints (estilo Jira): hoja SPRINTS + columna id_sprint en TAREAS; ABM de sprints desde Tareas ("Gestionar sprints"), asignación tarea→sprint, filtro por sprint y chip en fila/detalle. Sprints globales (multi-proyecto)' },
   { v: '1.9.3', date: '2026-06-29', desc: 'Tareas: clic en fila abre modal de detalle — info completa + actividad (comentarios, checklist, adjuntos, historial) embebida; editar desde el detalle funciona con "Todos los proyectos"' },
   { v: '1.9.2', date: '2026-06-29', desc: 'Proyectos: filtro de responsable en toolbar; Tareas: label mejorado en filtro de resp.' },
   { v: '1.9.1', date: '2026-06-29', desc: 'Tareas: opción "Todos los proyectos" en el selector — carga todas las tareas; + Nueva tarea se deshabilita al seleccionar "Todos"' },
@@ -64,6 +65,7 @@ const ESTADOS_TAREA    = ['Por Hacer', 'En Análisis', 'Maquetación', 'En Curso
 const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
+const ESTADOS_SPRINT   = ['Planificado', 'Activo', 'Cerrado', 'Cancelado'];
 
 // S6: dimensiones de tarea. Área = equipo que ejecuta (≠ responsable persona).
 const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];
@@ -95,6 +97,13 @@ const ESTADO_CLASS = {
   'Cancelada':     'st-cancel',
 };
 
+const ESTADO_CLASS_SPRINT = {
+  'Planificado': 'st-todo',
+  'Activo':      'st-progress',
+  'Cerrado':     'st-done',
+  'Cancelado':   'st-cancel',
+};
+
 const PRIORIDAD_CLASS = {
   'Highest': 'pr-highest',
   'High':    'pr-high',
@@ -108,6 +117,7 @@ const PRIORIDAD_CLASS = {
 const STATE = {
   proyectos: [],
   tareas:    [],
+  sprints:   [],
   usuarios:  [],
   catalogos: null,
   resumen:   null,

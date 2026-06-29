@@ -54,8 +54,23 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | T | url_gitlab | URL | enlace GitLab PIM (cuando area = PIM) *(S6)* |
 | U | url_figma_prototipo | URL | prototipo Figma (maquetación) *(S6)* |
 | V | url_figma_editable | URL | editable Figma (maquetación) *(S6)* |
+| W | id_sprint | entero | FK → SPRINTS.id (nullable; '' = sin sprint) *(sprints)* |
 
 `vencida` se calcula al servir (estado no cerrado + `fecha_limite < hoy`).
+
+### SPRINTS *(sprints — globales, multi-proyecto)*
+
+| Col | Campo | Tipo | Notas |
+|-----|-------|------|-------|
+| A | id | entero | |
+| B | nombre | texto | máx. 200 |
+| C | objetivo | texto | meta del sprint, máx. 500 |
+| D | estado | lista | CAT_ESTADOS_SPRINT (Planificado/Activo/Cerrado/Cancelado) |
+| E | fecha_inicio | fecha | |
+| F | fecha_fin | fecha | |
+| G–J | fecha_creacion · fecha_modificacion · creado_por · modificado_por | auditoría | |
+
+Globales: agrupan TAREAS de cualquier proyecto vía `TAREAS.id_sprint`. Soft delete (estado = Cancelado).
 
 ### COMENTARIOS *(usada desde Sprint 2)*
 `id · entidad (PROYECTO|TAREA) · id_entidad · texto · usuario · fecha_creacion`
@@ -79,6 +94,7 @@ Lo escribe el backend en cada `update*`/`delete*` (ya activo en Sprint 1).
 |------|-----------------|
 | CAT_ESTADOS_PROYECTO | Por Hacer · En Análisis · En Curso · Bloqueado · Finalizado · Cancelado |
 | CAT_ESTADOS_TAREA | Por Hacer · En Análisis · En Curso · Bloqueada · Finalizada · Cancelada |
+| CAT_ESTADOS_SPRINT | Planificado · Activo · Cerrado · Cancelado |
 | CAT_TIPOS_TAREA | Historia · Tarea · Error · ~~Subtarea~~ *(legacy S8: no se ofrece, reemplazada por CHECKLIST)* |
 | CAT_PRIORIDADES | Highest · High · Medium · Low · Lowest |
 | CAT_SITIOS | Sporting · Woker · PIM · B2B · Todos |
@@ -102,6 +118,7 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 ## Relaciones
 
 - `TAREAS.id_proyecto → PROYECTOS.id` (validada en `createTarea_`).
+- `TAREAS.id_sprint → SPRINTS.id` (opcional; sprints globales agrupan tareas de cualquier proyecto).
 - `COMENTARIOS / ADJUNTOS / HISTORIAL` → polimórficas por `(entidad, id_entidad)`.
 - Catálogos por valor-string, validados en GAS contra los dominios de `Config.gs`.
 

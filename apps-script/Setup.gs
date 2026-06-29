@@ -14,7 +14,10 @@ const _HEADERS = {
   TAREAS: ['id','id_proyecto','titulo','descripcion','tipo','estado','prioridad','responsable',
            'fecha_inicio','fecha_limite','avance_pct','orden',
            'fecha_creacion','fecha_modificacion','creado_por','modificado_por',
-           'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable'],
+           'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable',
+           'id_sprint'],
+  SPRINTS: ['id','nombre','objetivo','estado','fecha_inicio','fecha_fin',
+            'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
   COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],
   ADJUNTOS: ['id','entidad','id_entidad','nombre_archivo','file_id','url','thumbnail_url','mime','tamano','subido_por','fecha_creacion'],
   CHECKLIST: ['id','entidad','id_entidad','texto','hecho','orden','fecha_creacion','creado_por'],
@@ -31,6 +34,7 @@ const _HEADERS = {
 const _CATALOGOS = {
   CAT_ESTADOS_PROYECTO: ESTADOS_PROYECTO,
   CAT_ESTADOS_TAREA:    ESTADOS_TAREA,
+  CAT_ESTADOS_SPRINT:   ESTADOS_SPRINT,
   CAT_TIPOS_TAREA:      TIPOS_TAREA,
   CAT_PRIORIDADES:      PRIORIDADES,
   CAT_SITIOS:           SITIOS,
@@ -141,6 +145,28 @@ function agregarColumnasTareas() {
   }
   sheet.setFrozenRows(1);
   Logger.log('✓ TAREAS: headers sincronizados (' + agregadas + ' celdas escritas). Total columnas: ' + headersDeseados.length);
+}
+
+// Sprints: crea la hoja SPRINTS (si falta) y agrega el header id_sprint a la
+// hoja TAREAS ya poblada, sin tocar datos. Idempotente. Correr UNA vez en el
+// editor tras desplegar el código de sprints.
+function agregarColumnaSprintTareas() {
+  const ss = getSpreadsheet_();
+
+  // 1) Hoja SPRINTS con header.
+  const sprints = _ensureSheet_(ss, SHEETS.SPRINTS);
+  _ensureHeader_(sprints, _HEADERS.SPRINTS);
+
+  // 2) Header id_sprint en TAREAS (reusa el sync idempotente de headers).
+  agregarColumnasTareas();
+
+  // 3) Catálogo de estados de sprint.
+  const cat = _ensureSheet_(ss, SHEETS.CAT_ESTADOS_SPRINT);
+  if (cat.getLastRow() === 0) {
+    cat.appendRow([SHEETS.CAT_ESTADOS_SPRINT]);
+    ESTADOS_SPRINT.forEach(function(v) { cat.appendRow([v]); });
+  }
+  Logger.log('✓ Sprints: hoja SPRINTS, header id_sprint en TAREAS y CAT_ESTADOS_SPRINT listos.');
 }
 
 // Migra la hoja ROLES del schema viejo (id, nombre) al actual
