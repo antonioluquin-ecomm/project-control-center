@@ -149,8 +149,8 @@ a { color: var(--primary); text-decoration: none; }
 .topbar-sep    { color: var(--muted); font-size: 12px; }
 .topbar-crumb  { font-size: 13px; color: var(--text); font-weight: 600; }
 .topbar-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
-.topbar-toggle{display:none;width:30px;height:30px;align-items:center;justify-content:center;background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--muted);cursor:pointer;margin-left:-6px;flex-shrink:0;transition:all .15s}
-.topbar-toggle:hover{background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text);border-color:var(--line)}
+button.topbar-toggle{display:none;width:30px;height:30px;align-items:center;justify-content:center;background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--muted);cursor:pointer;margin-left:-6px;flex-shrink:0;padding:0;transform:none;transition:background .15s,border-color .15s,color .15s}
+button.topbar-toggle:hover:not(:disabled){background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text);border-color:var(--line);transform:none}
 
 /* ─── Colapso de sidebar (desktop ≥901px) ────────────────── */
 @media (min-width:901px){
