@@ -72,6 +72,10 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 
 Globales: agrupan TAREAS de cualquier proyecto vía `TAREAS.id_sprint`. Soft delete (estado = Cancelado).
 
+**Comportamiento de sprint cancelado:** al cancelar un sprint, `TAREAS.id_sprint` en las filas afectadas **no se limpia** — el dato queda en el Sheet pero el frontend excluye sprints cancelados de `STATE.sprints`, por lo que esas tareas quedan sin chip y sin filtro visible. Esto es por diseño (soft delete: nunca se borran datos). Si se necesita reasignar tareas en lote, hacerlo manualmente desde el form de cada tarea.
+
+**Filtro server-side por sprint:** `getTareas_` no soporta `params.id_sprint` — el filtro es 100% cliente sobre `STATE.tareas`. Si en el futuro se necesita un burndown o consulta server-side por sprint, agregar `if (params.id_sprint) rows = rows.filter(...)` en `Tareas.gs`.
+
 ### COMENTARIOS *(usada desde Sprint 2)*
 `id · entidad (PROYECTO|TAREA) · id_entidad · texto · usuario · fecha_creacion`
 
@@ -118,7 +122,7 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 ## Relaciones
 
 - `TAREAS.id_proyecto → PROYECTOS.id` (validada en `createTarea_`).
-- `TAREAS.id_sprint → SPRINTS.id` (opcional; sprints globales agrupan tareas de cualquier proyecto).
+- `TAREAS.id_sprint → SPRINTS.id` (opcional; sprints globales agrupan tareas de cualquier proyecto). FK validada en `createTarea_` — se rechaza un `id_sprint` inexistente (404). No se valida en `updateTarea_` contra el estado del sprint (se puede asignar a un sprint Cerrado).
 - `COMENTARIOS / ADJUNTOS / HISTORIAL` → polimórficas por `(entidad, id_entidad)`.
 - Catálogos por valor-string, validados en GAS contra los dominios de `Config.gs`.
 
