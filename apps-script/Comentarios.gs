@@ -18,6 +18,27 @@ function getComentarios_(params) {
   return { ok: true, data: rows };
 }
 
+// ── EDITAR ────────────────────────────────────────────────────
+function updateComentario_(params, user) {
+  const id     = validateId_(params.id, 'id');
+  const texto  = validateString_(params.texto, 'texto', 2000);
+
+  const sheet  = getSheet_(SHEETS.COMENTARIOS);
+  const rowNum = findRowNumber_(sheet, id);
+  if (!rowNum) return { ok: false, error: 'Comentario no encontrado', code: 404 };
+
+  const autor = sheet.getRange(rowNum, COMENTARIOS_COLS.usuario).getValue();
+  if (autor !== (user && user.email)) {
+    return { ok: false, error: 'Solo podés editar tus propios comentarios', code: 403 };
+  }
+
+  sheet.getRange(rowNum, COMENTARIOS_COLS.texto).setValue(texto);
+  sheet.getRange(rowNum, COMENTARIOS_COLS.fecha_edicion).setValue(new Date());
+
+  writeLog_('updateComentario', 'COMENTARIO', id, 'OK', '', user.email);
+  return { ok: true, data: { id: id } };
+}
+
 // ── CREAR ─────────────────────────────────────────────────────
 function createComentario_(params, user) {
   const entidad = validateEnum_(params.entidad, 'entidad', ENTIDADES);

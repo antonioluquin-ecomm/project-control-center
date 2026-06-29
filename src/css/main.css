@@ -369,9 +369,16 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .act-tab:hover { background: transparent; transform: none; color: var(--text); }
 .act-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 .act-item { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; background: var(--card2); }
-.act-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.act-item:hover .act-edit-btn { opacity: 1; }
+.act-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.act-meta-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .act-meta span { color: var(--muted); font-size: 11px; font-family: var(--mono); }
 .act-text { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+.act-edited { font-size: 10px; color: var(--muted); font-style: italic; font-family: var(--mono); }
+.act-edit-btn { opacity: 0; background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-xs); transition: opacity .15s, background .12s, color .12s, border-color .12s; line-height: 1.5; width: auto; height: auto; min-width: unset; flex-shrink: 0; }
+.act-edit-btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary-mid); transform: none; }
+.act-edit-ta { width: 100%; font-size: 13px; min-height: 64px; resize: vertical; margin-bottom: 8px; font-family: var(--font); line-height: 1.5; }
+.act-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .act-hist { border-left: 3px solid var(--primary-mid); }
 .hist-old { color: var(--muted); text-decoration: line-through; }
 .hist-new { color: var(--success); font-weight: 600; }

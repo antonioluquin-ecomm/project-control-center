@@ -81,6 +81,7 @@ const COMENTARIOS_COLS = {
   texto:          4,
   usuario:        5,
   fecha_creacion: 6,
+  fecha_edicion:  7,   // null si no fue editado
 };
 
 const ADJUNTOS_COLS = {

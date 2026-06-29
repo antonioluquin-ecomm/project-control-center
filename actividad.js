@@ -65,12 +65,58 @@ async function _actLoadComentarios() {
   try {
     const rows = await apiGetComentarios(_actCtx.entidad, _actCtx.id);
     if (!wrap) return;
+    const myEmail = (typeof SESSION !== 'undefined' && SESSION) ? (SESSION.email || '') : '';
     wrap.innerHTML = rows.length ? rows.map(function (c) {
-      return '<div class="act-item">' +
-        '<div class="act-meta"><b>' + escapeHtml(c.usuario || '—') + '</b><span>' + _actWhen(c.fecha_creacion) + '</span></div>' +
-        '<div class="act-text">' + escapeHtml(c.texto) + '</div></div>';
+      const esPropio = myEmail && c.usuario === myEmail;
+      const editadoTag = c.fecha_edicion ? ' <span class="act-edited">(editado)</span>' : '';
+      const editBtn = esPropio ? '<button class="act-edit-btn" onclick="_actEditComentario(' + c.id + ')">Editar</button>' : '';
+      return '<div class="act-item" id="act-com-' + c.id + '" data-texto="' + escapeHtml(c.texto) + '">' +
+        '<div class="act-meta">' +
+          '<b>' + escapeHtml(c.usuario || '—') + '</b>' +
+          '<div class="act-meta-right">' +
+            '<span>' + _actWhen(c.fecha_creacion) + editadoTag + '</span>' +
+            editBtn +
+          '</div>' +
+        '</div>' +
+        '<div class="act-text">' + escapeHtml(c.texto) + '</div>' +
+        '</div>';
     }).join('') : '<div class="text-muted" style="font-size:13px">Sin comentarios todavía.</div>';
   } catch (e) { if (wrap) wrap.innerHTML = '<div class="status-bar error">' + escapeHtml(e.message) + '</div>'; }
+}
+
+function _actEditComentario(id) {
+  const item = document.getElementById('act-com-' + id);
+  if (!item) return;
+  const texto = item.getAttribute('data-texto') || '';
+  const textDiv = item.querySelector('.act-text');
+  const editBtn = item.querySelector('.act-edit-btn');
+  if (textDiv) {
+    textDiv.innerHTML =
+      '<textarea id="act-com-ta-' + id + '" class="act-edit-ta" rows="3">' + escapeHtml(texto) + '</textarea>' +
+      '<div class="act-edit-actions">' +
+        '<button class="sm" onclick="_actSaveComentario(' + id + ')">Guardar</button>' +
+        '<button class="sm secondary" onclick="_actLoadComentarios()">Cancelar</button>' +
+      '</div>';
+  }
+  if (editBtn) editBtn.style.display = 'none';
+}
+
+async function _actSaveComentario(id) {
+  const ta = document.getElementById('act-com-ta-' + id);
+  if (!ta) return;
+  const texto = ta.value.trim();
+  if (!texto) return;
+  const item = document.getElementById('act-com-' + id);
+  const btns = item ? item.querySelectorAll('button') : [];
+  btns.forEach(function (b) { b.disabled = true; });
+  try {
+    await apiUpdateComentario(id, texto);
+    toast('✓', 'Comentario actualizado', 'success');
+    _actLoadComentarios();
+  } catch (e) {
+    toast('✕', e.message, 'error');
+    btns.forEach(function (b) { b.disabled = false; });
+  }
 }
 
 async function _actLoadHistorial() {

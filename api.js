@@ -92,6 +92,7 @@ function apiDeleteTarea(id)     { return callApiRaw('deleteTarea', { id: id }); 
 
 function apiGetComentarios(entidad, id)        { return callApiRaw('getComentarios', { entidad: entidad, id_entidad: id }); }
 function apiCreateComentario(entidad, id, txt) { return callApiRaw('createComentario', { entidad: entidad, id_entidad: id, texto: txt }); }
+function apiUpdateComentario(id, txt)          { return callApiRaw('updateComentario', { id: id, texto: txt }); }
 function apiGetHistorial(entidad, id)          { return callApiRaw('getHistorial', { entidad: entidad, id_entidad: id }); }
 
 function apiGetAdjuntos(entidad, id)           { return callApiRaw('getAdjuntos', { entidad: entidad, id_entidad: id }); }
@@ -305,8 +306,15 @@ async function _mockCall(action, p) {
     }
     case 'createComentario': {
       const id = Math.max(0, ...(_mock.comentarios.map(function (c) { return Number(c.id); }))) + 1;
-      _mock.comentarios.push({ id: id, entidad: p.entidad, id_entidad: Number(p.id_entidad), texto: p.texto, usuario: 'demo@local', fecha_creacion: new Date().toISOString() });
+      _mock.comentarios.push({ id: id, entidad: p.entidad, id_entidad: Number(p.id_entidad), texto: p.texto, usuario: 'demo@local', fecha_creacion: new Date().toISOString(), fecha_edicion: null });
       return { id: id };
+    }
+    case 'updateComentario': {
+      const c = _mock.comentarios.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
+      if (!c) throw new Error('Comentario no encontrado');
+      c.texto = p.texto;
+      c.fecha_edicion = new Date().toISOString();
+      return { id: c.id };
     }
     case 'getHistorial': {
       return _mock.historial

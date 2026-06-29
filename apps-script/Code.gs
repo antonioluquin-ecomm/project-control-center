@@ -76,6 +76,7 @@ function routePost_(action, params, user, body) {
 
   // 2) Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
   if (action === 'createComentario') return createComentario_(params, user);
+  if (action === 'updateComentario') return updateComentario_(params, user);
   if (action === 'createAdjunto')    return createAdjunto_(params, user);
 
   // 3) Gestión (usuarios / roles / permisos) — solo Administrador.

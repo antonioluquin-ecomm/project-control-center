@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.8.1',
+  number: '1.9.0',
   date:   '2026-06-29',
-  notes:  'Checklist: rediseño visual completo',
+  notes:  'Edición inline de comentarios propios',
 };
 
 const CHANGELOG = [
+  { v: '1.9.0', date: '2026-06-29', desc: 'Comentarios: edición inline del texto propio — botón Editar en hover, textarea inline con Guardar/Cancelar, badge (editado); backend valida autoría' },
   { v: '1.8.1', date: '2026-06-29', desc: 'Checklist: checkbox custom, hover states, botón eliminar oculto, barra de progreso con gradiente y clase chk-complete al 100%' },
   { v: '1.8.0', date: '2026-06-29', desc: 'Colapso de sidebar en desktop — botón en topbar, estado persistido en localStorage (pcc_sidebar), anti-flash en los 7 HTML' },
   { v: '1.7.0', date: '2026-06-28', desc: 'Navegación alineada al estándar Luquin — área de usuario como chip compacto + dropdown (reemplaza botones apilados en el footer); elimina renderUserChip muerto (topbar); tab de admin "Conexión" → "Integraciones"' },
