@@ -155,7 +155,7 @@ button.topbar-toggle:hover:not(:disabled){background:color-mix(in srgb,var(--tex
 /* ─── Colapso de sidebar (desktop ≥901px) ────────────────── */
 @media (min-width:901px){
   .sidebar{transition:transform .25s,width .25s}
-  .topbar-toggle{display:inline-flex}
+  button.topbar-toggle{display:inline-flex}
   [data-sidebar="collapsed"] .sidebar{transform:translateX(-100%);width:0;min-width:0;border-right:none}
 }
 
