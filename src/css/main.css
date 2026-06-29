@@ -156,7 +156,7 @@ button.topbar-toggle:hover:not(:disabled){background:color-mix(in srgb,var(--tex
 @media (min-width:901px){
   .sidebar{transition:transform .25s,width .25s}
   button.topbar-toggle{display:inline-flex}
-  [data-sidebar="collapsed"] .sidebar{transform:translateX(-100%);width:0;min-width:0;border-right:none}
+  [data-sidebar="collapsed"] .sidebar{width:0;min-width:0;border-right:none;overflow:hidden}
 }
 
 /* Cabecera de página — H1 + subtítulo dentro de <main>, no en el topbar */
