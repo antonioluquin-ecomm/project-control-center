@@ -195,8 +195,8 @@ function renderSidebarUser() {
       '</div>' +
       '<div class="user-dropdown-sep"></div>' +
       '<button class="user-dropdown-item theme-toggle" type="button" onclick="toggleTheme()">' +
-        '<span class="nav-icon th-icon" style="font-size:13px">' + (isDark ? '🌙' : '☀️') + '</span>' +
-        '<span class="th-text">' + (isDark ? 'Oscuro' : 'Claro') + '</span>' +
+        '<span class="th-icon">' + (isDark ? '☀' : '☾') + '</span>' +
+        '<span class="th-label">' + (isDark ? 'Modo claro' : 'Modo oscuro') + '</span>' +
       '</button>' +
       '<div class="user-dropdown-sep"></div>' +
       '<button class="user-dropdown-item" type="button" onclick="showChangePasswordModal()">Cambiar contraseña</button>' +

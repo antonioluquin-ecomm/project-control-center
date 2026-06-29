@@ -137,11 +137,12 @@ function getCurrentTheme() {
 
 function _updateThemeToggles(theme) {
   var t = theme || document.documentElement.getAttribute('data-theme') || 'light';
+  var isLight = t === 'light';
   document.querySelectorAll('.th-icon').forEach(function(el) {
-    el.textContent = t === 'dark' ? '🌙' : '☀️';
+    el.textContent = isLight ? '☾' : '☀';
   });
-  document.querySelectorAll('.th-text').forEach(function(el) {
-    el.textContent = t === 'dark' ? 'Oscuro' : 'Claro';
+  document.querySelectorAll('.th-label').forEach(function(el) {
+    el.textContent = isLight ? 'Modo oscuro' : 'Modo claro';
   });
 }
 
