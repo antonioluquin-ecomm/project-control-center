@@ -38,9 +38,9 @@ function getProyectoById_(params) {
 // ── CREAR ─────────────────────────────────────────────────────
 function createProyecto_(params, user) {
   const nombre      = validateString_(params.nombre, 'nombre', 200);
-  const estado      = optionalEnum_(params.estado, 'estado', ESTADOS_PROYECTO, 'Por Hacer');
-  const prioridad   = optionalEnum_(params.prioridad, 'prioridad', PRIORIDADES, 'Medium');
-  const sitio       = params.sitio ? validateEnum_(params.sitio, 'sitio', SITIOS) : '';
+  const estado      = optionalEnum_(params.estado, 'estado', getCatCached_(SHEETS.CAT_ESTADOS_PROYECTO, ESTADOS_PROYECTO), 'Por Hacer');
+  const prioridad   = optionalEnum_(params.prioridad, 'prioridad', getCatCached_(SHEETS.CAT_PRIORIDADES, PRIORIDADES), 'Medium');
+  const sitio       = params.sitio ? validateEnum_(params.sitio, 'sitio', getCatCached_(SHEETS.CAT_SITIOS, SITIOS)) : '';
   const descripcion = optionalString_(params.descripcion, 'descripcion', 2000);
   const responsable = optionalString_(params.responsable, 'responsable', 120);
   const observaciones = optionalString_(params.observaciones, 'observaciones', 2000);
@@ -73,10 +73,10 @@ function updateProyecto_(params, user) {
 
   if (params.nombre !== undefined)        updates.nombre = validateString_(params.nombre, 'nombre', 200);
   if (params.descripcion !== undefined)   updates.descripcion = optionalString_(params.descripcion, 'descripcion', 2000);
-  if (params.estado !== undefined)        updates.estado = validateEnum_(params.estado, 'estado', ESTADOS_PROYECTO);
-  if (params.prioridad !== undefined)     updates.prioridad = validateEnum_(params.prioridad, 'prioridad', PRIORIDADES);
+  if (params.estado !== undefined)        updates.estado = validateEnum_(params.estado, 'estado', getCatCached_(SHEETS.CAT_ESTADOS_PROYECTO, ESTADOS_PROYECTO));
+  if (params.prioridad !== undefined)     updates.prioridad = validateEnum_(params.prioridad, 'prioridad', getCatCached_(SHEETS.CAT_PRIORIDADES, PRIORIDADES));
   if (params.responsable !== undefined)   updates.responsable = optionalString_(params.responsable, 'responsable', 120);
-  if (params.sitio !== undefined)         updates.sitio = params.sitio ? validateEnum_(params.sitio, 'sitio', SITIOS) : '';
+  if (params.sitio !== undefined)         updates.sitio = params.sitio ? validateEnum_(params.sitio, 'sitio', getCatCached_(SHEETS.CAT_SITIOS, SITIOS)) : '';
   if (params.observaciones !== undefined) updates.observaciones = optionalString_(params.observaciones, 'observaciones', 2000);
   if (params.fecha_inicio !== undefined)        updates.fecha_inicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   if (params.fecha_fin_estimada !== undefined)  updates.fecha_fin_estimada = optionalDate_(params.fecha_fin_estimada, 'fecha_fin_estimada');

@@ -53,10 +53,11 @@ function doPost(e) {
   }
 }
 
-// Acciones de gestión (usuarios / roles / permisos) — solo Administrador.
+// Acciones de gestión (usuarios / roles / permisos / catálogos) — solo Administrador.
 const ADMIN_ACTIONS = [
   'getUsuarios', 'createUsuario', 'updateUsuario',
   'getRoles', 'createRol', 'updateRol', 'updatePermisos',
+  'updateCatalogo',
 ];
 
 // ── Router ────────────────────────────────────────────────────
@@ -91,6 +92,7 @@ function routePost_(action, params, user, body) {
     if (action === 'createRol')      return createRol_(params, user);
     if (action === 'updateRol')      return updateRol_(params, user);
     if (action === 'updatePermisos') return updatePermisos_(params, user);
+    if (action === 'updateCatalogo') return updateCatalogo_(params, user);
   }
 
   // 4) Escrituras de dominio — enforcement por módulo (Admin siempre puede).

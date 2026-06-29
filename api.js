@@ -122,6 +122,8 @@ function apiGetRoles()           { return callApiRaw('getRoles'); }
 function apiCreateRol(d)         { return callApiRaw('createRol', d); }
 function apiUpdateRol(d)         { return callApiRaw('updateRol', d); }
 
+function apiUpdateCatalogo(catalogo, valores) { return callApiRaw('updateCatalogo', { catalogo: catalogo, valores: valores }); }
+
 /* ─── SELECTOR DE RESPONSABLE (usuarios reales) ──────────── */
 // El responsable se guarda como nombre (string), compatible con datos migrados.
 let _usuariosBasico = null;
@@ -173,7 +175,19 @@ async function _mockLoad() {
     fetchJson('src/data/checklist.json', []),
     fetchJson('src/data/sprints.json', []),
   ]);
-  _mock = { proyectos: proyectos, tareas: tareas, comentarios: comentarios, historial: historial, adjuntos: adjuntos, usuarios: usuarios, checklist: checklist, sprints: sprints };
+  _mock = {
+    proyectos: proyectos, tareas: tareas, comentarios: comentarios,
+    historial: historial, adjuntos: adjuntos, usuarios: usuarios,
+    checklist: checklist, sprints: sprints,
+    catalogos: {
+      CAT_ESTADOS_PROYECTO: ESTADOS_PROYECTO.slice(),
+      CAT_ESTADOS_TAREA:    ESTADOS_TAREA.slice(),
+      CAT_TIPOS_TAREA:      TIPOS_TAREA.slice(),
+      CAT_PRIORIDADES:      PRIORIDADES.slice(),
+      CAT_SITIOS:           SITIOS.slice(),
+      CAT_AREAS:            AREAS.slice(),
+    },
+  };
   return _mock;
 }
 
@@ -214,13 +228,21 @@ async function _mockCall(action, p) {
   const today = _today();
 
   switch (action) {
-    case 'getCatalogos':
+    case 'getCatalogos': {
+      const cat = _mock.catalogos;
       return {
-        estados_proyecto: ESTADOS_PROYECTO, estados_tarea: ESTADOS_TAREA,
-        tipos_tarea: TIPOS_TAREA, prioridades: PRIORIDADES, sitios: SITIOS,
-        areas: AREAS, tiendas: TIENDAS,
+        estados_proyecto: cat.CAT_ESTADOS_PROYECTO, estados_tarea: cat.CAT_ESTADOS_TAREA,
+        tipos_tarea: cat.CAT_TIPOS_TAREA, prioridades: cat.CAT_PRIORIDADES,
+        sitios: cat.CAT_SITIOS, areas: cat.CAT_AREAS, tiendas: TIENDAS,
         responsables: [],
       };
+    }
+    case 'updateCatalogo': {
+      if (!p.catalogo || !Array.isArray(p.valores) || !p.valores.length)
+        throw new Error('Catálogo o valores inválidos');
+      _mock.catalogos[p.catalogo] = p.valores.map(function(v) { return String(v).trim(); }).filter(Boolean);
+      return { catalogo: p.catalogo, count: _mock.catalogos[p.catalogo].length };
+    }
 
     case 'getResumen': {
       const proy = _mock.proyectos.filter(function (x) { return x.estado !== 'Cancelado'; });

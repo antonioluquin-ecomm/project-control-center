@@ -59,6 +59,39 @@ function getCatalogos_() {
   };
 }
 
+// Catálogos que el admin puede editar desde la UI (lista blanca).
+const _CATALOGOS_EDITABLES_ = [
+  SHEETS.CAT_ESTADOS_PROYECTO, SHEETS.CAT_ESTADOS_TAREA, SHEETS.CAT_TIPOS_TAREA,
+  SHEETS.CAT_PRIORIDADES, SHEETS.CAT_SITIOS, SHEETS.CAT_AREAS,
+];
+
+// Reemplaza los valores de una hoja CAT_ por el array recibido.
+// Mantiene la fila 1 (header = nombre de la hoja). Borra filas 2..n y rescribe.
+function updateCatalogo_(params, user) {
+  if (_CATALOGOS_EDITABLES_.indexOf(params.catalogo) === -1)
+    return { ok: false, error: 'Catálogo no editable: ' + params.catalogo, code: 400 };
+
+  const valores = params.valores;
+  if (!Array.isArray(valores) || valores.length === 0)
+    return { ok: false, error: 'valores debe ser un array no vacío', code: 400 };
+
+  const limpios = valores.map(function(v) { return String(v).trim(); }).filter(Boolean);
+  if (!limpios.length) return { ok: false, error: 'Todos los valores estaban vacíos', code: 400 };
+
+  const sheet = getSheet_(params.catalogo);
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).clearContent();
+  }
+  limpios.forEach(function(v) { sheet.appendRow([v]); });
+
+  // Invalida la caché del catálogo para este request (ya actualizado).
+  delete _catCache_[params.catalogo];
+
+  const email = (user && user.email) || '';
+  writeLog_('updateCatalogo', params.catalogo, 0, 'OK', limpios.length + ' valores', email);
+  return { ok: true, data: { catalogo: params.catalogo, count: limpios.length } };
+}
+
 function _contarPor_(rows, campo) {
   const out = {};
   rows.forEach(function(r) { const k = r[campo] || 'Sin estado'; out[k] = (out[k] || 0) + 1; });

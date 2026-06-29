@@ -100,6 +100,18 @@ function getCatValues_(sheetName) {
     .filter(function(v) { return v !== '' && v !== sheetName; });
 }
 
+// ── Catálogo con caché por request ───────────────────────────
+// Evita múltiples lecturas de la misma hoja CAT_ dentro de un
+// mismo request GAS. El objeto _catCache_ se reinicia en cada
+// nueva ejecución (GAS no reutiliza el contexto entre requests).
+const _catCache_ = {};
+function getCatCached_(sheetName, fallback) {
+  if (_catCache_[sheetName]) return _catCache_[sheetName];
+  const vals = getCatValues_(sheetName);
+  _catCache_[sheetName] = vals.length ? vals : (fallback || []);
+  return _catCache_[sheetName];
+}
+
 // ── SHA-256 hex ───────────────────────────────────────────────
 function computeSha256Hex_(str) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, str, Utilities.Charset.UTF_8);

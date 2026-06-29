@@ -53,6 +53,7 @@
         <div class="tabs">
           <button class="tab-btn active" id="tab-btn-usuarios" onclick="_showTab('usuarios')">Usuarios</button>
           <button class="tab-btn" id="tab-btn-roles" onclick="_showTab('roles')">Roles y permisos</button>
+          <button class="tab-btn admin-only" id="tab-btn-catalogos" onclick="_showTab('catalogos')">Catálogos</button>
           <button class="tab-btn" id="tab-btn-conexion" onclick="_showTab('conexion')">Integraciones</button>
         </div>
 
@@ -118,6 +119,38 @@
           </section>
         </div>
 
+        <!-- ══ TAB: CATÁLOGOS ════════════════════════════════ -->
+        <div id="tab-catalogos" class="tab-panel" hidden>
+          <section class="panel">
+            <div class="toolbar" style="flex-wrap:wrap;gap:10px">
+              <select id="catSelector" onchange="showCatalogo(this.value)" style="max-width:260px">
+                <option value="">— Elegí un catálogo —</option>
+                <option value="CAT_ESTADOS_PROYECTO">Estados de proyecto</option>
+                <option value="CAT_ESTADOS_TAREA">Estados de tarea</option>
+                <option value="CAT_TIPOS_TAREA">Tipos de tarea</option>
+                <option value="CAT_PRIORIDADES">Prioridades</option>
+                <option value="CAT_SITIOS">Sitios</option>
+                <option value="CAT_AREAS">Áreas</option>
+              </select>
+              <span class="spacer"></span>
+              <button class="sm admin-only" id="catSaveBtn" onclick="saveCatalogo()" disabled>Guardar cambios</button>
+            </div>
+            <div id="catStatus" class="status-bar" hidden></div>
+            <div id="catPanel" style="margin-top:14px;display:none">
+              <h4 id="catTitle" style="margin:0 0 10px;font-size:14px;font-weight:600"></h4>
+              <div id="catList" style="max-width:420px"></div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:10px;max-width:420px">
+                <input id="catNewVal" placeholder="Nuevo valor…" style="flex:1"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();catAgregar();}" />
+                <button class="secondary sm admin-only" onclick="catAgregar()">+ Agregar</button>
+              </div>
+            </div>
+            <div id="catEmpty" style="color:var(--muted);font-size:13px;margin-top:14px">
+              Seleccioná un catálogo para editar sus valores.
+            </div>
+          </section>
+        </div>
+
         <!-- ══ TAB: CONEXIÓN ══════════════════════════════════ -->
         <div id="tab-conexion" class="tab-panel" hidden>
           <section class="panel">
@@ -175,13 +208,110 @@
 
     /* ─── Tabs ─────────────────────────────────────────────── */
     function _showTab(tab) {
-      ['usuarios', 'roles', 'conexion'].forEach(function (t) {
+      ['usuarios', 'roles', 'catalogos', 'conexion'].forEach(function (t) {
         const panel = document.getElementById('tab-' + t);
         const btn = document.getElementById('tab-btn-' + t);
         if (panel) panel.hidden = (t !== tab);
         if (btn) btn.classList.toggle('active', t === tab);
       });
       if (tab === 'conexion') renderConexion();
+      if (tab === 'catalogos') initCatalogos();
+    }
+
+    /* ─── Catálogos ────────────────────────────────────────── */
+    let _catKey    = '';
+    let _catValores = [];
+    let _catData   = null; // objeto completo de getCatalogos
+
+    const _CAT_MAP = {
+      CAT_ESTADOS_PROYECTO: { label: 'Estados de proyecto', key: 'estados_proyecto' },
+      CAT_ESTADOS_TAREA:    { label: 'Estados de tarea',    key: 'estados_tarea' },
+      CAT_TIPOS_TAREA:      { label: 'Tipos de tarea',      key: 'tipos_tarea' },
+      CAT_PRIORIDADES:      { label: 'Prioridades',         key: 'prioridades' },
+      CAT_SITIOS:           { label: 'Sitios',              key: 'sitios' },
+      CAT_AREAS:            { label: 'Áreas',               key: 'areas' },
+    };
+
+    async function initCatalogos() {
+      if (_catData) return;
+      try {
+        _catData = await apiGetCatalogos();
+      } catch (e) {
+        setStatus('catStatus', 'Error al cargar catálogos: ' + e.message, 'error');
+        document.getElementById('catStatus').hidden = false;
+      }
+    }
+
+    function showCatalogo(key) {
+      _catKey = key;
+      const panel   = document.getElementById('catPanel');
+      const empty   = document.getElementById('catEmpty');
+      const saveBtn = document.getElementById('catSaveBtn');
+      document.getElementById('catStatus').hidden = true;
+      if (!key || !_CAT_MAP[key]) {
+        panel.style.display = 'none'; empty.style.display = ''; saveBtn.disabled = true; return;
+      }
+      if (!_catData) { toast('⚠', 'Catálogos aún cargando…', 'error'); return; }
+      _catValores = (_catData[_CAT_MAP[key].key] || []).slice();
+      document.getElementById('catTitle').textContent = _CAT_MAP[key].label;
+      panel.style.display = ''; empty.style.display = 'none'; saveBtn.disabled = false;
+      _renderCatList();
+    }
+
+    function _renderCatList() {
+      const el = document.getElementById('catList');
+      if (!_catValores.length) {
+        el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sin valores todavía.</div>';
+        return;
+      }
+      el.innerHTML = _catValores.map(function (v, i) {
+        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">' +
+          '<span style="flex:1;font-size:13px">' + escapeHtml(v) + '</span>' +
+          '<button class="secondary sm" onclick="catMover(' + i + ',-1)" ' + (i === 0 ? 'disabled' : '') + ' title="Subir">↑</button>' +
+          '<button class="secondary sm" onclick="catMover(' + i + ',1)" ' + (i === _catValores.length - 1 ? 'disabled' : '') + ' title="Bajar">↓</button>' +
+          '<button class="danger sm" onclick="catEliminar(' + i + ')" title="Eliminar">✕</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    function catMover(idx, dir) {
+      const swap = idx + dir;
+      if (swap < 0 || swap >= _catValores.length) return;
+      const tmp = _catValores[idx]; _catValores[idx] = _catValores[swap]; _catValores[swap] = tmp;
+      _renderCatList();
+    }
+
+    function catEliminar(idx) {
+      _catValores.splice(idx, 1);
+      _renderCatList();
+    }
+
+    function catAgregar() {
+      const inp = document.getElementById('catNewVal');
+      const val = inp.value.trim();
+      if (!val) return;
+      if (_catValores.indexOf(val) !== -1) { toast('⚠', 'Ese valor ya existe', 'error'); return; }
+      _catValores.push(val);
+      inp.value = '';
+      _renderCatList();
+    }
+
+    async function saveCatalogo() {
+      if (!_catKey || !_catValores.length) return;
+      const btn = document.getElementById('catSaveBtn');
+      btn.disabled = true;
+      const st = document.getElementById('catStatus');
+      st.hidden = true;
+      try {
+        await apiUpdateCatalogo(_catKey, _catValores);
+        // Actualiza _catData en memoria para que otros catálogos usen valores frescos.
+        if (_catData && _CAT_MAP[_catKey]) _catData[_CAT_MAP[_catKey].key] = _catValores.slice();
+        toast('✓', 'Catálogo guardado', 'success');
+      } catch (e) {
+        st.textContent = e.message; st.className = 'status-bar error'; st.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
     }
 
     /* ─── Roles (lista compartida) ─────────────────────────── */
