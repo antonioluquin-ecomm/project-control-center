@@ -266,3 +266,25 @@ async function _submitChangePassword() {
     show(e.message || 'Error al cambiar la contraseña.');
   }
 }
+
+function initSidebarCollapse() {
+  const btn = document.getElementById('sidebarCollapseBtn');
+  if (!btn) return;
+  const _sync = () => {
+    const collapsed = document.documentElement.getAttribute('data-sidebar') === 'collapsed';
+    btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    btn.setAttribute('title', collapsed ? 'Mostrar menú lateral' : 'Ocultar menú lateral');
+  };
+  btn.addEventListener('click', () => {
+    const collapsed = document.documentElement.getAttribute('data-sidebar') === 'collapsed';
+    if (collapsed) {
+      document.documentElement.removeAttribute('data-sidebar');
+      localStorage.removeItem('pcc_sidebar');
+    } else {
+      document.documentElement.setAttribute('data-sidebar', 'collapsed');
+      localStorage.setItem('pcc_sidebar', 'collapsed');
+    }
+    _sync();
+  });
+  _sync();
+}
