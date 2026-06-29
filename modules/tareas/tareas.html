@@ -124,9 +124,10 @@
         await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
         const sel = document.getElementById('selProyecto');
-        sel.innerHTML = STATE.proyectos.map(function (p) {
-          return '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>';
-        }).join('');
+        sel.innerHTML = '<option value="">Todos los proyectos</option>' +
+          STATE.proyectos.map(function (p) {
+            return '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>';
+          }).join('');
         const pre = qsProyecto();
         if (pre && STATE.proyectos.some(function (p) { return Number(p.id) === pre; })) sel.value = pre;
 
@@ -149,14 +150,11 @@
 
     async function loadTareas() {
       const pid = currentProyectoId();
-      if (!pid) {
-        setStatus('statusBar', 'No hay proyectos. Creá uno primero.', 'warning');
-        document.getElementById('tbody').innerHTML = '';
-        return;
-      }
+      const btnNew = document.getElementById('btnNew');
+      if (btnNew) btnNew.disabled = !pid;
       setStatus('statusBar', 'Cargando…', 'info');
       try {
-        STATE.tareas = await apiGetTareas({ id_proyecto: pid });
+        STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
         _rebuildRespFilter();
         render();
         setStatus('statusBar', STATE.tareas.length + ' tareas.', 'success');

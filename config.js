@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.9.0',
+  number: '1.9.1',
   date:   '2026-06-29',
-  notes:  'Edición inline de comentarios propios',
+  notes:  'Tareas: ver todas sin filtro de proyecto',
 };
 
 const CHANGELOG = [
+  { v: '1.9.1', date: '2026-06-29', desc: 'Tareas: opción "Todos los proyectos" en el selector — carga todas las tareas; + Nueva tarea se deshabilita al seleccionar "Todos"' },
   { v: '1.9.0', date: '2026-06-29', desc: 'Comentarios: edición inline del texto propio — botón Editar en hover, textarea inline con Guardar/Cancelar, badge (editado); backend valida autoría' },
   { v: '1.8.1', date: '2026-06-29', desc: 'Checklist: checkbox custom, hover states, botón eliminar oculto, barra de progreso con gradiente y clase chk-complete al 100%' },
   { v: '1.8.0', date: '2026-06-29', desc: 'Colapso de sidebar en desktop — botón en topbar, estado persistido en localStorage (pcc_sidebar), anti-flash en los 7 HTML' },
