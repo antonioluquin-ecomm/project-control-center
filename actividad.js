@@ -115,7 +115,7 @@ async function _actLoadChecklist() {
     const pct = total ? Math.round(hechos / total * 100) : 0;
     if (prog) {
       prog.innerHTML = total
-        ? '<div class="chk-bar"><div class="chk-fill" style="width:' + pct + '%"></div></div>' +
+        ? '<div class="chk-bar"><div class="chk-fill' + (pct === 100 ? ' chk-complete' : '') + '" style="width:' + pct + '%"></div></div>' +
           '<span class="chk-count">' + hechos + '/' + total + ' (' + pct + '%)</span>'
         : '';
     }
@@ -123,11 +123,11 @@ async function _actLoadChecklist() {
       const done = String(c.hecho) === 'SI';
       return '<div class="chk-item' + (done ? ' chk-done' : '') + '">' +
         '<label class="chk-label">' +
-        '<input type="checkbox" class="admin-only" ' + (done ? 'checked' : '') + ' onchange="_actToggleChecklist(' + c.id + ', this.checked)" />' +
+        '<input type="checkbox" class="chk-cb admin-only" ' + (done ? 'checked' : '') + ' onchange="_actToggleChecklist(' + c.id + ', this.checked)" />' +
         '<span>' + escapeHtml(c.texto) + '</span></label>' +
-        '<button class="btn-icon admin-only" title="Eliminar" onclick="_actDeleteChecklist(' + c.id + ')">✕</button>' +
+        '<button class="chk-del admin-only" title="Eliminar" onclick="_actDeleteChecklist(' + c.id + ')">✕</button>' +
         '</div>';
-    }).join('') : '<div class="text-muted" style="font-size:13px">Sin ítems. Agregá el primero.</div>';
+    }).join('') : '<div class="text-muted" style="font-size:13px;padding:12px 0">Sin ítems todavía.</div>';
     if (typeof restrictWriteIfAgent === 'function') restrictWriteIfAgent();
   } catch (e) { if (wrap) wrap.innerHTML = '<div class="status-bar error">' + escapeHtml(e.message) + '</div>'; }
 }
