@@ -102,8 +102,9 @@ function deleteProyecto_(params, user) {
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Proyecto no encontrado', code: 404 };
   const email = (user && user.email) || '';
+  const estadoAnterior = rowToObj_(sheet.getDataRange().getValues()[rowNum - 1], PROYECTOS_COLS).estado;
   updateFields_(SHEETS.PROYECTOS, rowNum, PROYECTOS_COLS, { estado: 'Cancelado' }, email);
-  writeHistorial_('PROYECTO', id, 'estado', '', 'Cancelado', email);
+  writeHistorial_('PROYECTO', id, 'estado', estadoAnterior, 'Cancelado', email);
   writeLog_('deleteProyecto', 'PROYECTOS', id, 'OK', 'soft delete', email);
   return { ok: true, data: { id: id } };
 }

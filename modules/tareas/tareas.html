@@ -359,9 +359,11 @@
     /* ─── Export CSV ────────────────────────────────────────── */
 
     function exportCSV() {
-      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable']];
+      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable']];
       filtered().forEach(function (t) {
-        rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable, t.area, t.tienda, t.avance_pct,
+        const s = _sprintById(t.id_sprint);
+        rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable,
+          s ? s.nombre : '', t.area, t.tienda, t.avance_pct,
           (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable]);
       });
       downloadCSV('tareas.csv', rows);
@@ -559,7 +561,11 @@
 
     // Recarga sprints, repuebla el filtro y re-renderiza la tabla de tareas.
     async function _refreshSprints() {
-      STATE.sprints = await apiGetSprints({});
+      try {
+        STATE.sprints = await apiGetSprints({});
+      } catch (e) {
+        toast('✕', 'No se pudo actualizar sprints: ' + e.message, 'error');
+      }
       _rebuildSprintFilter();
       render();
     }

@@ -50,8 +50,11 @@ function createTarea_(params, user) {
   const urlGitlab  = optionalUrl_(params.url_gitlab, 'url_gitlab');
   const urlFigmaP  = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   const urlFigmaE  = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
-  // Sprint (global, opcional).
+  // Sprint (global, opcional). Verifica existencia para evitar FK rota.
   const idSprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
+  if (idSprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), idSprint)) {
+    return { ok: false, error: 'Sprint no encontrado', code: 404 };
+  }
 
   const sheet = getSheet_(SHEETS.TAREAS);
   const id = getNextId_(sheet);
@@ -117,8 +120,9 @@ function deleteTarea_(params, user) {
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Tarea no encontrada', code: 404 };
   const email = (user && user.email) || '';
+  const estadoAnterior = rowToObj_(sheet.getDataRange().getValues()[rowNum - 1], TAREAS_COLS).estado;
   updateFields_(SHEETS.TAREAS, rowNum, TAREAS_COLS, { estado: 'Cancelada' }, email);
-  writeHistorial_('TAREA', id, 'estado', '', 'Cancelada', email);
+  writeHistorial_('TAREA', id, 'estado', estadoAnterior, 'Cancelada', email);
   writeLog_('deleteTarea', 'TAREAS', id, 'OK', 'soft delete', email);
   return { ok: true, data: { id: id } };
 }

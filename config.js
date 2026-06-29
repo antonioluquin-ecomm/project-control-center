@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.10.0',
+  number: '1.10.1',
   date:   '2026-06-29',
-  notes:  'Sprints: gestión por sprints globales, asignación y filtro de tareas',
+  notes:  'Sprints: auditoría y correcciones de calidad',
 };
 
 const CHANGELOG = [
+  { v: '1.10.1', date: '2026-06-29', desc: 'Sprints — auditoría: FK id_sprint valida existencia en backend; _refreshSprints con try/catch; fecha_fin≥fecha_inicio en create/update; historial de soft-delete con estado real (Sprints, Tareas, Proyectos); nombre de sprint único; CSV incluye columna sprint' },
   { v: '1.10.0', date: '2026-06-29', desc: 'Sprints (estilo Jira): hoja SPRINTS + columna id_sprint en TAREAS; ABM de sprints desde Tareas ("Gestionar sprints"), asignación tarea→sprint, filtro por sprint y chip en fila/detalle. Sprints globales (multi-proyecto)' },
   { v: '1.9.3', date: '2026-06-29', desc: 'Tareas: clic en fila abre modal de detalle — info completa + actividad (comentarios, checklist, adjuntos, historial) embebida; editar desde el detalle funciona con "Todos los proyectos"' },
   { v: '1.9.2', date: '2026-06-29', desc: 'Proyectos: filtro de responsable en toolbar; Tareas: label mejorado en filtro de resp.' },

@@ -37,8 +37,17 @@ function createSprint_(params, user) {
   const estado      = optionalEnum_(params.estado, 'estado', ESTADOS_SPRINT, 'Planificado');
   const fechaInicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   const fechaFin    = optionalDate_(params.fecha_fin, 'fecha_fin');
+  if (fechaInicio instanceof Date && fechaFin instanceof Date && fechaFin < fechaInicio) {
+    return { ok: false, error: 'fecha_fin no puede ser anterior a fecha_inicio', code: 400 };
+  }
 
   const sheet = getSheet_(SHEETS.SPRINTS);
+  // Nombre único entre sprints no cancelados.
+  const existentes = getAllRows_(SHEETS.SPRINTS, SPRINTS_COLS);
+  const dup = existentes.filter(function(r) {
+    return r.estado !== 'Cancelado' && String(r.nombre).toLowerCase() === nombre.toLowerCase();
+  })[0];
+  if (dup) return { ok: false, error: 'Ya existe un sprint activo con ese nombre', code: 409 };
   const id = getNextId_(sheet);
   const now = new Date();
   const email = (user && user.email) || '';
@@ -62,11 +71,26 @@ function updateSprint_(params, user) {
   const email = (user && user.email) || '';
   const updates = {};
 
-  if (params.nombre !== undefined)       updates.nombre = validateString_(params.nombre, 'nombre', 200);
+  if (params.nombre !== undefined) {
+    updates.nombre = validateString_(params.nombre, 'nombre', 200);
+    // Nombre único entre sprints no cancelados (excluye el propio).
+    const existentes = getAllRows_(SHEETS.SPRINTS, SPRINTS_COLS);
+    const dup = existentes.filter(function(r) {
+      return Number(r.id) !== id && r.estado !== 'Cancelado' && String(r.nombre).toLowerCase() === updates.nombre.toLowerCase();
+    })[0];
+    if (dup) return { ok: false, error: 'Ya existe un sprint activo con ese nombre', code: 409 };
+  }
   if (params.objetivo !== undefined)     updates.objetivo = optionalString_(params.objetivo, 'objetivo', 500);
   if (params.estado !== undefined)       updates.estado = validateEnum_(params.estado, 'estado', ESTADOS_SPRINT);
   if (params.fecha_inicio !== undefined) updates.fecha_inicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   if (params.fecha_fin !== undefined)    updates.fecha_fin = optionalDate_(params.fecha_fin, 'fecha_fin');
+
+  // Valida coherencia de fechas (efectivas tras el update).
+  const efectivaInicio = updates.fecha_inicio !== undefined ? updates.fecha_inicio : actual.fecha_inicio;
+  const efectivaFin    = updates.fecha_fin    !== undefined ? updates.fecha_fin    : actual.fecha_fin;
+  if (efectivaInicio instanceof Date && efectivaFin instanceof Date && efectivaFin < efectivaInicio) {
+    return { ok: false, error: 'fecha_fin no puede ser anterior a fecha_inicio', code: 400 };
+  }
 
   // Historial campo a campo (solo cambios reales).
   Object.keys(updates).forEach(function(campo) {
@@ -89,8 +113,9 @@ function deleteSprint_(params, user) {
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Sprint no encontrado', code: 404 };
   const email = (user && user.email) || '';
+  const estadoAnterior = rowToObj_(sheet.getDataRange().getValues()[rowNum - 1], SPRINTS_COLS).estado;
   updateFields_(SHEETS.SPRINTS, rowNum, SPRINTS_COLS, { estado: 'Cancelado' }, email);
-  writeHistorial_('SPRINT', id, 'estado', '', 'Cancelado', email);
+  writeHistorial_('SPRINT', id, 'estado', estadoAnterior, 'Cancelado', email);
   writeLog_('deleteSprint', 'SPRINTS', id, 'OK', 'soft delete', email);
   return { ok: true, data: { id: id } };
 }
