@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.9.2',
+  number: '1.9.3',
   date:   '2026-06-29',
-  notes:  'Proyectos: filtro por responsable',
+  notes:  'Tareas: fila clickeable abre modal de detalle con actividad embebida',
 };
 
 const CHANGELOG = [
+  { v: '1.9.3', date: '2026-06-29', desc: 'Tareas: clic en fila abre modal de detalle — info completa + actividad (comentarios, checklist, adjuntos, historial) embebida; editar desde el detalle funciona con "Todos los proyectos"' },
   { v: '1.9.2', date: '2026-06-29', desc: 'Proyectos: filtro de responsable en toolbar; Tareas: label mejorado en filtro de resp.' },
   { v: '1.9.1', date: '2026-06-29', desc: 'Tareas: opción "Todos los proyectos" en el selector — carga todas las tareas; + Nueva tarea se deshabilita al seleccionar "Todos"' },
   { v: '1.9.0', date: '2026-06-29', desc: 'Comentarios: edición inline del texto propio — botón Editar en hover, textarea inline con Guardar/Cancelar, badge (editado); backend valida autoría' },
