@@ -53,7 +53,7 @@
             <select id="selProyecto" onchange="loadTareas()" style="max-width:300px"></select>
             <select id="fArea" onchange="render()" style="max-width:150px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:150px"><option value="">Todas las tiendas</option></select>
-            <select id="fSprint" onchange="render()" style="max-width:170px"><option value="">Todos los sprints</option></select>
+            <select id="fSprint" onchange="loadTareas()" style="max-width:170px"><option value="">Todos los sprints</option></select>
             <span class="spacer"></span>
             <div class="seg-toggle">
               <button class="seg-tab active" id="zoomMes" onclick="setZoom('mes')">Mes</button>
@@ -61,6 +61,7 @@
             </div>
           </div>
           <div id="statusBar" class="status-bar">Cargando…</div>
+          <div id="sinFechasLink" style="margin-top:6px"></div>
           <div id="ganttHost" style="margin-top:12px"></div>
         </section>
       </main>
@@ -73,9 +74,9 @@
   <script src="../../auth.js"></script>
   <script src="../../api.js"></script>
   <script src="../../actividad.js"></script>
+  <script src="../../tareaDetalle.js"></script>
   <script>
     const PX = { mes: 5, semana: 22 };   // px por día según zoom
-    const ROW_H = 34;                      // alto de fila (px)
     let _zoom = 'mes';
 
     function qsProyecto() { const m = location.search.match(/[?&]proyecto=(\d+)/); return m ? Number(m[1]) : null; }
@@ -118,7 +119,11 @@
       setStatus('statusBar', 'Cargando…', 'info');
       try {
         const pid = currentProyectoId();
-        STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
+        const fs = document.getElementById('fSprint').value;
+        const params = {};
+        if (pid) params.id_proyecto = pid;
+        if (fs) params.id_sprint = fs;
+        STATE.tareas = await apiGetTareas(params);
         render();
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
@@ -141,15 +146,14 @@
     function _addMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 1); }
     const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
+    // Área/tienda se filtran en cliente (sin soporte server-side); proyecto/sprint y
+    // exclusión de canceladas ya vienen resueltos por el backend en loadTareas().
     function visibleTareas() {
       const fa = document.getElementById('fArea').value;
       const ft = document.getElementById('fTienda').value;
-      const fs = document.getElementById('fSprint').value;
       return STATE.tareas.filter(function (t) {
-        if (t.estado === 'Cancelada') return false;
         if (fa && t.area !== fa) return false;
         if (ft && t.tienda !== ft) return false;
-        if (fs && Number(t.id_sprint) !== Number(fs)) return false;
         return true;
       });
     }
@@ -166,6 +170,8 @@
         if (start && end) { t._start = start <= end ? start : end; t._end = end >= start ? end : start; conFechas.push(t); }
         else sinFechasCount.push(t);
       });
+
+      renderSinFechasLink(sinFechasCount.length);
 
       if (!conFechas.length) {
         host.innerHTML = '<div class="empty-row" style="padding:24px;text-align:center">Sin tareas con fechas para graficar.</div>';
@@ -211,11 +217,13 @@
         const width = Math.max(px, (_dayDiff(t._start, t._end) + 1) * px);
         const venc = t.vencida ? ' gantt-venc' : '';
         const sub = currentProyectoId() ? (t.responsable || '') : proyNombre(t.id_proyecto);
-        labels += '<div class="gantt-rowlabel" style="cursor:pointer" title="' + escapeHtml(t.titulo) + '" onclick="openDetalle(' + t.id + ')">' +
+        const openAttrs = 'role="button" tabindex="0" onclick="openDetalle(' + t.id + ')" ' +
+          'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openDetalle(' + t.id + ');}"';
+        labels += '<div class="gantt-rowlabel" style="cursor:pointer" title="' + escapeHtml(t.titulo) + '" ' + openAttrs + '>' +
           '<b>' + escapeHtml(t.titulo) + '</b>' + (sub ? '<span>' + escapeHtml(sub) + '</span>' : '') + '</div>';
         lanes += '<div class="gantt-lane">' +
           '<div class="gantt-bar badge ' + cls + venc + '" style="left:' + left + 'px;width:' + width + 'px;cursor:pointer" ' +
-          'onclick="openDetalle(' + t.id + ')" ' +
+          openAttrs + ' ' +
           'title="' + escapeHtml(t.titulo + ' · ' + (t.fecha_inicio || '—').slice(0, 10) + ' → ' + (t.fecha_limite || '—').slice(0, 10)) + '">' +
           '<span class="gantt-bar-label">' + (t.avance_pct ? t.avance_pct + '%' : '') + '</span></div></div>';
       });
@@ -240,96 +248,22 @@
       setStatus('statusBar', conFechas.length + ' tareas graficadas · ' + sinFechasCount.length + ' sin fechas (excluidas).', 'success');
     }
 
+    // Tareas sin fecha quedan fuera del gráfico; este link da una salida rápida a Tareas para completarlas.
+    function renderSinFechasLink(count) {
+      const host = document.getElementById('sinFechasLink');
+      if (!count) { host.innerHTML = ''; return; }
+      const pid = currentProyectoId();
+      const href = '../tareas/tareas.html' + (pid ? '?proyecto=' + pid : '');
+      host.innerHTML = '<a href="' + href + '" style="font-size:12px;color:var(--primary)">' +
+        count + ' tarea' + (count === 1 ? '' : 's') + ' sin fecha — completarlas en Tareas →</a>';
+    }
+
     function closeModal() { document.getElementById('modals').innerHTML = ''; }
 
     function openDetalle(id) {
       const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
       if (!t) return;
-      _actCtx = { entidad: 'TAREA', id: Number(id) };
-
-      const cls  = ESTADO_CLASS[t.estado] || 'st-todo';
-      const prc  = PRIORIDAD_CLASS[t.prioridad] || '';
-      const pct  = Number(t.avance_pct) || 0;
-      const venc = t.vencida ? '<span class="badge vencida" style="margin-left:4px">Vencida</span>' : '';
-
-      const chips = [
-        t.tipo        ? '<span class="badge" style="font-size:11px;background:var(--card2);border:1px solid var(--line);color:var(--text2)">' + escapeHtml(t.tipo) + '</span>' : '',
-        t.prioridad   ? '<span class="badge ' + prc + '" style="font-size:11px">' + escapeHtml(t.prioridad) + '</span>' : '',
-        t.responsable ? '<span style="font-size:12px;color:var(--muted)">👤 ' + escapeHtml(t.responsable) + '</span>' : '',
-        t.area        ? '<span class="badge st-analysis" style="font-size:11px">' + escapeHtml(t.area) + '</span>' : '',
-        t.tienda      ? '<span class="badge st-todo" style="font-size:11px">' + escapeHtml(t.tienda) + '</span>' : '',
-        t.id_sprint   ? _sprintChip(t.id_sprint, '11px') : '',
-      ].filter(Boolean).join('');
-
-      const metaParts = [
-        '<div class="avance-bar">' +
-          '<div class="avance-track" style="width:80px"><div class="avance-fill" style="width:' + pct + '%"></div></div>' +
-          '<span class="mono" style="font-size:12px;color:var(--muted)">' + pct + '% avance</span>' +
-        '</div>',
-        t.fecha_inicio ? '<span style="font-size:12px;color:var(--muted)">Inicio: <b>' + fmtDate(t.fecha_inicio) + '</b></span>' : '',
-        t.fecha_limite ? '<span style="font-size:12px;color:var(--muted)">Vence: <b>' + fmtDate(t.fecha_limite) + '</b></span>' : '',
-      ].filter(Boolean).join('');
-
-      const extLinks = [
-        { url: t.url_jira,            label: 'Jira' },
-        { url: t.url_gitlab,          label: 'GitLab' },
-        { url: t.url_figma_prototipo, label: 'Figma proto' },
-        { url: t.url_figma_editable,  label: 'Figma edit' },
-      ].filter(function (l) { return l.url; }).map(function (l) {
-        return '<a class="link-chip" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">↗ ' + escapeHtml(l.label) + '</a>';
-      }).join('');
-
-      document.getElementById('modals').innerHTML =
-        '<div class="modal-overlay"><div class="modal td-modal">' +
-        '<div class="td-header-top">' +
-          '<span class="badge ' + cls + '">' + escapeHtml(t.estado) + '</span>' + venc +
-          '<div class="td-header-actions">' +
-            '<button class="secondary sm" onclick="closeModal()">✕</button>' +
-          '</div>' +
-        '</div>' +
-        '<h3 class="td-title">' + escapeHtml(t.titulo) + '</h3>' +
-        (chips ? '<div class="td-chips">' + chips + '</div>' : '') +
-        '<div class="td-meta">' + metaParts + '</div>' +
-        (t.descripcion ? '<div class="td-desc">' + escapeHtml(t.descripcion) + '</div>' : '') +
-        (extLinks ? '<div class="link-row" style="margin-bottom:12px">' + extLinks + '</div>' : '') +
-        '<hr class="td-sep" />' +
-        '<div class="act-tabs">' +
-          '<button class="act-tab active" id="act-tab-com" onclick="_actShow(\'com\')">Comentarios</button>' +
-          '<button class="act-tab" id="act-tab-chk" onclick="_actShow(\'chk\')">Checklist</button>' +
-          '<button class="act-tab" id="act-tab-adj" onclick="_actShow(\'adj\')">Adjuntos</button>' +
-          '<button class="act-tab" id="act-tab-his" onclick="_actShow(\'his\')">Historial</button>' +
-        '</div>' +
-        '<div id="act-com">' +
-          '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario…"></textarea></div>' +
-          '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button id="act-send" class="sm" onclick="_actSend()">Comentar</button></div>' +
-          '<div id="act-com-list"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
-        '</div>' +
-        '<div id="act-chk" hidden>' +
-          '<div id="act-chk-progress" class="chk-progress" style="margin-top:12px"></div>' +
-          '<div id="act-chk-list" style="margin:8px 0"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
-          '<div class="field" style="display:flex;gap:8px;align-items:center">' +
-            '<input id="act-chk-input" placeholder="Nuevo ítem…" class="admin-only" style="flex:1" onkeydown="if(event.key===\'Enter\'){event.preventDefault();_actAddChecklist();}" />' +
-            '<button id="act-chk-add" class="sm admin-only" onclick="_actAddChecklist()">Agregar</button>' +
-          '</div>' +
-        '</div>' +
-        '<div id="act-adj" hidden>' +
-          '<div style="display:flex;align-items:center;gap:10px;margin:12px 0">' +
-            '<input type="file" id="act-file" accept="image/*" multiple style="font-size:12px" />' +
-            '<span id="act-upstatus" class="text-muted" style="font-size:12px"></span>' +
-          '</div>' +
-          '<div id="act-adj-list" class="adj-grid"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
-        '</div>' +
-        '<div id="act-his" hidden><div id="act-his-list" style="margin-top:12px"><div class="text-muted" style="font-size:13px">Cargando…</div></div></div>' +
-        '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cerrar</button></div>' +
-        '</div></div>';
-
-      const fi = document.getElementById('act-file');
-      if (fi) fi.addEventListener('change', _actUpload);
-      restrictWriteIfAgent();
-      _actLoadComentarios();
-      _actLoadChecklist();
-      _actLoadAdjuntos();
-      _actLoadHistorial();
+      openTareaDetalleModal(t, { onEdit: null });
     }
 
     document.addEventListener('keydown', function (e) {

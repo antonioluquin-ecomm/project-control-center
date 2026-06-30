@@ -308,6 +308,8 @@ async function _mockCall(action, p) {
       if (p.id_proyecto) rows = rows.filter(function (x) { return Number(x.id_proyecto) === Number(p.id_proyecto); });
       if (p.incluir_canceladas !== true) rows = rows.filter(function (x) { return x.estado !== 'Cancelada'; });
       if (p.estado) rows = rows.filter(function (x) { return x.estado === p.estado; });
+      if (p.id_sprint === 'backlog') rows = rows.filter(function (x) { return !x.id_sprint; });
+      else if (p.id_sprint) rows = rows.filter(function (x) { return Number(x.id_sprint) === Number(p.id_sprint); });
       rows.sort(function (a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
       return rows;
     }

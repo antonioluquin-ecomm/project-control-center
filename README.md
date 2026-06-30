@@ -28,6 +28,7 @@ reportes e historial de cambios. Reemplaza Jira en el flujo propio del equipo.
 │   ├── Comentarios.gs Historial.gs Adjuntos.gs Dashboard.gs
 │   └── Code.gs Setup.gs
 ├── actividad.js            # Panel Comentarios + Historial (reutilizable)
+├── tareaDetalle.js         # Modal de detalle de tarea (Tareas + Gantt)
 ├── docs/
 │   ├── db_structure.md     # Modelo de datos
 │   └── gas-setup.md        # Cómo desplegar el backend

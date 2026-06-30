@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.13.1',
+  number: '1.14.0',
   date:   '2026-06-30',
-  notes:  'Fix Gantt: tareas vencidas ya no se apilan en "hoy"; fecha actual calculada en hora local',
+  notes:  'Gantt: filtro de sprint server-side, modal de detalle compartido con Tareas, accesibilidad por teclado',
 };
 
 const CHANGELOG = [
+  { v: '1.14.0', date: '2026-06-30', desc: 'Gantt: el filtro de sprint ahora pide al backend (id_sprint) en vez de traer todas las tareas y filtrar en cliente; se agregó modo demo equivalente. Se extrajo el modal de detalle de tarea a tareaDetalle.js, compartido entre Tareas y Gantt (antes duplicado). Las filas/barras del Gantt son ahora navegables por teclado (Enter/Espacio abre el detalle). Las tareas sin fecha excluidas del gráfico muestran un link directo a Tareas para completarlas. Limpieza: filtros redundantes (estado Cancelada, sprint en cliente) y constante sin usar.' },
   { v: '1.13.1', date: '2026-06-30', desc: 'Fix Gantt: las tareas con fecha límite pasada (vencidas) ya no se recortaban a una barra mínima superpuesta en "hoy", perdiendo su rango real — ahora el gráfico conserva todo el rango de fechas y solo hace auto-scroll para mostrar "hoy" al abrir. También se corrigió el cálculo de "hoy" (usaba UTC vía toISOString, lo que corría la fecha un día en husos horarios negativos durante la noche) y se eliminó una colisión de nombre de función global (_today) con api.js que rompía el flag "vencida" en modo demo.' },
   { v: '1.13.0', date: '2026-06-30', desc: 'Gantt: la línea temporal arranca siempre en la fecha actual (barras previas se recortan al borde); se quitó el listado de "tareas sin fechas" (quedan excluidas del módulo); nuevo filtro por sprint; click en una tarea abre el modal de detalle con comentarios/checklist/adjuntos/historial.' },
   { v: '1.12.0', date: '2026-06-30', desc: 'Tareas: tabs "Sprint" (default, precarga el sprint Activo vigente) y "Backlog" (tareas sin sprint asignado); ambas cargan server-side filtradas por id_sprint en vez de traer toda la hoja TAREAS. Nuevo botón "Exportar todo" para CSV sin filtro de tab.' },
