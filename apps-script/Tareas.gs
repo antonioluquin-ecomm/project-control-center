@@ -105,7 +105,12 @@ function updateTarea_(params, user) {
   if (params.url_gitlab !== undefined)          updates.url_gitlab = optionalUrl_(params.url_gitlab, 'url_gitlab');
   if (params.url_figma_prototipo !== undefined) updates.url_figma_prototipo = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
-  if (params.id_sprint !== undefined)           updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
+  if (params.id_sprint !== undefined) {
+    updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
+    if (updates.id_sprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), updates.id_sprint)) {
+      return { ok: false, error: 'Sprint no encontrado', code: 404 };
+    }
+  }
 
   if (updates.estado === ESTADO_TAREA_COMPLETADA) {
     const pendientes = getAllRows_(SHEETS.CHECKLIST, CHECKLIST_COLS)

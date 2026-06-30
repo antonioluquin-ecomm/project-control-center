@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.14.2',
+  number: '1.14.3',
   date:   '2026-06-30',
-  notes:  'Fix raíz del scroll horizontal en el modal de sprints (min-width global de table)',
+  notes:  'Auditoría de sprints: FK de id_sprint validada también al editar tarea; sprint cancelado ya no se pierde al guardar',
 };
 
 const CHANGELOG = [
+  { v: '1.14.3', date: '2026-06-30', desc: 'Auditoría de sprints — 2 fixes: updateTarea_ ahora valida que id_sprint exista (antes solo createTarea_ lo hacía, dejando FK rotas al editar); el modal de tarea conserva el sprint actual en el <select> aunque esté cancelado (marcado "(cancelado)"), evitando que se borre la asignación al guardar otros cambios sin querer.' },
   { v: '1.14.2', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" seguía con scroll horizontal porque la regla global table{min-width:820px} (pensada para tablas de datos) le ganaba al ancho del modal; se anula puntualmente y se trunca con ellipsis el nombre del sprint cuando es un string sin espacios.' },
   { v: '1.14.1', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" se ensanchó y la tabla usa columnas de ancho fijo para evitar el scroll horizontal en desktop.' },
   { v: '1.14.0', date: '2026-06-30', desc: 'Gantt: el filtro de sprint ahora pide al backend (id_sprint) en vez de traer todas las tareas y filtrar en cliente; se agregó modo demo equivalente. Se extrajo el modal de detalle de tarea a tareaDetalle.js, compartido entre Tareas y Gantt (antes duplicado). Las filas/barras del Gantt son ahora navegables por teclado (Enter/Espacio abre el detalle). Las tareas sin fecha excluidas del gráfico muestran un link directo a Tareas para completarlas. Limpieza: filtros redundantes (estado Cancelada, sprint en cliente) y constante sin usar.' },

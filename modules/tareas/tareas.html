@@ -231,8 +231,13 @@
     }
 
     // <option> para el <select> de sprint en el form de tarea ("Sin sprint" + sprints).
-    function _sprintOptions(current) {
+    // `orphan`: sprint actual de la tarea cuando ya no está en STATE.sprints (p.ej. cancelado) —
+    // se incluye igual para no perderlo silenciosamente al guardar sin tocar este campo.
+    function _sprintOptions(current, orphan) {
       let html = '<option value="">Sin sprint</option>';
+      if (orphan && Number(orphan.id) === Number(current)) {
+        html += '<option value="' + orphan.id + '" selected>' + escapeHtml(orphan.nombre) + ' (cancelado)</option>';
+      }
       html += (STATE.sprints || []).map(function (s) {
         return '<option value="' + s.id + '"' + (Number(current) === Number(s.id) ? ' selected' : '') + '>' + escapeHtml(s.nombre) + '</option>';
       }).join('');
@@ -418,11 +423,17 @@
 
     /* ─── Modal ABM ─────────────────────────────────────────── */
 
-    function openModal(id) {
+    async function openModal(id) {
       const pid = currentProyectoId();
       if (!id && !pid) { toast('⚠', 'Seleccioná un proyecto primero', 'error'); return; }
       _editId = id || null;
       const t   = id ? STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0] : {};
+      // Si la tarea tiene un sprint que ya no figura en STATE.sprints (p.ej. cancelado), lo
+      // resolvemos aparte para poder seguir mostrándolo en el <select> y no perder la asignación.
+      let orphanSprint = null;
+      if (t.id_sprint && !_sprintById(t.id_sprint)) {
+        try { orphanSprint = await apiGetSprint(t.id_sprint); } catch (e) { /* sprint inexistente: se deja sin sprint */ }
+      }
       const opt = function (arr, sel) {
         return arr.map(function (v) { return '<option' + (v === sel ? ' selected' : '') + '>' + v + '</option>'; }).join('');
       };
@@ -434,7 +445,7 @@
           '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
           '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
         '</div>' +
-        '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint) + '</select></div>' +
+        '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint, orphanSprint) + '</select></div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
           '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(t.responsable || '') + '</select></div>' +
