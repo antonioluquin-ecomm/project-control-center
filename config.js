@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.14.1',
+  number: '1.14.2',
   date:   '2026-06-30',
-  notes:  'Modal de sprints: tabla se ajusta al ancho sin scroll horizontal en desktop',
+  notes:  'Fix raíz del scroll horizontal en el modal de sprints (min-width global de table)',
 };
 
 const CHANGELOG = [
+  { v: '1.14.2', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" seguía con scroll horizontal porque la regla global table{min-width:820px} (pensada para tablas de datos) le ganaba al ancho del modal; se anula puntualmente y se trunca con ellipsis el nombre del sprint cuando es un string sin espacios.' },
   { v: '1.14.1', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" se ensanchó y la tabla usa columnas de ancho fijo para evitar el scroll horizontal en desktop.' },
   { v: '1.14.0', date: '2026-06-30', desc: 'Gantt: el filtro de sprint ahora pide al backend (id_sprint) en vez de traer todas las tareas y filtrar en cliente; se agregó modo demo equivalente. Se extrajo el modal de detalle de tarea a tareaDetalle.js, compartido entre Tareas y Gantt (antes duplicado). Las filas/barras del Gantt son ahora navegables por teclado (Enter/Espacio abre el detalle). Las tareas sin fecha excluidas del gráfico muestran un link directo a Tareas para completarlas. Limpieza: filtros redundantes (estado Cancelada, sprint en cliente) y constante sin usar.' },
   { v: '1.13.1', date: '2026-06-30', desc: 'Fix Gantt: las tareas con fecha límite pasada (vencidas) ya no se recortaban a una barra mínima superpuesta en "hoy", perdiendo su rango real — ahora el gráfico conserva todo el rango de fechas y solo hace auto-scroll para mostrar "hoy" al abrir. También se corrigió el cálculo de "hoy" (usaba UTC vía toISOString, lo que corría la fecha un día en husos horarios negativos durante la noche) y se eliminó una colisión de nombre de función global (_today) con api.js que rompía el flag "vencida" en modo demo.' },
