@@ -538,23 +538,23 @@
         const cls = (typeof ESTADO_CLASS_SPRINT !== 'undefined' && ESTADO_CLASS_SPRINT[s.estado]) || 'st-todo';
         const rango = (s.fecha_inicio ? fmtDate(s.fecha_inicio) : '—') + ' → ' + (s.fecha_fin ? fmtDate(s.fecha_fin) : '—');
         return '<tr>' +
-          '<td><b>' + escapeHtml(s.nombre) + '</b>' + (s.objetivo ? '<div class="text-muted" style="font-size:11px;margin-top:2px">' + escapeHtml(s.objetivo) + '</div>' : '') + '</td>' +
+          '<td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escapeHtml(s.nombre) + '"><b>' + escapeHtml(s.nombre) + '</b>' + (s.objetivo ? '<div class="text-muted" style="font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escapeHtml(s.objetivo) + '">' + escapeHtml(s.objetivo) + '</div>' : '') + '</td>' +
           '<td><span class="badge ' + cls + '">' + escapeHtml(s.estado) + '</span></td>' +
-          '<td class="mono" style="font-size:12px">' + rango + '</td>' +
-          '<td class="row-actions" style="text-align:right">' +
-            '<button class="secondary sm admin-only" onclick="openSprintForm(' + s.id + ')">Editar</button>' +
-            '<button class="danger sm admin-only" onclick="delSprint(' + s.id + ')">Cancelar</button>' +
+          '<td class="mono" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + rango + '</td>' +
+          '<td style="text-align:right;padding-left:4px;padding-right:4px">' +
+            '<button class="secondary sm admin-only" style="padding:6px 8px;margin-right:4px" onclick="openSprintForm(' + s.id + ')">Editar</button>' +
+            '<button class="danger sm admin-only" style="padding:6px 8px" onclick="delSprint(' + s.id + ')">Cancelar</button>' +
           '</td></tr>';
       }).join('') : '<tr><td colspan="4" class="empty-row">Sin sprints todavía.</td></tr>';
 
       document.getElementById('modals').innerHTML =
-        '<div class="modal-overlay"><div class="modal" style="max-width:760px">' +
+        '<div class="modal-overlay"><div class="modal" style="max-width:820px">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
           '<h3 style="margin:0">Sprints</h3>' +
           '<button class="sm admin-only" style="margin-left:auto" onclick="openSprintForm()">+ Nuevo sprint</button>' +
         '</div>' +
-        '<div class="table-wrap"><table style="table-layout:fixed;width:100%">' +
-          '<colgroup><col style="width:38%"><col style="width:16%"><col style="width:24%"><col style="width:22%"></colgroup>' +
+        '<div class="table-wrap"><table style="table-layout:fixed;width:100%;min-width:0">' +
+          '<colgroup><col style="width:34%"><col style="width:14%"><col style="width:22%"><col style="width:30%"></colgroup>' +
           '<thead><tr><th>Sprint</th><th>Estado</th><th>Rango</th><th style="text-align:right">Acciones</th></tr></thead>' +
           '<tbody>' + body + '</tbody>' +
         '</table></div>' +
