@@ -74,7 +74,9 @@ Globales: agrupan TAREAS de cualquier proyecto vía `TAREAS.id_sprint`. Soft del
 
 **Comportamiento de sprint cancelado:** al cancelar un sprint, `TAREAS.id_sprint` en las filas afectadas **no se limpia** — el dato queda en el Sheet pero el frontend excluye sprints cancelados de `STATE.sprints`, por lo que esas tareas quedan sin chip y sin filtro visible. Esto es por diseño (soft delete: nunca se borran datos). Si se necesita reasignar tareas en lote, hacerlo manualmente desde el form de cada tarea.
 
-**Filtro server-side por sprint:** `getTareas_` no soporta `params.id_sprint` — el filtro es 100% cliente sobre `STATE.tareas`. Si en el futuro se necesita un burndown o consulta server-side por sprint, agregar `if (params.id_sprint) rows = rows.filter(...)` en `Tareas.gs`.
+**Filtro server-side por sprint (v1.12.0):** `getTareas_` soporta `params.id_sprint`: un id puntual filtra por ese sprint; el valor literal `'backlog'` filtra tareas con `id_sprint` vacío (sin sprint asignado). Esto reemplazó el filtrado 100% cliente — antes `getTareas_` traía siempre toda la hoja TAREAS del proyecto y el sprint se filtraba sobre `STATE.tareas` en el browser.
+
+**Tabs Sprint/Backlog (`tareas.html`, v1.12.0):** la página tiene dos vistas (`_view = 'sprint' | 'backlog'`) en vez de cargar todo de una. El tab **Sprint** (default) precarga el sprint con `estado = 'Activo'`; si no hay ninguno activo, usa el `Planificado` con `fecha_inicio` más próxima (`_defaultSprintId()`); el `<select>` de sprint sigue permitiendo elegir "Todos los sprints" (carga completa, explícita). El tab **Backlog** oculta el selector de sprint y pide `id_sprint: 'backlog'`. El botón "Exportar todo" ignora el tab activo y exporta todas las tareas del proyecto vía `apiGetTareas({id_proyecto})` sin `id_sprint`.
 
 ### COMENTARIOS *(usada desde Sprint 2)*
 `id · entidad (PROYECTO|TAREA) · id_entidad · texto · usuario · fecha_creacion`
