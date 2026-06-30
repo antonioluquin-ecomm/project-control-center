@@ -165,6 +165,13 @@ async function _actLoadChecklist() {
           '<span class="chk-count">' + hechos + '/' + total + ' (' + pct + '%)</span>'
         : '';
     }
+    const tab = document.getElementById('act-tab-chk');
+    if (tab) {
+      const pendientes = total - hechos;
+      tab.innerHTML = 'Checklist' + (total
+        ? ' <span class="chk-tab-badge' + (pendientes === 0 ? ' chk-tab-complete' : '') + '">' + hechos + '/' + total + '</span>'
+        : '');
+    }
     wrap.innerHTML = total ? rows.map(function (c) {
       const done = String(c.hecho) === 'SI';
       return '<div class="chk-item' + (done ? ' chk-done' : '') + '">' +

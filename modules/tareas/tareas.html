@@ -353,7 +353,7 @@
         await apiUpdateTarea({ id: id, estado: estado });
         toast('✓', 'Estado actualizado', 'success');
         loadTareas();
-      } catch (e) { toast('✕', e.message, 'error'); }
+      } catch (e) { toast('✕', e.message, 'error'); loadTareas(); }
     }
 
     /* ─── Export CSV ────────────────────────────────────────── */

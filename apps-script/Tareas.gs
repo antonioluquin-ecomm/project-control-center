@@ -100,6 +100,15 @@ function updateTarea_(params, user) {
   if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
   if (params.id_sprint !== undefined)           updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
 
+  if (updates.estado === ESTADO_TAREA_COMPLETADA) {
+    const pendientes = getAllRows_(SHEETS.CHECKLIST, CHECKLIST_COLS)
+      .filter(function(c) { return c.entidad === 'TAREA' && Number(c.id_entidad) === id && String(c.hecho) !== 'SI'; })
+      .length;
+    if (pendientes > 0) {
+      return { ok: false, error: 'No se puede finalizar: hay ' + pendientes + ' ítem(s) del checklist sin completar', code: 409 };
+    }
+  }
+
   Object.keys(updates).forEach(function(campo) {
     const anterior = actual[campo];
     const nuevo = updates[campo] instanceof Date ? updates[campo].toISOString() : updates[campo];
