@@ -22,6 +22,13 @@ function getTareas_(params) {
   if (params.tipo)        rows = rows.filter(function(t) { return t.tipo === params.tipo; });
   if (params.responsable) rows = rows.filter(function(t) { return t.responsable === params.responsable; });
   if (params.incluir_canceladas !== true) rows = rows.filter(function(t) { return t.estado !== 'Cancelada'; });
+  // Sprint: id_sprint=<id> filtra por sprint puntual; id_sprint='backlog' filtra tareas sin sprint asignado.
+  if (params.id_sprint === 'backlog') {
+    rows = rows.filter(function(t) { return !t.id_sprint; });
+  } else if (params.id_sprint) {
+    const sid = validateId_(params.id_sprint, 'id_sprint');
+    rows = rows.filter(function(t) { return Number(t.id_sprint) === sid; });
+  }
 
   rows.sort(function(a, b) { return (Number(a.orden) || 0) - (Number(b.orden) || 0); });
   return { ok: true, data: rows };

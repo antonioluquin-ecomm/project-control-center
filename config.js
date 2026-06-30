@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.11.1',
+  number: '1.12.0',
   date:   '2026-06-30',
-  notes:  'Checklist: badge de pendientes en la tab y bloqueo de Finalizada incompleta',
+  notes:  'Tareas: tabs Sprint/Backlog con carga server-side por sprint',
 };
 
 const CHANGELOG = [
+  { v: '1.12.0', date: '2026-06-30', desc: 'Tareas: tabs "Sprint" (default, precarga el sprint Activo vigente) y "Backlog" (tareas sin sprint asignado); ambas cargan server-side filtradas por id_sprint en vez de traer toda la hoja TAREAS. Nuevo botón "Exportar todo" para CSV sin filtro de tab.' },
   { v: '1.11.1', date: '2026-06-30', desc: 'Checklist de tareas: la tab "Checklist" del detalle muestra ahora hechos/total sin necesidad de abrirla. El backend rechaza marcar una tarea como Finalizada si quedan ítems del checklist sin completar.' },
   { v: '1.11.0', date: '2026-06-29', desc: 'Catálogos: nueva tab en Configuración para editar valores de estados, tipos, prioridades, sitios y áreas directamente desde la UI (solo Admin). Backend con getCatCached_ para validar contra valores dinámicos del Sheet.' },
   { v: '1.10.1', date: '2026-06-29', desc: 'Sprints — auditoría: FK id_sprint valida existencia en backend; _refreshSprints con try/catch; fecha_fin≥fecha_inicio en create/update; historial de soft-delete con estado real (Sprints, Tareas, Proyectos); nombre de sprint único; CSV incluye columna sprint' },

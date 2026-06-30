@@ -63,10 +63,14 @@
         <div class="page-header">
           <h1>Tareas</h1>
         </div>
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-btn-sprint" onclick="switchView('sprint')">Sprint</button>
+          <button class="tab-btn" id="tab-btn-backlog" onclick="switchView('backlog')">Backlog</button>
+        </div>
         <section class="panel">
           <div class="toolbar">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
-            <select id="fSprint" onchange="render()" style="max-width:170px"><option value="">Todos los sprints</option></select>
+            <select id="fSprint" onchange="loadTareas()" style="max-width:170px"><option value="">Todos los sprints</option></select>
             <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
             <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
@@ -75,6 +79,7 @@
             <span class="spacer"></span>
             <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
+            <button class="secondary sm" onclick="exportAllCSV()">Exportar todo</button>
             <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
           </div>
           <div id="statusBar" class="status-bar">Cargando…</div>
@@ -109,6 +114,7 @@
     let _editSprintId = null;
     let _sortCol = null;
     let _sortDir = 1;
+    let _view = 'sprint'; // 'sprint' | 'backlog'
 
     /* ─── Proyecto selector ─────────────────────────────────── */
 
@@ -128,6 +134,8 @@
         STATE.proyectos = await apiGetProyectos({});
         STATE.sprints   = await apiGetSprints({});
         _rebuildSprintFilter();
+        const defSprint = _defaultSprintId();
+        if (defSprint) document.getElementById('fSprint').value = defSprint;
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = '<option value="">Todos los proyectos</option>' +
           STATE.proyectos.map(function (p) {
@@ -153,13 +161,38 @@
 
     function onProyectoChange() { loadTareas(); }
 
+    // Tab Sprint/Backlog: alterna la vista y recarga las tareas acotadas server-side.
+    function switchView(view) {
+      _view = view;
+      document.getElementById('tab-btn-sprint').classList.toggle('active', view === 'sprint');
+      document.getElementById('tab-btn-backlog').classList.toggle('active', view === 'backlog');
+      document.getElementById('fSprint').style.display = view === 'backlog' ? 'none' : '';
+      loadTareas();
+    }
+
+    // Sprint por defecto al entrar al tab Sprint: el Activo vigente, o si no hay, el Planificado más próximo.
+    function _defaultSprintId() {
+      const sprints = STATE.sprints || [];
+      const activo = sprints.filter(function (s) { return s.estado === 'Activo'; })[0];
+      if (activo) return activo.id;
+      const planificado = sprints.filter(function (s) { return s.estado === 'Planificado'; })[0];
+      return planificado ? planificado.id : '';
+    }
+
     async function loadTareas() {
       const pid = currentProyectoId();
       const btnNew = document.getElementById('btnNew');
       if (btnNew) btnNew.disabled = !pid;
       setStatus('statusBar', 'Cargando…', 'info');
       try {
-        STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
+        const params = pid ? { id_proyecto: pid } : {};
+        if (_view === 'backlog') {
+          params.id_sprint = 'backlog';
+        } else {
+          const sprId = document.getElementById('fSprint').value;
+          if (sprId) params.id_sprint = sprId;
+        }
+        STATE.tareas = await apiGetTareas(params);
         _rebuildRespFilter();
         render();
         setStatus('statusBar', STATE.tareas.length + ' tareas.', 'success');
@@ -256,13 +289,11 @@
       const area = document.getElementById('fArea').value;
       const tda  = document.getElementById('fTienda').value;
       const resp = document.getElementById('fResp').value;
-      const spr  = document.getElementById('fSprint').value;
       const rows = STATE.tareas.filter(function (t) {
         if (est  && t.estado    !== est)  return false;
         if (area && t.area      !== area) return false;
         if (tda  && t.tienda    !== tda)  return false;
         if (resp && t.responsable !== resp) return false;
-        if (spr  && Number(t.id_sprint) !== Number(spr)) return false;
         if (q && normalizeText(t.titulo + ' ' + (t.descripcion || '') + ' ' + (t.responsable || '')).indexOf(q) === -1) return false;
         return true;
       });
@@ -358,15 +389,30 @@
 
     /* ─── Export CSV ────────────────────────────────────────── */
 
-    function exportCSV() {
+    function _csvRows(list) {
       const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable']];
-      filtered().forEach(function (t) {
+      list.forEach(function (t) {
         const s = _sprintById(t.id_sprint);
         rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable,
           s ? s.nombre : '', t.area, t.tienda, t.avance_pct,
           (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable]);
       });
-      downloadCSV('tareas.csv', rows);
+      return rows;
+    }
+
+    function exportCSV() {
+      downloadCSV('tareas.csv', _csvRows(filtered()));
+    }
+
+    // Exporta todas las tareas del proyecto, ignorando el tab/sprint activo.
+    async function exportAllCSV() {
+      const pid = currentProyectoId();
+      setStatus('statusBar', 'Exportando todo…', 'info');
+      try {
+        const all = await apiGetTareas(pid ? { id_proyecto: pid } : {});
+        downloadCSV('tareas_todas.csv', _csvRows(all));
+        setStatus('statusBar', 'Exportado: ' + all.length + ' tareas (todas).', 'success');
+      } catch (e) { setStatus('statusBar', 'Error al exportar: ' + e.message, 'error'); }
     }
 
     /* ─── Modal ABM ─────────────────────────────────────────── */
