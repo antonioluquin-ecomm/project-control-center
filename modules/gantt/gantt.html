@@ -136,6 +136,7 @@
     }
 
     function _d(v) { if (!v) return null; const d = new Date(String(v).slice(0, 10) + 'T00:00:00'); return isNaN(d.getTime()) ? null : d; }
+    function _todayLocal() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
     function _dayDiff(a, b) { return Math.round((b - a) / 86400000); }
     function _addMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 1); }
     const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -172,12 +173,13 @@
         return;
       }
 
-      // El Gantt siempre arranca en la fecha actual; lo anterior queda fuera de rango.
-      const today = _d(new Date().toISOString());
-      let rangeStart = today;
-      let rangeEnd = conFechas[0]._end;
-      conFechas.forEach(function (t) { if (t._end > rangeEnd) rangeEnd = t._end; });
-      if (rangeEnd < rangeStart) rangeEnd = rangeStart;
+      // Rango completo (sin recortar tareas pasadas/vencidas): incluye siempre la fecha actual.
+      const today = _todayLocal();
+      let rangeStart = conFechas[0]._start, rangeEnd = conFechas[0]._end;
+      conFechas.forEach(function (t) { if (t._start < rangeStart) rangeStart = t._start; if (t._end > rangeEnd) rangeEnd = t._end; });
+      if (today < rangeStart) rangeStart = today;
+      if (today > rangeEnd) rangeEnd = today;
+      rangeStart = new Date(rangeStart.getTime() - 2 * 86400000);
       rangeEnd = new Date(rangeEnd.getTime() + 2 * 86400000);
 
       const px = PX[_zoom];
@@ -197,16 +199,16 @@
         cur = _addMonth(cur);
       }
 
-      // Línea de hoy (siempre visible: es el inicio del rango).
-      const todayLine = '<div class="gantt-today" style="left:0px"></div>';
+      // Línea de hoy, en su posición real dentro del rango.
+      const todayLeft = _dayDiff(rangeStart, today) * px;
+      const todayLine = '<div class="gantt-today" style="left:' + todayLeft + 'px"></div>';
 
-      // Filas: label (izq) + barra (der). Las barras que arrancan antes de hoy se recortan al borde izquierdo.
+      // Filas: label (izq) + barra (der), con las fechas reales (sin recortar tareas vencidas).
       let labels = '', lanes = '';
       conFechas.forEach(function (t) {
         const cls = ESTADO_CLASS[t.estado] || 'st-todo';
-        const barStart = t._start > rangeStart ? t._start : rangeStart;
-        const left = _dayDiff(rangeStart, barStart) * px;
-        const width = Math.max(px, (_dayDiff(barStart, t._end) + 1) * px);
+        const left = _dayDiff(rangeStart, t._start) * px;
+        const width = Math.max(px, (_dayDiff(t._start, t._end) + 1) * px);
         const venc = t.vencida ? ' gantt-venc' : '';
         const sub = currentProyectoId() ? (t.responsable || '') : proyNombre(t.id_proyecto);
         labels += '<div class="gantt-rowlabel" style="cursor:pointer" title="' + escapeHtml(t.titulo) + '" onclick="openDetalle(' + t.id + ')">' +
@@ -230,6 +232,10 @@
             '</div>' +
           '</div>' +
         '</div>';
+
+      // Vista inicial: el área scrolleable arranca mostrando la fecha actual (sin recortar tareas anteriores).
+      const rightPane = host.querySelector('.gantt-right');
+      if (rightPane) rightPane.scrollLeft = Math.max(0, todayLeft - px);
 
       setStatus('statusBar', conFechas.length + ' tareas graficadas · ' + sinFechasCount.length + ' sin fechas (excluidas).', 'success');
     }
