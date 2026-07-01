@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.7',
+  number: '1.17.0',
   date:   '2026-07-01',
-  notes:  'Tareas: barra de filtros/acciones separada en dos filas y filas de tabla más prolijas',
+  notes:  'Sprints: acción "Cerrar sprint" que pregunta qué hacer con las tareas no finalizadas',
 };
 
 const CHANGELOG = [
+  { v: '1.17.0', date: '2026-07-01', desc: 'Sprints: se agrega la acción "Cerrar" (solo para sprints Activos) en el gestor. Al cerrar, si el sprint tiene tareas sin finalizar, un modal pregunta qué hacer con ellas: moverlas al Backlog, moverlas a otro sprint abierto, o dejarlas en el sprint cerrado. Antes cerrar un sprint (cambiar su estado a Cerrado) no movía nada y las tareas pendientes quedaban "colgadas" bajo el sprint terminado sin aviso. Nuevo handler closeSprint_ en el backend que mueve las tareas (registrando cada cambio en HISTORIAL) y cierra el sprint de forma atómica.' },
   { v: '1.16.7', date: '2026-07-01', desc: 'Tareas: la barra superior mezclaba filtros y botones de acción en un mismo contenedor que hacía wrap sin criterio a 1440px; se separa en dos filas fijas (filtros arriba, acciones abajo). Además, en cada fila el título, los chips (proyecto/área/tienda) y los links externos pasan a ser bloques apilados en vez de texto corrido, así el alto de fila crece de forma predecible con el contenido en vez de cortar en cualquier punto.' },
   { v: '1.16.6', date: '2026-07-01', desc: 'Fix visual: el chip de proyecto 📁 (v1.16.0/v1.16.2) usaba la clase st-progress, la misma que el estado de tarea "En Curso" y el estado de sprint "Activo" — una fila con esas dos condiciones mostraba dos badges ámbar idénticos con significados distintos. Se agrega la clase chip-proyecto (índigo, con variante dark) exclusiva para metadatos, separada de la paleta de estados.' },
   { v: '1.16.5', date: '2026-07-01', desc: 'Tareas: como los filtros ahora persisten entre sesiones (v1.16.3), se agrega el botón "Limpiar filtros (N)" que solo aparece cuando hay al menos uno activo — evita que una vista filtrada de una sesión anterior se lea como "faltan tareas".' },
@@ -90,6 +91,7 @@ const TIPOS_TAREA      = ['Historia', 'Tarea', 'Error'];
 const PRIORIDADES      = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 const SITIOS           = ['Sporting', 'Woker', 'PIM', 'B2B', 'Todos'];
 const ESTADOS_SPRINT   = ['Planificado', 'Activo', 'Cerrado', 'Cancelado'];
+const ESTADOS_SPRINT_CERRADOS = ['Cerrado', 'Cancelado'];
 
 // S6: dimensiones de tarea. Área = equipo que ejecuta (≠ responsable persona).
 const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];

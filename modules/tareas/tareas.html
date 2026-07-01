@@ -122,6 +122,7 @@
   <script>
     let _editId  = null;
     let _editSprintId = null;
+    let _cerrarSprintId = null;
     let _sortCol = null;
     let _sortDir = 1;
 
@@ -708,6 +709,7 @@
           '<td class="mono" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + rango + '</td>' +
           '<td style="text-align:right;padding-left:4px;padding-right:4px">' +
             '<button class="secondary sm admin-only" style="padding:6px 8px;margin-right:4px" onclick="openSprintForm(' + s.id + ')">Editar</button>' +
+            (s.estado === 'Activo' ? '<button class="secondary sm admin-only" style="padding:6px 8px;margin-right:4px" onclick="openCerrarSprint(' + s.id + ')">Cerrar</button>' : '') +
             '<button class="danger sm admin-only" style="padding:6px 8px" onclick="delSprint(' + s.id + ')">Cancelar</button>' +
           '</td></tr>';
       }).join('') : '<tr><td colspan="4" class="empty-row">Sin sprints todavía.</td></tr>';
@@ -787,6 +789,79 @@
         await _refreshSprints();
         openSprintsManager();
       } catch (e) { toast('✕', e.message, 'error'); }
+    }
+
+    // Cerrar sprint: al terminar, decide qué hacer con las tareas que quedaron abiertas.
+    async function openCerrarSprint(id) {
+      const s = (STATE.sprints || []).filter(function (x) { return Number(x.id) === Number(id); })[0];
+      if (!s) return;
+      _cerrarSprintId = id;
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal"><h3>Cerrar sprint</h3>' +
+        '<div class="status-bar">Revisando tareas del sprint…</div></div></div>';
+
+      let pendientes = [];
+      try {
+        const tareas = await apiGetTareas({ id_sprint: id });
+        pendientes = tareas.filter(function (t) { return ESTADOS_TAREA_CERRADOS.indexOf(t.estado) === -1; });
+      } catch (e) { toast('✕', e.message, 'error'); openSprintsManager(); return; }
+
+      // Otros sprints abiertos como posible destino de las tareas pendientes.
+      const otros = (STATE.sprints || []).filter(function (x) {
+        return Number(x.id) !== Number(id) && ESTADOS_SPRINT_CERRADOS.indexOf(x.estado) === -1;
+      });
+      const otrosOpts = otros.map(function (x) { return '<option value="' + x.id + '">' + escapeHtml(x.nombre) + '</option>'; }).join('');
+      const n = pendientes.length;
+
+      const infoTareas = n === 0
+        ? '<div class="status-bar success">Todas las tareas del sprint están finalizadas o canceladas. Se cerrará sin mover nada.</div>'
+        : '<div class="status-bar">Este sprint tiene <b>' + n + '</b> tarea' + (n === 1 ? '' : 's') + ' sin finalizar. ¿Qué hacés con ella' + (n === 1 ? '' : 's') + '?</div>' +
+          '<div class="field" style="margin-top:10px">' +
+            '<label style="display:flex;gap:8px;align-items:center;font-weight:400;margin-bottom:8px"><input type="radio" name="destino" value="backlog" checked onchange="_cerrarSprintToggle()"> Mover al Backlog (sin sprint)</label>' +
+            (otros.length ? '<label style="display:flex;gap:8px;align-items:center;font-weight:400;margin-bottom:8px"><input type="radio" name="destino" value="otro" onchange="_cerrarSprintToggle()"> Mover a otro sprint</label>' +
+              '<select id="cs_destino" disabled style="margin:0 0 8px 26px;max-width:280px">' + otrosOpts + '</select>' : '') +
+            '<label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="radio" name="destino" value="keep" onchange="_cerrarSprintToggle()"> Dejarlas en este sprint (quedan bajo el sprint cerrado)</label>' +
+          '</div>';
+
+      document.getElementById('modals').innerHTML =
+        '<div class="modal-overlay"><div class="modal"><h3>Cerrar sprint “' + escapeHtml(s.nombre) + '”</h3>' +
+        infoTareas +
+        '<div id="cs_err" class="status-bar error" hidden></div>' +
+        '<div class="modal-actions">' +
+          '<button class="secondary" onclick="openSprintsManager()">Cancelar</button>' +
+          '<button id="cs_save" onclick="cerrarSprint()">Cerrar sprint</button>' +
+        '</div></div></div>';
+      restrictWriteIfAgent();
+    }
+
+    function _cerrarSprintToggle() {
+      const sel = document.getElementById('cs_destino');
+      if (!sel) return;
+      const val = (document.querySelector('input[name="destino"]:checked') || {}).value;
+      sel.disabled = (val !== 'otro');
+    }
+
+    async function cerrarSprint() {
+      const id = _cerrarSprintId;
+      const checked = document.querySelector('input[name="destino"]:checked');
+      // Sin tareas pendientes no hay radios: se cierra dejando todo como está.
+      let destino = 'keep';
+      if (checked) {
+        destino = checked.value === 'otro' ? document.getElementById('cs_destino').value : checked.value;
+      }
+      const btn = document.getElementById('cs_save'); if (btn) btn.disabled = true;
+      try {
+        const r = await apiCloseSprint({ id: id, destino_tareas: destino });
+        const movidas = (r && r.movidas) || 0;
+        toast('✓', 'Sprint cerrado' + (movidas ? ' · ' + movidas + ' tarea(s) movida(s)' : ''), 'success');
+        await loadTareas();
+        await _refreshSprints();
+        openSprintsManager();
+      } catch (e) {
+        if (btn) btn.disabled = false;
+        const err = document.getElementById('cs_err');
+        if (err) { err.textContent = e.message; err.hidden = false; } else { toast('✕', e.message, 'error'); }
+      }
     }
 
     /* ─── Boot ──────────────────────────────────────────────── */

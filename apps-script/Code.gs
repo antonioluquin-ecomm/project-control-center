@@ -110,6 +110,7 @@ function routePost_(action, params, user, body) {
     if (action === 'deleteTarea')         return deleteTarea_(params, user);
     if (action === 'createSprint')        return createSprint_(params, user);
     if (action === 'updateSprint')        return updateSprint_(params, user);
+    if (action === 'closeSprint')         return closeSprint_(params, user);
     if (action === 'deleteSprint')        return deleteSprint_(params, user);
   }
 

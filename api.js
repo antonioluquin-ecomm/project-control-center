@@ -115,6 +115,7 @@ function apiGetSprints(p)       { return callApiRaw('getSprints', p); }
 function apiGetSprint(id)       { return callApiRaw('getSprintById', { id: id }); }
 function apiCreateSprint(d)     { return callApiRaw('createSprint', d); }
 function apiUpdateSprint(d)     { return callApiRaw('updateSprint', d); }
+function apiCloseSprint(d)      { return callApiRaw('closeSprint', d); }
 function apiDeleteSprint(id)    { return callApiRaw('deleteSprint', { id: id }); }
 
 function apiGetComentarios(entidad, id)        { return callApiRaw('getComentarios', { entidad: entidad, id_entidad: id }); }
@@ -377,6 +378,23 @@ async function _mockCall(action, p) {
       if (!x) throw new Error('Sprint no encontrado');
       Object.assign(x, p);
       return { id: x.id };
+    }
+    case 'closeSprint': {
+      const x = _mock.sprints.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
+      if (!x) throw new Error('Sprint no encontrado');
+      const destino = p.destino_tareas === undefined ? 'keep' : String(p.destino_tareas);
+      let movidas = 0;
+      if (destino !== 'keep') {
+        const nuevo = destino === 'backlog' ? '' : Number(destino);
+        _mock.tareas.forEach(function (t) {
+          if (Number(t.id_sprint) === Number(p.id) && ESTADOS_TAREA_CERRADOS.indexOf(t.estado) === -1) {
+            t.id_sprint = nuevo;
+            movidas++;
+          }
+        });
+      }
+      x.estado = 'Cerrado';
+      return { id: x.id, movidas: movidas, destino: destino };
     }
     case 'deleteSprint': {
       const x = _mock.sprints.filter(function (r) { return Number(r.id) === Number(p.id); })[0];

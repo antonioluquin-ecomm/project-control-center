@@ -116,6 +116,62 @@ function updateSprint_(params, user) {
   return { ok: true, data: { id: id } };
 }
 
+// ── CERRAR (estado → Cerrado, con destino para las tareas abiertas) ───
+// Al terminar un sprint, sus tareas NO finalizadas/canceladas no se mueven solas.
+// destino_tareas decide qué hacer con ellas:
+//   'backlog'   → id_sprint = '' (vuelven al backlog)
+//   'keep'      → se quedan en el sprint (visibles bajo el sprint cerrado)
+//   <id sprint> → se mueven a otro sprint abierto
+function closeSprint_(params, user) {
+  const id = validateId_(params.id, 'id');
+  const sheet = getSheet_(SHEETS.SPRINTS);
+  const rowNum = findRowNumber_(sheet, id);
+  if (!rowNum) return { ok: false, error: 'Sprint no encontrado', code: 404 };
+
+  const actual = rowToObj_(sheet.getDataRange().getValues()[rowNum - 1], SPRINTS_COLS);
+  if (ESTADOS_SPRINT_CERRADOS.indexOf(actual.estado) !== -1) {
+    return { ok: false, error: 'El sprint ya está ' + actual.estado, code: 409 };
+  }
+
+  const email = (user && user.email) || '';
+  const destino = params.destino_tareas === undefined ? 'keep' : String(params.destino_tareas);
+
+  // Valida el sprint destino si se van a mover las tareas a otro sprint.
+  let destinoId = null;
+  if (destino !== 'backlog' && destino !== 'keep') {
+    destinoId = validateId_(destino, 'destino_tareas');
+    if (destinoId === id) return { ok: false, error: 'El sprint destino no puede ser el mismo', code: 400 };
+    const destinoRow = findRowNumber_(sheet, destinoId);
+    if (!destinoRow) return { ok: false, error: 'Sprint destino no encontrado', code: 404 };
+    const destinoSprint = rowToObj_(sheet.getDataRange().getValues()[destinoRow - 1], SPRINTS_COLS);
+    if (ESTADOS_SPRINT_CERRADOS.indexOf(destinoSprint.estado) !== -1) {
+      return { ok: false, error: 'El sprint destino está ' + destinoSprint.estado, code: 400 };
+    }
+  }
+
+  // Mueve las tareas abiertas (no finalizadas ni canceladas) del sprint.
+  let movidas = 0;
+  if (destino !== 'keep') {
+    const tareaSheet = getSheet_(SHEETS.TAREAS);
+    const pendientes = getAllRows_(SHEETS.TAREAS, TAREAS_COLS).filter(function(t) {
+      return Number(t.id_sprint) === id && ESTADOS_TAREA_CERRADOS.indexOf(t.estado) === -1;
+    });
+    const nuevoSprint = destino === 'backlog' ? '' : destinoId;
+    pendientes.forEach(function(t) {
+      const trow = findRowNumber_(tareaSheet, t.id);
+      if (!trow) return;
+      updateFields_(SHEETS.TAREAS, trow, TAREAS_COLS, { id_sprint: nuevoSprint }, email);
+      writeHistorial_('TAREA', t.id, 'id_sprint', t.id_sprint, nuevoSprint, email);
+      movidas++;
+    });
+  }
+
+  updateFields_(SHEETS.SPRINTS, rowNum, SPRINTS_COLS, { estado: 'Cerrado' }, email);
+  writeHistorial_('SPRINT', id, 'estado', actual.estado, 'Cerrado', email);
+  writeLog_('closeSprint', 'SPRINTS', id, 'OK', 'destino=' + destino + ' movidas=' + movidas, email);
+  return { ok: true, data: { id: id, movidas: movidas, destino: destino } };
+}
+
 // ── ELIMINAR (soft delete → estado Cancelado) ─────────────────
 function deleteSprint_(params, user) {
   const id = validateId_(params.id, 'id');
