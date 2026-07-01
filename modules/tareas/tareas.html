@@ -83,6 +83,8 @@
           <div class="toolbar">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
             <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
+            <select id="fTipo"   onchange="render()" style="max-width:130px"><option value="">Todos los tipos</option></select>
+            <select id="fPrio"   onchange="render()" style="max-width:130px"><option value="">Todas las prioridades</option></select>
             <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
             <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
@@ -148,6 +150,12 @@
         document.getElementById('fEstado').innerHTML =
           '<option value="">Todos los estados</option>' +
           ESTADOS_TAREA.map(function (e) { return '<option>' + e + '</option>'; }).join('');
+        document.getElementById('fTipo').innerHTML =
+          '<option value="">Todos los tipos</option>' +
+          TIPOS_TAREA.map(function (v) { return '<option>' + v + '</option>'; }).join('');
+        document.getElementById('fPrio').innerHTML =
+          '<option value="">Todas las prioridades</option>' +
+          PRIORIDADES.map(function (v) { return '<option>' + v + '</option>'; }).join('');
         document.getElementById('fArea').innerHTML =
           '<option value="">Todas las áreas</option>' +
           AREAS.map(function (a) { return '<option>' + a + '</option>'; }).join('');
@@ -328,12 +336,16 @@
     function filtered() {
       const q    = normalizeText(document.getElementById('q').value);
       const est  = document.getElementById('fEstado').value;
+      const tipo = document.getElementById('fTipo').value;
+      const prio = document.getElementById('fPrio').value;
       const area = document.getElementById('fArea').value;
       const tda  = document.getElementById('fTienda').value;
       const resp = document.getElementById('fResp').value;
       const rows = STATE.tareas.filter(function (t) {
         if (!est && ESTADOS_TAREA_CERRADOS.indexOf(t.estado) !== -1) return false;
         if (est  && t.estado    !== est)  return false;
+        if (tipo && t.tipo      !== tipo) return false;
+        if (prio && t.prioridad !== prio) return false;
         if (area && t.area      !== area) return false;
         if (tda  && t.tienda    !== tda)  return false;
         if (resp && t.responsable !== resp) return false;

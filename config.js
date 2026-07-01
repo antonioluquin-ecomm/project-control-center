@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.0',
+  number: '1.16.1',
   date:   '2026-07-01',
-  notes:  'Tareas: se ve y se puede cambiar el proyecto de una tarea desde el detalle/edición',
+  notes:  'Tareas: se agregan filtros por Tipo y Prioridad en la barra de filtros',
 };
 
 const CHANGELOG = [
+  { v: '1.16.1', date: '2026-07-01', desc: 'Tareas: se agregan los filtros "Tipo" y "Prioridad" a la barra de filtros del listado, junto a Estado/Área/Tienda/Responsable.' },
   { v: '1.16.0', date: '2026-07-01', desc: 'Tareas: el modal de detalle ahora muestra a qué proyecto pertenece la tarea (chip 📁), y el modal de edición suma un campo "Proyecto" para poder reasignarla a otro proyecto sin recrearla — antes no se mostraba en ningún lado y no había forma de cambiarlo. Aplica también al detalle abierto desde Gantt.' },
   { v: '1.15.3', date: '2026-07-01', desc: 'Fix: al crear/renombrar un sprint con un nombre que Google Sheets interpreta como fecha (ej. "Julio 2026"), la celda quedaba autoconvertida a un valor de fecha y el front mostraba el ISO timestamp en vez del texto. Ahora la columna nombre de SPRINTS se fuerza a formato texto plano antes de escribir el valor, tanto en creación como en edición.' },
   { v: '1.15.2', date: '2026-07-01', desc: 'Tareas: el board (sprints + backlog) ya no muestra por defecto las tareas Finalizada/Cancelada — quedan fuera del ruido del trabajo activo, igual que un board de Jira/Linear no muestra lo ya cerrado de sprints pasados. Se ven igual eligiendo ese estado puntual en el filtro #fEstado (agrupadas por su sprint/backlog). El status bar indica cuántas quedaron ocultas. Para revisar/auditar lo cerrado cross-proyecto sigue estando Seguimiento (bucket "Finalizadas").' },
