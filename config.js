@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.1',
+  number: '1.16.2',
   date:   '2026-07-01',
-  notes:  'Tareas: se agregan filtros por Tipo y Prioridad en la barra de filtros',
+  notes:  'Tareas: chip de proyecto en la fila (vista "todos los proyectos") y responsable editable inline',
 };
 
 const CHANGELOG = [
+  { v: '1.16.2', date: '2026-07-01', desc: 'Tareas: cuando el filtro está en "Todos los proyectos" cada fila ahora muestra un chip 📁 con el proyecto de esa tarea (antes solo se veía abriendo el detalle). Además, Responsable pasa a ser editable inline en la fila (select), igual que ya funcionaba Estado — antes había que abrir "Editar" para reasignar una tarea.' },
   { v: '1.16.1', date: '2026-07-01', desc: 'Tareas: se agregan los filtros "Tipo" y "Prioridad" a la barra de filtros del listado, junto a Estado/Área/Tienda/Responsable.' },
   { v: '1.16.0', date: '2026-07-01', desc: 'Tareas: el modal de detalle ahora muestra a qué proyecto pertenece la tarea (chip 📁), y el modal de edición suma un campo "Proyecto" para poder reasignarla a otro proyecto sin recrearla — antes no se mostraba en ningún lado y no había forma de cambiarlo. Aplica también al detalle abierto desde Gantt.' },
   { v: '1.15.3', date: '2026-07-01', desc: 'Fix: al crear/renombrar un sprint con un nombre que Google Sheets interpreta como fecha (ej. "Julio 2026"), la celda quedaba autoconvertida a un valor de fecha y el front mostraba el ISO timestamp en vez del texto. Ahora la columna nombre de SPRINTS se fuerza a formato texto plano antes de escribir el valor, tanto en creación como en edición.' },

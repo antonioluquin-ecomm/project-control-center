@@ -416,7 +416,10 @@
             venc +
           '</td>' +
           '<td class="' + prc + '">' + escapeHtml(t.prioridad || '—') + '</td>' +
-          '<td>' + escapeHtml(t.responsable || '—') + '</td>' +
+          '<td onclick="event.stopPropagation()">' +
+            '<select class="admin-only" style="font-size:11px;padding:4px 8px" onchange="quickResp(' + t.id + ', this.value)">' + responsableOptions(t.responsable || '') + '</select>' +
+            '<span class="agent-badge">' + escapeHtml(t.responsable || '—') + '</span>' +
+          '</td>' +
           '<td>' +
             '<div class="avance-bar">' +
               '<div class="avance-track"><div class="avance-fill" style="width:' + pct + '%"></div></div>' +
@@ -433,6 +436,8 @@
 
     function metaChips(t) {
       let out = '';
+      // Sin proyecto seleccionado, el board mezcla tareas de todos: se aclara de cuál es cada una.
+      if (!currentProyectoId()) out += ' <span class="badge st-progress" style="font-size:10px">📁 ' + escapeHtml(proyNombre(t.id_proyecto)) + '</span>';
       if (t.area)   out += ' <span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
       if (t.tienda) out += ' <span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
       return out;
@@ -457,6 +462,14 @@
       try {
         await apiUpdateTarea({ id: id, estado: estado });
         toast('✓', 'Estado actualizado', 'success');
+        loadTareas();
+      } catch (e) { toast('✕', e.message, 'error'); loadTareas(); }
+    }
+
+    async function quickResp(id, responsable) {
+      try {
+        await apiUpdateTarea({ id: id, responsable: responsable });
+        toast('✓', 'Responsable actualizado', 'success');
         loadTareas();
       } catch (e) { toast('✕', e.message, 'error'); loadTareas(); }
     }
