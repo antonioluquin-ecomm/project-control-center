@@ -192,8 +192,8 @@
       const totalDays = _dayDiff(rangeStart, rangeEnd) + 1;
       const timelineW = totalDays * px;
 
-      // Cabecera de meses.
-      let axis = '', cur = new Date(rangeStart);
+      // Cabecera de meses + columnas de grilla (mismos anchos, alineadas bajo el eje).
+      let axis = '', grid = '', cur = new Date(rangeStart);
       while (cur <= rangeEnd) {
         const mEnd = new Date(cur.getFullYear(), cur.getMonth() + 1, 0);
         const segStart = cur > rangeStart ? cur : rangeStart;
@@ -202,30 +202,34 @@
         const w = days * px;
         const label = w >= 34 ? (MESES[cur.getMonth()] + ' ' + String(cur.getFullYear()).slice(2)) : '';
         axis += '<div class="gantt-month" style="width:' + w + 'px">' + label + '</div>';
+        grid += '<div class="gantt-gridcol" style="width:' + w + 'px"></div>';
         cur = _addMonth(cur);
       }
 
-      // Línea de hoy, en su posición real dentro del rango.
+      // Línea de hoy, en su posición real dentro del rango, con banderín.
       const todayLeft = _dayDiff(rangeStart, today) * px;
-      const todayLine = '<div class="gantt-today" style="left:' + todayLeft + 'px"></div>';
+      const todayLine = '<div class="gantt-today" style="left:' + todayLeft + 'px"><span class="gantt-today-flag">Hoy</span></div>';
 
       // Filas: label (izq) + barra (der), con las fechas reales (sin recortar tareas vencidas).
       let labels = '', lanes = '';
-      conFechas.forEach(function (t) {
+      conFechas.forEach(function (t, i) {
         const cls = ESTADO_CLASS[t.estado] || 'st-todo';
+        const alt = (i % 2) ? ' gantt-alt' : '';
         const left = _dayDiff(rangeStart, t._start) * px;
         const width = Math.max(px, (_dayDiff(t._start, t._end) + 1) * px);
         const venc = t.vencida ? ' gantt-venc' : '';
+        const pct = Math.max(0, Math.min(100, Number(t.avance_pct) || 0));
         const sub = currentProyectoId() ? (t.responsable || '') : proyNombre(t.id_proyecto);
         const openAttrs = 'role="button" tabindex="0" onclick="openDetalle(' + t.id + ')" ' +
           'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openDetalle(' + t.id + ');}"';
-        labels += '<div class="gantt-rowlabel" style="cursor:pointer" title="' + escapeHtml(t.titulo) + '" ' + openAttrs + '>' +
+        labels += '<div class="gantt-rowlabel' + alt + '" style="cursor:pointer" title="' + escapeHtml(t.titulo) + '" ' + openAttrs + '>' +
           '<b>' + escapeHtml(t.titulo) + '</b>' + (sub ? '<span>' + escapeHtml(sub) + '</span>' : '') + '</div>';
-        lanes += '<div class="gantt-lane">' +
-          '<div class="gantt-bar badge ' + cls + venc + '" style="left:' + left + 'px;width:' + width + 'px;cursor:pointer" ' +
+        lanes += '<div class="gantt-lane' + alt + '">' +
+          '<div class="gantt-bar ' + cls + venc + '" style="left:' + left + 'px;width:' + width + 'px" ' +
           openAttrs + ' ' +
-          'title="' + escapeHtml(t.titulo + ' · ' + (t.fecha_inicio || '—').slice(0, 10) + ' → ' + (t.fecha_limite || '—').slice(0, 10)) + '">' +
-          '<span class="gantt-bar-label">' + (t.avance_pct ? t.avance_pct + '%' : '') + '</span></div></div>';
+          'title="' + escapeHtml(t.titulo + ' · ' + (t.fecha_inicio || '—').slice(0, 10) + ' → ' + (t.fecha_limite || '—').slice(0, 10) + (pct ? ' · ' + pct + '%' : '')) + '">' +
+          (pct ? '<div class="gantt-bar-fill" style="width:' + pct + '%"></div>' : '') +
+          '<span class="gantt-bar-label">' + (pct ? pct + '%' : '') + '</span></div></div>';
       });
 
       host.innerHTML =
@@ -236,7 +240,7 @@
           '<div class="gantt-right">' +
             '<div class="gantt-canvas" style="width:' + timelineW + 'px">' +
               '<div class="gantt-axis">' + axis + '</div>' +
-              '<div class="gantt-lanes">' + lanes + todayLine + '</div>' +
+              '<div class="gantt-lanes"><div class="gantt-grid">' + grid + '</div>' + lanes + todayLine + '</div>' +
             '</div>' +
           '</div>' +
         '</div>';

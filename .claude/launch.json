@@ -2,10 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "pcc",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "3577"],
-      "port": 3577
+      "name": "pcc-static",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8793", "--directory", "C:/Users/gluna/Documents/Repos/project-control-center"],
+      "port": 8793
+    },
+    {
+      "name": "pcc-static-preview",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8794", "--directory", "C:/Users/gluna/Documents/Repos/project-control-center"],
+      "port": 8794
     }
   ]
 }
