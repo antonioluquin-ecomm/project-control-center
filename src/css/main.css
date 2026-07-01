@@ -227,11 +227,15 @@ h3 { font-size: 15px; font-weight: 600; }
 .st-done        { background: var(--success-bg); color: var(--success); }
 .st-cancel      { background: var(--card2); color: var(--muted); text-decoration: line-through; }
 .badge.vencida  { background: var(--danger-bg); color: var(--danger); }
+/* Chip de metadatos (proyecto), no de estado: color propio para no confundirse con st-progress
+   (En Curso / Sprint Activo comparten ese ámbar). */
+.chip-proyecto  { background: #eef2ff; color: #4338ca; }
 
 [data-theme="dark"] .st-maquetacion { background: rgba(124,58,237,.18); color: #c4b5fd; }
 [data-theme="dark"] .st-qa          { background: rgba(194,65,12,.18);  color: #fb923c; }
 [data-theme="dark"] .st-docs        { background: rgba(21,128,61,.18);  color: #4ade80; }
 [data-theme="dark"] .st-revision    { background: rgba(29,78,216,.18);  color: #93c5fd; }
+[data-theme="dark"] .chip-proyecto  { background: rgba(99,102,241,.18); color: #a5b4fc; }
 
 /* Checklist (drawer de actividad) */
 .chk-progress { display: flex; align-items: center; gap: 10px; margin-top: 14px; }

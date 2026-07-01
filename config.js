@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.5',
+  number: '1.16.6',
   date:   '2026-07-01',
-  notes:  'Tareas: botón "Limpiar filtros" con contador, para no perder de vista un filtro persistido',
+  notes:  'Fix visual: el chip de proyecto ya no comparte color con los estados "En Curso"/"Activo"',
 };
 
 const CHANGELOG = [
+  { v: '1.16.6', date: '2026-07-01', desc: 'Fix visual: el chip de proyecto 📁 (v1.16.0/v1.16.2) usaba la clase st-progress, la misma que el estado de tarea "En Curso" y el estado de sprint "Activo" — una fila con esas dos condiciones mostraba dos badges ámbar idénticos con significados distintos. Se agrega la clase chip-proyecto (índigo, con variante dark) exclusiva para metadatos, separada de la paleta de estados.' },
   { v: '1.16.5', date: '2026-07-01', desc: 'Tareas: como los filtros ahora persisten entre sesiones (v1.16.3), se agrega el botón "Limpiar filtros (N)" que solo aparece cuando hay al menos uno activo — evita que una vista filtrada de una sesión anterior se lea como "faltan tareas".' },
   { v: '1.16.4', date: '2026-07-01', desc: 'Fix: el botón de acciones de Tareas decía "Eliminar" pero siempre hizo soft delete (pasa la tarea a estado Cancelada, sin borrar la fila ni perder historial). Se renombra a "Cancelar" y se aclara en el confirm, igual que ya se llama la acción equivalente en Sprints, para no sugerir una eliminación irreversible que nunca ocurre.' },
   { v: '1.16.3', date: '2026-07-01', desc: 'Tareas: los filtros (estado, tipo, prioridad, área, tienda, responsable, búsqueda) se guardan en localStorage y se restauran solos al volver a entrar — antes había que rearmarlos cada vez, molesto con 466+ tareas. Se agrega el botón "Mis tareas", que filtra por responsable = usuario logueado.' },

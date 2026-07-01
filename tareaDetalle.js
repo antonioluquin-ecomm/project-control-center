@@ -22,7 +22,7 @@ function openTareaDetalleModal(t, opts) {
   const venc = t.vencida ? '<span class="badge vencida" style="margin-left:4px">Vencida</span>' : '';
 
   const chips = [
-    t.nombre_proyecto ? '<span class="badge st-progress" style="font-size:11px">📁 ' + escapeHtml(t.nombre_proyecto) + '</span>' : '',
+    t.nombre_proyecto ? '<span class="badge chip-proyecto" style="font-size:11px">📁 ' + escapeHtml(t.nombre_proyecto) + '</span>' : '',
     t.tipo        ? '<span class="badge" style="font-size:11px;background:var(--card2);border:1px solid var(--line);color:var(--text2)">' + escapeHtml(t.tipo) + '</span>' : '',
     t.prioridad   ? '<span class="badge ' + prc + '" style="font-size:11px">' + escapeHtml(t.prioridad) + '</span>' : '',
     t.responsable ? '<span style="font-size:12px;color:var(--muted)">👤 ' + escapeHtml(t.responsable) + '</span>' : '',
