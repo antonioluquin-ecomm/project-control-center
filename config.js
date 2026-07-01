@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.14.4',
+  number: '1.14.5',
   date:   '2026-07-01',
-  notes:  'Límite de descripción/observaciones de proyectos y tareas subido de 2000 a 4000 caracteres',
+  notes:  'Descripciones con títulos y viñetas (subset markdown) en el detalle de tarea',
 };
 
 const CHANGELOG = [
+  { v: '1.14.5', date: '2026-07-01', desc: 'Descripciones de tareas y proyectos admiten un subset simple de formato — "# Título", "## Subtítulo" y "- viñeta" — renderizado en el detalle de tarea (renderRichText en api.js, siempre sobre texto ya escapado). Placeholder en los textareas de edición con la sintaxis disponible.' },
   { v: '1.14.4', date: '2026-07-01', desc: 'Proyectos y Tareas: el límite de "descripcion" (y "observaciones" en Proyectos) sube de 2000 a 4000 caracteres para permitir contexto más detallado. Comentarios se mantiene en 2000.' },
   { v: '1.14.3', date: '2026-06-30', desc: 'Auditoría de sprints — 2 fixes: updateTarea_ ahora valida que id_sprint exista (antes solo createTarea_ lo hacía, dejando FK rotas al editar); el modal de tarea conserva el sprint actual en el <select> aunque esté cancelado (marcado "(cancelado)"), evitando que se borre la asignación al guardar otros cambios sin querer.' },
   { v: '1.14.2', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" seguía con scroll horizontal porque la regla global table{min-width:820px} (pensada para tablas de datos) le ganaba al ancho del modal; se anula puntualmente y se trunca con ellipsis el nombre del sprint cuando es un string sin espacios.' },

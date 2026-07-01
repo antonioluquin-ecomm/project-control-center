@@ -62,7 +62,7 @@ function openTareaDetalleModal(t, opts) {
     '<h3 class="td-title">' + escapeHtml(t.titulo) + '</h3>' +
     (chips ? '<div class="td-chips">' + chips + '</div>' : '') +
     '<div class="td-meta">' + metaParts + '</div>' +
-    (t.descripcion ? '<div class="td-desc">' + escapeHtml(t.descripcion) + '</div>' : '') +
+    (t.descripcion ? '<div class="td-desc">' + renderRichText(t.descripcion) + '</div>' : '') +
     (extLinks ? '<div class="link-row" style="margin-bottom:12px">' + extLinks + '</div>' : '') +
     '<hr class="td-sep" />' +
     '<div class="act-tabs">' +

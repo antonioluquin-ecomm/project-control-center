@@ -440,7 +440,7 @@
       document.getElementById('modals').innerHTML =
         '<div class="modal-overlay"><div class="modal"><h3>' + (id ? 'Editar' : 'Nueva') + ' tarea</h3>' +
         '<div class="field"><label>Título *</label><input id="m_tit" value="' + escapeHtml(t.titulo || '') + '"></div>' +
-        '<div class="field"><label>Descripción</label><textarea id="m_desc">' + escapeHtml(t.descripcion || '') + '</textarea></div>' +
+        '<div class="field"><label>Descripción</label><textarea id="m_desc" placeholder="# Título&#10;## Subtítulo&#10;- viñeta">' + escapeHtml(t.descripcion || '') + '</textarea></div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
           '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +

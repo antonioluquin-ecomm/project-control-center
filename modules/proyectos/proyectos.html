@@ -147,7 +147,7 @@
       document.getElementById('modals').innerHTML =
         '<div class="modal-overlay"><div class="modal"><h3>' + (id ? 'Editar' : 'Nuevo') + ' proyecto</h3>' +
         '<div class="field"><label>Nombre *</label><input id="m_nombre" value="' + escapeHtml(p.nombre || '') + '"></div>' +
-        '<div class="field"><label>Descripción</label><textarea id="m_desc">' + escapeHtml(p.descripcion || '') + '</textarea></div>' +
+        '<div class="field"><label>Descripción</label><textarea id="m_desc" placeholder="# Título&#10;## Subtítulo&#10;- viñeta">' + escapeHtml(p.descripcion || '') + '</textarea></div>' +
         '<div class="field-row">' +
           '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_PROYECTO, p.estado || 'Por Hacer') + '</select></div>' +
           '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, p.prioridad || 'Medium') + '</select></div>' +

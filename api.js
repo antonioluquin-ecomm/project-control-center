@@ -12,6 +12,27 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Subset de markdown para descripciones/observaciones (# / ## títulos, - / * viñetas).
+// Trabaja siempre sobre texto ya escapado con escapeHtml — nunca sobre el raw del usuario.
+function renderRichText(value) {
+  const lines = escapeHtml(value).split('\n');
+  let html = '';
+  let inList = false;
+  const closeList = function () { if (inList) { html += '</ul>'; inList = false; } };
+  lines.forEach(function (line) {
+    const h2 = line.match(/^##\s+(.*)/);
+    const h1 = line.match(/^#\s+(.*)/);
+    const li = line.match(/^[-*]\s+(.*)/);
+    if (h2) { closeList(); html += '<h5 class="rt-h2">' + h2[1] + '</h5>'; }
+    else if (h1) { closeList(); html += '<h4 class="rt-h1">' + h1[1] + '</h4>'; }
+    else if (li) { if (!inList) { html += '<ul class="rt-list">'; inList = true; } html += '<li>' + li[1] + '</li>'; }
+    else if (line.trim() === '') { closeList(); html += '<br>'; }
+    else { closeList(); html += line + '<br>'; }
+  });
+  closeList();
+  return html;
+}
+
 function setStatus(elId, msg, type) {
   const el = document.getElementById(elId);
   if (!el) return;
