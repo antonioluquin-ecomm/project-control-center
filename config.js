@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.2',
+  number: '1.16.3',
   date:   '2026-07-01',
-  notes:  'Tareas: chip de proyecto en la fila (vista "todos los proyectos") y responsable editable inline',
+  notes:  'Tareas: los filtros se recuerdan entre recargas y se agrega el atajo "Mis tareas"',
 };
 
 const CHANGELOG = [
+  { v: '1.16.3', date: '2026-07-01', desc: 'Tareas: los filtros (estado, tipo, prioridad, área, tienda, responsable, búsqueda) se guardan en localStorage y se restauran solos al volver a entrar — antes había que rearmarlos cada vez, molesto con 466+ tareas. Se agrega el botón "Mis tareas", que filtra por responsable = usuario logueado.' },
   { v: '1.16.2', date: '2026-07-01', desc: 'Tareas: cuando el filtro está en "Todos los proyectos" cada fila ahora muestra un chip 📁 con el proyecto de esa tarea (antes solo se veía abriendo el detalle). Además, Responsable pasa a ser editable inline en la fila (select), igual que ya funcionaba Estado — antes había que abrir "Editar" para reasignar una tarea.' },
   { v: '1.16.1', date: '2026-07-01', desc: 'Tareas: se agregan los filtros "Tipo" y "Prioridad" a la barra de filtros del listado, junto a Estado/Área/Tienda/Responsable.' },
   { v: '1.16.0', date: '2026-07-01', desc: 'Tareas: el modal de detalle ahora muestra a qué proyecto pertenece la tarea (chip 📁), y el modal de edición suma un campo "Proyecto" para poder reasignarla a otro proyecto sin recrearla — antes no se mostraba en ningún lado y no había forma de cambiarlo. Aplica también al detalle abierto desde Gantt.' },

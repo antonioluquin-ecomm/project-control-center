@@ -88,6 +88,7 @@
             <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
             <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
+            <button class="secondary sm" onclick="misTareas()">Mis tareas</button>
             <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
             <span class="spacer"></span>
             <button class="secondary sm" onclick="toggleAllGroups()" id="btnToggleAll">Expandir todo</button>
@@ -130,6 +131,32 @@
       return m ? Number(m[1]) : null;
     }
 
+    /* ─── Filtros: persistencia en localStorage ─────────────── */
+    // Se guardan los filtros elegidos (no el proyecto, que ya se persiste vía ?proyecto=
+    // y localStorage propio) para no tener que re-armarlos en cada recarga.
+    const FILTROS_KEY = 'pcc_tareas_filtros';
+    const FILTRO_IDS  = ['fEstado', 'fTipo', 'fPrio', 'fArea', 'fTienda', 'fResp', 'q'];
+
+    function _loadSavedFiltros() {
+      try { return JSON.parse(localStorage.getItem(FILTROS_KEY) || '{}'); } catch (e) { return {}; }
+    }
+
+    function _saveFiltros() {
+      const data = {};
+      FILTRO_IDS.forEach(function (id) { data[id] = document.getElementById(id).value; });
+      localStorage.setItem(FILTROS_KEY, JSON.stringify(data));
+    }
+
+    // Restaura el valor guardado en un <select>/<input> si sigue siendo una opción válida.
+    function _restoreFiltro(id, saved) {
+      const el = document.getElementById(id);
+      if (!el || !saved || saved[id] === undefined) return;
+      if (el.tagName === 'INPUT') { el.value = saved[id]; return; }
+      if (Array.prototype.some.call(el.options, function (o) { return o.value === saved[id]; })) {
+        el.value = saved[id];
+      }
+    }
+
     /* ─── Init ──────────────────────────────────────────────── */
 
     async function init() {
@@ -163,9 +190,22 @@
           '<option value="">Todas las tiendas</option>' +
           TIENDAS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
 
+        const savedFiltros = _loadSavedFiltros();
+        ['fEstado', 'fTipo', 'fPrio', 'fArea', 'fTienda', 'q'].forEach(function (id) { _restoreFiltro(id, savedFiltros); });
+
         await loadTareas();
         if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
+    }
+
+    // Atajo: filtra por el usuario logueado como responsable.
+    function misTareas() {
+      const nombre = SESSION.usuario && SESSION.usuario.nombre;
+      if (!nombre) { toast('⚠', 'No se pudo identificar el usuario logueado', 'error'); return; }
+      const sel = document.getElementById('fResp');
+      sel.value = nombre;
+      if (sel.value !== nombre) { toast('⚠', 'No hay tareas asignadas a "' + nombre + '" en esta vista', 'error'); return; }
+      render();
     }
 
     function onProyectoChange() { loadTareas(); }
@@ -189,14 +229,19 @@
     }
 
     function _rebuildRespFilter() {
+      const el = document.getElementById('fResp');
+      // Conserva la selección actual (o la guardada en localStorage la primera vez) si
+      // sigue siendo una opción válida tras reconstruir la lista de responsables.
+      const wanted = el.value || _loadSavedFiltros().fResp || '';
       const names = [];
       STATE.tareas.forEach(function (t) {
         if (t.responsable && names.indexOf(t.responsable) === -1) names.push(t.responsable);
       });
       names.sort(function (a, b) { return a.localeCompare(b); });
-      document.getElementById('fResp').innerHTML =
+      el.innerHTML =
         '<option value="">Todos los resp.</option>' +
         names.map(function (n) { return '<option>' + escapeHtml(n) + '</option>'; }).join('');
+      if (wanted && names.indexOf(wanted) !== -1) el.value = wanted;
     }
 
     /* ─── Sprints (helpers) ─────────────────────────────────── */
@@ -356,6 +401,7 @@
     }
 
     function render() {
+      _saveFiltros();
       const pid = currentProyectoId();
       const groups = _buildGroups(filtered());
       const container = document.getElementById('groupsContainer');
