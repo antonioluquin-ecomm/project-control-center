@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.14.3',
-  date:   '2026-06-30',
-  notes:  'Auditoría de sprints: FK de id_sprint validada también al editar tarea; sprint cancelado ya no se pierde al guardar',
+  number: '1.14.4',
+  date:   '2026-07-01',
+  notes:  'Límite de descripción/observaciones de proyectos y tareas subido de 2000 a 4000 caracteres',
 };
 
 const CHANGELOG = [
+  { v: '1.14.4', date: '2026-07-01', desc: 'Proyectos y Tareas: el límite de "descripcion" (y "observaciones" en Proyectos) sube de 2000 a 4000 caracteres para permitir contexto más detallado. Comentarios se mantiene en 2000.' },
   { v: '1.14.3', date: '2026-06-30', desc: 'Auditoría de sprints — 2 fixes: updateTarea_ ahora valida que id_sprint exista (antes solo createTarea_ lo hacía, dejando FK rotas al editar); el modal de tarea conserva el sprint actual en el <select> aunque esté cancelado (marcado "(cancelado)"), evitando que se borre la asignación al guardar otros cambios sin querer.' },
   { v: '1.14.2', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" seguía con scroll horizontal porque la regla global table{min-width:820px} (pensada para tablas de datos) le ganaba al ancho del modal; se anula puntualmente y se trunca con ellipsis el nombre del sprint cuando es un string sin espacios.' },
   { v: '1.14.1', date: '2026-06-30', desc: 'Tareas: el modal "Gestionar sprints" se ensanchó y la tabla usa columnas de ancho fijo para evitar el scroll horizontal en desktop.' },

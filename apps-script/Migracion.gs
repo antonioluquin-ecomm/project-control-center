@@ -93,7 +93,7 @@ function runMigracion() {
     proySheet.appendRow([
       id,
       r[_COL.resumen].trim(),
-      r[_COL.descripcion].trim().slice(0, 2000),
+      r[_COL.descripcion].trim().slice(0, 4000),
       estado,
       prio,
       r[_COL.asignado].trim(),
@@ -149,7 +149,7 @@ function runMigracion() {
       getNextId_(tareasSheet),
       idProyecto,
       r[_COL.resumen].trim(),
-      r[_COL.descripcion].trim().slice(0, 2000),
+      r[_COL.descripcion].trim().slice(0, 4000),
       tipo,
       estado,
       prio,

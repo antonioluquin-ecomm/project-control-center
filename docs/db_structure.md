@@ -16,14 +16,14 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 |-----|-------|------|-------|
 | A | id | entero | autoincremental |
 | B | nombre | texto | máx. 200 |
-| C | descripcion | texto | máx. 2000 |
+| C | descripcion | texto | máx. 4000 |
 | D | estado | lista | CAT_ESTADOS_PROYECTO |
 | E | prioridad | lista | CAT_PRIORIDADES |
 | F | responsable | texto | |
 | G | sitio | lista | CAT_SITIOS (opcional) |
 | H | fecha_inicio | fecha | |
 | I | fecha_fin_estimada | fecha | |
-| J | observaciones | texto | |
+| J | observaciones | texto | máx. 4000 |
 | K | fecha_creacion | fecha-hora | Apps Script |
 | L | fecha_modificacion | fecha-hora | Apps Script |
 | M | creado_por | email | Apps Script |
@@ -38,7 +38,7 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | A | id | entero | |
 | B | id_proyecto | entero | FK → PROYECTOS.id |
 | C | titulo | texto | máx. 200 |
-| D | descripcion | texto | |
+| D | descripcion | texto | máx. 4000 |
 | E | tipo | lista | CAT_TIPOS_TAREA |
 | F | estado | lista | CAT_ESTADOS_TAREA |
 | G | prioridad | lista | CAT_PRIORIDADES |

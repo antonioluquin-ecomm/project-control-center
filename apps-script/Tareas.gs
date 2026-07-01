@@ -44,7 +44,7 @@ function createTarea_(params, user) {
   const tipo      = optionalEnum_(params.tipo, 'tipo', getCatCached_(SHEETS.CAT_TIPOS_TAREA, TIPOS_TAREA), 'Tarea');
   const estado    = optionalEnum_(params.estado, 'estado', getCatCached_(SHEETS.CAT_ESTADOS_TAREA, ESTADOS_TAREA), 'Por Hacer');
   const prioridad = optionalEnum_(params.prioridad, 'prioridad', getCatCached_(SHEETS.CAT_PRIORIDADES, PRIORIDADES), 'Medium');
-  const descripcion = optionalString_(params.descripcion, 'descripcion', 2000);
+  const descripcion = optionalString_(params.descripcion, 'descripcion', 4000);
   const responsable = optionalString_(params.responsable, 'responsable', 120);
   const fechaInicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   const fechaLimite = optionalDate_(params.fecha_limite, 'fecha_limite');
@@ -89,7 +89,7 @@ function updateTarea_(params, user) {
   const updates = {};
 
   if (params.titulo !== undefined)      updates.titulo = validateString_(params.titulo, 'titulo', 200);
-  if (params.descripcion !== undefined) updates.descripcion = optionalString_(params.descripcion, 'descripcion', 2000);
+  if (params.descripcion !== undefined) updates.descripcion = optionalString_(params.descripcion, 'descripcion', 4000);
   if (params.tipo !== undefined)        updates.tipo = validateEnum_(params.tipo, 'tipo', getCatCached_(SHEETS.CAT_TIPOS_TAREA, TIPOS_TAREA));
   if (params.estado !== undefined)      updates.estado = validateEnum_(params.estado, 'estado', getCatCached_(SHEETS.CAT_ESTADOS_TAREA, ESTADOS_TAREA));
   if (params.prioridad !== undefined)   updates.prioridad = validateEnum_(params.prioridad, 'prioridad', getCatCached_(SHEETS.CAT_PRIORIDADES, PRIORIDADES));
