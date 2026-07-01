@@ -168,7 +168,10 @@
         STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
         _rebuildRespFilter();
         render();
-        setStatus('statusBar', STATE.tareas.length + ' tareas.', 'success');
+        const ocultas = STATE.tareas.filter(function (t) { return ESTADOS_TAREA_CERRADOS.indexOf(t.estado) !== -1; }).length;
+        const msg = STATE.tareas.length + ' tareas.' +
+          (ocultas ? ' (' + ocultas + ' finalizadas/canceladas ocultas — elegí un estado para verlas)' : '');
+        setStatus('statusBar', msg, 'success');
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
 
@@ -314,6 +317,9 @@
 
     /* ─── Filter + render ───────────────────────────────────── */
 
+    // Sin un estado puntual elegido, el board oculta Finalizada/Cancelada por defecto
+    // (tareas ya cerradas — el lugar para revisarlas cross-proyecto es Seguimiento).
+    // Eligiendo ese estado en #fEstado se ven igual, agrupadas por su sprint/backlog.
     function filtered() {
       const q    = normalizeText(document.getElementById('q').value);
       const est  = document.getElementById('fEstado').value;
@@ -321,6 +327,7 @@
       const tda  = document.getElementById('fTienda').value;
       const resp = document.getElementById('fResp').value;
       const rows = STATE.tareas.filter(function (t) {
+        if (!est && ESTADOS_TAREA_CERRADOS.indexOf(t.estado) !== -1) return false;
         if (est  && t.estado    !== est)  return false;
         if (area && t.area      !== area) return false;
         if (tda  && t.tienda    !== tda)  return false;

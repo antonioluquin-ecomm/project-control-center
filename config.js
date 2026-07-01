@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.15.1',
+  number: '1.15.2',
   date:   '2026-07-01',
-  notes:  'Fix: tareas con sprint cancelado ya no desaparecían de la vista agrupada de Tareas',
+  notes:  'Tareas: el board oculta por defecto las tareas Finalizada/Cancelada (Seguimiento sigue siendo el lugar para revisarlas)',
 };
 
 const CHANGELOG = [
+  { v: '1.15.2', date: '2026-07-01', desc: 'Tareas: el board (sprints + backlog) ya no muestra por defecto las tareas Finalizada/Cancelada — quedan fuera del ruido del trabajo activo, igual que un board de Jira/Linear no muestra lo ya cerrado de sprints pasados. Se ven igual eligiendo ese estado puntual en el filtro #fEstado (agrupadas por su sprint/backlog). El status bar indica cuántas quedaron ocultas. Para revisar/auditar lo cerrado cross-proyecto sigue estando Seguimiento (bucket "Finalizadas").' },
   { v: '1.15.1', date: '2026-07-01', desc: 'Fix: en la vista agrupada de Tareas (v1.15.0), apiGetSprints() excluye por defecto los sprints Cancelado — una tarea que seguía apuntando a un sprint cancelado no encontraba grupo y desaparecía del listado (aunque sí se contaba en "N tareas."). Se agrega STATE.allSprints (con incluir_cancelados:true) para el agrupado, mostrando esas tareas en su propia sección "Cancelado"; el gestor de sprints y el <select> del modal siguen ocultando cancelados como antes.' },
   { v: '1.15.0', date: '2026-07-01', desc: 'Tareas: se reemplazan los tabs "Sprint"/"Backlog" por una sola vista que trae todas las tareas del proyecto de una vez y las agrupa en secciones colapsables — una por cada sprint con tareas (Activo abierto por defecto, resto colapsado) y "Backlog" al final. El estado abierto/cerrado de cada sección se recuerda por proyecto (localStorage). Se agregó botón "Expandir todo"/"Colapsar todo"; "Exportar todo" ya no hace un fetch aparte, usa las tareas ya cargadas.' },
   { v: '1.14.5', date: '2026-07-01', desc: 'Descripciones de tareas y proyectos admiten un subset simple de formato — "# Título", "## Subtítulo" y "- viñeta" — renderizado en el detalle de tarea (renderRichText en api.js, siempre sobre texto ya escapado). Placeholder en los textareas de edición con la sintaxis disponible.' },
