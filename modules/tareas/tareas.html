@@ -90,6 +90,7 @@
             <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
             <button class="secondary sm" onclick="misTareas()">Mis tareas</button>
             <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
+            <button class="secondary sm" id="btnLimpiarFiltros" onclick="limpiarFiltros()" style="display:none">Limpiar filtros</button>
             <span class="spacer"></span>
             <button class="secondary sm" onclick="toggleAllGroups()" id="btnToggleAll">Expandir todo</button>
             <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
@@ -155,6 +156,20 @@
       if (Array.prototype.some.call(el.options, function (o) { return o.value === saved[id]; })) {
         el.value = saved[id];
       }
+    }
+
+    // Como los filtros persisten entre sesiones, hace falta que sea obvio cuando
+    // hay alguno activo (si no, "faltan tareas" se lee como un bug en vez de un filtro viejo).
+    function _updateFiltrosIndicator() {
+      const n = FILTRO_IDS.filter(function (id) { return document.getElementById(id).value; }).length;
+      const btn = document.getElementById('btnLimpiarFiltros');
+      btn.style.display = n ? '' : 'none';
+      btn.textContent = 'Limpiar filtros (' + n + ')';
+    }
+
+    function limpiarFiltros() {
+      FILTRO_IDS.forEach(function (id) { document.getElementById(id).value = ''; });
+      render();
     }
 
     /* ─── Init ──────────────────────────────────────────────── */
@@ -402,6 +417,7 @@
 
     function render() {
       _saveFiltros();
+      _updateFiltrosIndicator();
       const pid = currentProyectoId();
       const groups = _buildGroups(filtered());
       const container = document.getElementById('groupsContainer');
