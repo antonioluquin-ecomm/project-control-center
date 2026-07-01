@@ -475,7 +475,7 @@
           '<td class="mono">' + fmtDate(t.fecha_limite) + '</td>' +
           '<td class="row-actions" onclick="event.stopPropagation()">' +
             '<button class="secondary sm admin-only" onclick="openModal(' + t.id + ')">Editar</button>' +
-            '<button class="danger sm admin-only" onclick="del(' + t.id + ')">Eliminar</button>' +
+            '<button class="danger sm admin-only" onclick="del(' + t.id + ')">Cancelar</button>' +
           '</td></tr>';
       }).join('');
     }
@@ -648,11 +648,11 @@
       openTareaDetalleModal(t, { onEdit: function () { openModal(id); } });
     }
 
-    /* ─── Eliminar ──────────────────────────────────────────── */
+    /* ─── Cancelar (soft delete) ────────────────────────────── */
 
     async function del(id) {
       const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
-      if (!confirm('¿Eliminar la tarea "' + (t ? t.titulo : id) + '"? (soft delete)')) return;
+      if (!confirm('¿Cancelar la tarea "' + (t ? t.titulo : id) + '"? Queda marcada como Cancelada, no se borra.')) return;
       try { await apiDeleteTarea(id); toast('✓', 'Tarea cancelada', 'success'); loadTareas(); }
       catch (e) { toast('✕', e.message, 'error'); }
     }

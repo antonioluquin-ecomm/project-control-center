@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.3',
+  number: '1.16.4',
   date:   '2026-07-01',
-  notes:  'Tareas: los filtros se recuerdan entre recargas y se agrega el atajo "Mis tareas"',
+  notes:  'Fix: el botón "Eliminar" de Tareas pasa a llamarse "Cancelar" (ya era soft delete)',
 };
 
 const CHANGELOG = [
+  { v: '1.16.4', date: '2026-07-01', desc: 'Fix: el botón de acciones de Tareas decía "Eliminar" pero siempre hizo soft delete (pasa la tarea a estado Cancelada, sin borrar la fila ni perder historial). Se renombra a "Cancelar" y se aclara en el confirm, igual que ya se llama la acción equivalente en Sprints, para no sugerir una eliminación irreversible que nunca ocurre.' },
   { v: '1.16.3', date: '2026-07-01', desc: 'Tareas: los filtros (estado, tipo, prioridad, área, tienda, responsable, búsqueda) se guardan en localStorage y se restauran solos al volver a entrar — antes había que rearmarlos cada vez, molesto con 466+ tareas. Se agrega el botón "Mis tareas", que filtra por responsable = usuario logueado.' },
   { v: '1.16.2', date: '2026-07-01', desc: 'Tareas: cuando el filtro está en "Todos los proyectos" cada fila ahora muestra un chip 📁 con el proyecto de esa tarea (antes solo se veía abriendo el detalle). Además, Responsable pasa a ser editable inline en la fila (select), igual que ya funcionaba Estado — antes había que abrir "Editar" para reasignar una tarea.' },
   { v: '1.16.1', date: '2026-07-01', desc: 'Tareas: se agregan los filtros "Tipo" y "Prioridad" a la barra de filtros del listado, junto a Estado/Área/Tienda/Responsable.' },
