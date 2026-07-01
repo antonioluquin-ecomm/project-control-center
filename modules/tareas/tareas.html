@@ -130,7 +130,8 @@
       try {
         await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
-        STATE.sprints   = await apiGetSprints({});
+        STATE.sprints    = await apiGetSprints({});
+        STATE.allSprints = await apiGetSprints({ incluir_cancelados: true });
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = '<option value="">Todos los proyectos</option>' +
           STATE.proyectos.map(function (p) {
@@ -274,9 +275,12 @@
 
     // Reparte las tareas (ya filtradas/ordenadas) en secciones: cada sprint con tareas
     // (Activo/Planificado primero, Cerrado/Cancelado al final) y Backlog siempre al final.
+    // Usa STATE.allSprints (incluye Cancelado) para que una tarea que sigue apuntando a un
+    // sprint cancelado no desaparezca silenciosamente del listado (STATE.sprints, usado en
+    // el gestor y en el <select> del modal, sigue ocultando los cancelados a propósito).
     function _buildGroups(rows) {
       const order = { 'Activo': 0, 'Planificado': 1, 'Cerrado': 2, 'Cancelado': 2 };
-      const sprints = (STATE.sprints || []).slice().sort(function (a, b) {
+      const sprints = (STATE.allSprints || []).slice().sort(function (a, b) {
         const oa = order[a.estado] != null ? order[a.estado] : 3;
         const ob = order[b.estado] != null ? order[b.estado] : 3;
         if (oa !== ob) return oa - ob;
@@ -570,7 +574,8 @@
     // Recarga sprints y re-renderiza las secciones de tareas.
     async function _refreshSprints() {
       try {
-        STATE.sprints = await apiGetSprints({});
+        STATE.sprints    = await apiGetSprints({});
+        STATE.allSprints = await apiGetSprints({ incluir_cancelados: true });
       } catch (e) {
         toast('✕', 'No se pudo actualizar sprints: ' + e.message, 'error');
       }

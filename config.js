@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.15.0',
+  number: '1.15.1',
   date:   '2026-07-01',
-  notes:  'Tareas: vista única agrupada por sprint + backlog, colapsable (reemplaza los tabs Sprint/Backlog)',
+  notes:  'Fix: tareas con sprint cancelado ya no desaparecían de la vista agrupada de Tareas',
 };
 
 const CHANGELOG = [
+  { v: '1.15.1', date: '2026-07-01', desc: 'Fix: en la vista agrupada de Tareas (v1.15.0), apiGetSprints() excluye por defecto los sprints Cancelado — una tarea que seguía apuntando a un sprint cancelado no encontraba grupo y desaparecía del listado (aunque sí se contaba en "N tareas."). Se agrega STATE.allSprints (con incluir_cancelados:true) para el agrupado, mostrando esas tareas en su propia sección "Cancelado"; el gestor de sprints y el <select> del modal siguen ocultando cancelados como antes.' },
   { v: '1.15.0', date: '2026-07-01', desc: 'Tareas: se reemplazan los tabs "Sprint"/"Backlog" por una sola vista que trae todas las tareas del proyecto de una vez y las agrupa en secciones colapsables — una por cada sprint con tareas (Activo abierto por defecto, resto colapsado) y "Backlog" al final. El estado abierto/cerrado de cada sección se recuerda por proyecto (localStorage). Se agregó botón "Expandir todo"/"Colapsar todo"; "Exportar todo" ya no hace un fetch aparte, usa las tareas ya cargadas.' },
   { v: '1.14.5', date: '2026-07-01', desc: 'Descripciones de tareas y proyectos admiten un subset simple de formato — "# Título", "## Subtítulo" y "- viñeta" — renderizado en el detalle de tarea (renderRichText en api.js, siempre sobre texto ya escapado). Placeholder en los textareas de edición con la sintaxis disponible.' },
   { v: '1.14.4', date: '2026-07-01', desc: 'Proyectos y Tareas: el límite de "descripcion" (y "observaciones" en Proyectos) sube de 2000 a 4000 caracteres para permitir contexto más detallado. Comentarios se mantiene en 2000.' },
