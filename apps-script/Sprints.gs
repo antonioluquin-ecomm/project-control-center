@@ -53,9 +53,13 @@ function createSprint_(params, user) {
   const email = (user && user.email) || '';
 
   sheet.appendRow([
-    id, nombre, objetivo, estado, fechaInicio, fechaFin,
+    id, '', objetivo, estado, fechaInicio, fechaFin,
     now, now, email, email,
   ]);
+  // Formato texto plano ANTES de escribir el nombre: evita que Sheets
+  // autodetecte strings tipo "Julio 2026" como fecha y las convierta.
+  const rowNum = sheet.getLastRow();
+  sheet.getRange(rowNum, SPRINTS_COLS.nombre).setNumberFormat('@').setValue(nombre);
   writeLog_('createSprint', 'SPRINTS', id, 'OK', nombre, email);
   return { ok: true, data: { id: id } };
 }
@@ -90,6 +94,12 @@ function updateSprint_(params, user) {
   const efectivaFin    = updates.fecha_fin    !== undefined ? updates.fecha_fin    : actual.fecha_fin;
   if (efectivaInicio instanceof Date && efectivaFin instanceof Date && efectivaFin < efectivaInicio) {
     return { ok: false, error: 'fecha_fin no puede ser anterior a fecha_inicio', code: 400 };
+  }
+
+  // Formato texto plano ANTES de escribir: evita que Sheets autodetecte
+  // strings tipo "Julio 2026" como fecha y las convierta.
+  if (updates.nombre !== undefined) {
+    sheet.getRange(rowNum, SPRINTS_COLS.nombre).setNumberFormat('@');
   }
 
   // Historial campo a campo (solo cambios reales).
