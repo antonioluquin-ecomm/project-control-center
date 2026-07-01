@@ -88,6 +88,12 @@ function updateTarea_(params, user) {
   const email = (user && user.email) || '';
   const updates = {};
 
+  if (params.id_proyecto !== undefined) {
+    updates.id_proyecto = validateId_(params.id_proyecto, 'id_proyecto');
+    if (!findRowNumber_(getSheet_(SHEETS.PROYECTOS), updates.id_proyecto)) {
+      return { ok: false, error: 'El proyecto asociado no existe', code: 404 };
+    }
+  }
   if (params.titulo !== undefined)      updates.titulo = validateString_(params.titulo, 'titulo', 200);
   if (params.descripcion !== undefined) updates.descripcion = optionalString_(params.descripcion, 'descripcion', 4000);
   if (params.tipo !== undefined)        updates.tipo = validateEnum_(params.tipo, 'tipo', getCatCached_(SHEETS.CAT_TIPOS_TAREA, TIPOS_TAREA));

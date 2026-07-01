@@ -263,6 +263,7 @@
     function openDetalle(id) {
       const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
       if (!t) return;
+      t.nombre_proyecto = proyNombre(t.id_proyecto);
       openTareaDetalleModal(t, { onEdit: null });
     }
 

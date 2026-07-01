@@ -118,6 +118,11 @@
 
     function currentProyectoId() { return Number(document.getElementById('selProyecto').value) || null; }
 
+    function proyNombre(id) {
+      const p = (STATE.proyectos || []).filter(function (x) { return Number(x.id) === Number(id); })[0];
+      return p ? p.nombre : ('#' + id);
+    }
+
     function qsProyecto() {
       const m = location.search.match(/[?&]proyecto=(\d+)/);
       return m ? Number(m[1]) : null;
@@ -483,8 +488,12 @@
       const opt = function (arr, sel) {
         return arr.map(function (v) { return '<option' + (v === sel ? ' selected' : '') + '>' + v + '</option>'; }).join('');
       };
+      const proyOptions = (STATE.proyectos || []).map(function (p) {
+        return '<option value="' + p.id + '"' + (Number(p.id) === Number(t.id_proyecto || pid) ? ' selected' : '') + '>' + escapeHtml(p.nombre) + '</option>';
+      }).join('');
       document.getElementById('modals').innerHTML =
         '<div class="modal-overlay"><div class="modal"><h3>' + (id ? 'Editar' : 'Nueva') + ' tarea</h3>' +
+        '<div class="field"><label>Proyecto *</label><select id="m_proy">' + proyOptions + '</select></div>' +
         '<div class="field"><label>Título *</label><input id="m_tit" value="' + escapeHtml(t.titulo || '') + '"></div>' +
         '<div class="field"><label>Descripción</label><textarea id="m_desc" placeholder="# Título&#10;## Subtítulo&#10;- viñeta">' + escapeHtml(t.descripcion || '') + '</textarea></div>' +
         '<div class="field-row">' +
@@ -534,7 +543,7 @@
       const err    = document.getElementById('m_err');
       if (!titulo) { err.textContent = 'El título es obligatorio.'; err.hidden = false; return; }
       const data = {
-        id_proyecto:          currentProyectoId(),
+        id_proyecto:          Number(document.getElementById('m_proy').value),
         titulo:               titulo,
         descripcion:          document.getElementById('m_desc').value.trim(),
         tipo:                 document.getElementById('m_tipo').value,
@@ -564,6 +573,7 @@
     function openDetalle(id) {
       const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
       if (!t) return;
+      t.nombre_proyecto = proyNombre(t.id_proyecto);
       openTareaDetalleModal(t, { onEdit: function () { openModal(id); } });
     }
 
