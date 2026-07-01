@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.14.5',
+  number: '1.15.0',
   date:   '2026-07-01',
-  notes:  'Descripciones con títulos y viñetas (subset markdown) en el detalle de tarea',
+  notes:  'Tareas: vista única agrupada por sprint + backlog, colapsable (reemplaza los tabs Sprint/Backlog)',
 };
 
 const CHANGELOG = [
+  { v: '1.15.0', date: '2026-07-01', desc: 'Tareas: se reemplazan los tabs "Sprint"/"Backlog" por una sola vista que trae todas las tareas del proyecto de una vez y las agrupa en secciones colapsables — una por cada sprint con tareas (Activo abierto por defecto, resto colapsado) y "Backlog" al final. El estado abierto/cerrado de cada sección se recuerda por proyecto (localStorage). Se agregó botón "Expandir todo"/"Colapsar todo"; "Exportar todo" ya no hace un fetch aparte, usa las tareas ya cargadas.' },
   { v: '1.14.5', date: '2026-07-01', desc: 'Descripciones de tareas y proyectos admiten un subset simple de formato — "# Título", "## Subtítulo" y "- viñeta" — renderizado en el detalle de tarea (renderRichText en api.js, siempre sobre texto ya escapado). Placeholder en los textareas de edición con la sintaxis disponible.' },
   { v: '1.14.4', date: '2026-07-01', desc: 'Proyectos y Tareas: el límite de "descripcion" (y "observaciones" en Proyectos) sube de 2000 a 4000 caracteres para permitir contexto más detallado. Comentarios se mantiene en 2000.' },
   { v: '1.14.3', date: '2026-06-30', desc: 'Auditoría de sprints — 2 fixes: updateTarea_ ahora valida que id_sprint exista (antes solo createTarea_ lo hacía, dejando FK rotas al editar); el modal de tarea conserva el sprint actual en el <select> aunque esté cancelado (marcado "(cancelado)"), evitando que se borre la asignación al guardar otros cambios sin querer.' },

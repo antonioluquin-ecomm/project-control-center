@@ -21,6 +21,22 @@
     .avance-bar { display: flex; align-items: center; gap: 6px; }
     .avance-track { width: 44px; height: 5px; background: var(--border, #ddd); border-radius: 3px; flex-shrink: 0; }
     .avance-fill  { height: 100%; background: var(--success, #0a7040); border-radius: 3px; transition: width .2s; }
+
+    /* Secciones colapsables (sprint / backlog) */
+    .sprint-group { border: 1px solid var(--border, #ddd); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+    .sprint-group + .sprint-group { margin-top: 10px; }
+    .sprint-group summary {
+      cursor: pointer; user-select: none; list-style: none;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; background: var(--surface-alt, rgba(0,0,0,.03));
+      font-weight: 600;
+    }
+    .sprint-group summary::-webkit-details-marker { display: none; }
+    .sprint-group summary::before { content: '▶'; font-size: 10px; opacity: .6; transition: transform .15s; }
+    .sprint-group[open] summary::before { transform: rotate(90deg); }
+    .sprint-group summary .group-count { font-weight: 400; opacity: .65; font-size: 12px; }
+    .sprint-group .table-wrap { margin: 0; }
+    .sprint-group table { min-width: 0; }
   </style>
 </head>
 <body>
@@ -63,41 +79,23 @@
         <div class="page-header">
           <h1>Tareas</h1>
         </div>
-        <div class="tabs">
-          <button class="tab-btn active" id="tab-btn-sprint" onclick="switchView('sprint')">Sprint</button>
-          <button class="tab-btn" id="tab-btn-backlog" onclick="switchView('backlog')">Backlog</button>
-        </div>
         <section class="panel">
           <div class="toolbar">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
-            <select id="fSprint" onchange="loadTareas()" style="max-width:170px"><option value="">Todos los sprints</option></select>
             <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
             <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
             <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
             <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
             <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
             <span class="spacer"></span>
+            <button class="secondary sm" onclick="toggleAllGroups()" id="btnToggleAll">Expandir todo</button>
             <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="secondary sm" onclick="exportAllCSV()">Exportar todo</button>
             <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
           </div>
           <div id="statusBar" class="status-bar">Cargando…</div>
-          <div class="table-wrap" style="margin-top:12px">
-            <table>
-              <thead><tr>
-                <th class="sort-th" onclick="sortBy('titulo')">Tarea <span class="sort-icon" id="sh_titulo"></span></th>
-                <th class="sort-th" onclick="sortBy('tipo')">Tipo <span class="sort-icon" id="sh_tipo"></span></th>
-                <th class="sort-th" onclick="sortBy('estado')">Estado <span class="sort-icon" id="sh_estado"></span></th>
-                <th class="sort-th" onclick="sortBy('prioridad')">Prioridad <span class="sort-icon" id="sh_prioridad"></span></th>
-                <th class="sort-th" onclick="sortBy('responsable')">Responsable <span class="sort-icon" id="sh_responsable"></span></th>
-                <th class="sort-th" onclick="sortBy('avance_pct')">Avance <span class="sort-icon" id="sh_avance_pct"></span></th>
-                <th class="sort-th" onclick="sortBy('fecha_limite')">Vence <span class="sort-icon" id="sh_fecha_limite"></span></th>
-                <th style="text-align:right">Acciones</th>
-              </tr></thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
+          <div id="groupsContainer" style="margin-top:12px"></div>
         </section>
       </main>
     </div>
@@ -115,7 +113,6 @@
     let _editSprintId = null;
     let _sortCol = null;
     let _sortDir = 1;
-    let _view = 'sprint'; // 'sprint' | 'backlog'
 
     /* ─── Proyecto selector ─────────────────────────────────── */
 
@@ -134,9 +131,6 @@
         await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
         STATE.sprints   = await apiGetSprints({});
-        _rebuildSprintFilter();
-        const defSprint = _defaultSprintId();
-        if (defSprint) document.getElementById('fSprint').value = defSprint;
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = '<option value="">Todos los proyectos</option>' +
           STATE.proyectos.map(function (p) {
@@ -162,38 +156,15 @@
 
     function onProyectoChange() { loadTareas(); }
 
-    // Tab Sprint/Backlog: alterna la vista y recarga las tareas acotadas server-side.
-    function switchView(view) {
-      _view = view;
-      document.getElementById('tab-btn-sprint').classList.toggle('active', view === 'sprint');
-      document.getElementById('tab-btn-backlog').classList.toggle('active', view === 'backlog');
-      document.getElementById('fSprint').style.display = view === 'backlog' ? 'none' : '';
-      loadTareas();
-    }
-
-    // Sprint por defecto al entrar al tab Sprint: el Activo vigente, o si no hay, el Planificado más próximo.
-    function _defaultSprintId() {
-      const sprints = STATE.sprints || [];
-      const activo = sprints.filter(function (s) { return s.estado === 'Activo'; })[0];
-      if (activo) return activo.id;
-      const planificado = sprints.filter(function (s) { return s.estado === 'Planificado'; })[0];
-      return planificado ? planificado.id : '';
-    }
-
+    // Trae todas las tareas del proyecto (sprints + backlog); el agrupado en secciones
+    // colapsables es responsabilidad de _buildGroups()/render().
     async function loadTareas() {
       const pid = currentProyectoId();
       const btnNew = document.getElementById('btnNew');
       if (btnNew) btnNew.disabled = !pid;
       setStatus('statusBar', 'Cargando…', 'info');
       try {
-        const params = pid ? { id_proyecto: pid } : {};
-        if (_view === 'backlog') {
-          params.id_sprint = 'backlog';
-        } else {
-          const sprId = document.getElementById('fSprint').value;
-          if (sprId) params.id_sprint = sprId;
-        }
-        STATE.tareas = await apiGetTareas(params);
+        STATE.tareas = await apiGetTareas(pid ? { id_proyecto: pid } : {});
         _rebuildRespFilter();
         render();
         setStatus('statusBar', STATE.tareas.length + ' tareas.', 'success');
@@ -216,18 +187,6 @@
     function _sprintById(id) {
       if (!id) return null;
       return (STATE.sprints || []).filter(function (s) { return Number(s.id) === Number(id); })[0] || null;
-    }
-
-    // Repuebla el filtro #fSprint conservando la selección actual si sigue válida.
-    function _rebuildSprintFilter() {
-      const sel = document.getElementById('fSprint');
-      if (!sel) return;
-      const prev = sel.value;
-      sel.innerHTML = '<option value="">Todos los sprints</option>' +
-        (STATE.sprints || []).map(function (s) {
-          return '<option value="' + s.id + '">' + escapeHtml(s.nombre) + '</option>';
-        }).join('');
-      if (prev && _sprintById(prev)) sel.value = prev;
     }
 
     // <option> para el <select> de sprint en el form de tarea ("Sin sprint" + sprints).
@@ -279,12 +238,74 @@
     }
 
     function _updateSortIcons() {
-      var cols = ['titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'avance_pct', 'fecha_limite'];
-      cols.forEach(function (c) {
-        var el = document.getElementById('sh_' + c);
-        if (!el) return;
+      document.querySelectorAll('.sort-icon').forEach(function (el) {
+        var c = el.getAttribute('data-col');
         el.textContent = c === _sortCol ? (_sortDir === 1 ? '▲' : '▼') : '';
       });
+    }
+
+    /* ─── Secciones colapsables (sprint / backlog) ──────────── */
+
+    // Persiste en localStorage si una sección quedó abierta o cerrada, por proyecto.
+    function _sectionStorageKey(pid, key) { return 'pcc_tareas_open_' + (pid || 'all') + '_' + key; }
+
+    function _isSectionOpen(pid, key, defaultOpen) {
+      const v = localStorage.getItem(_sectionStorageKey(pid, key));
+      return v === null ? defaultOpen : v === '1';
+    }
+
+    function _onGroupToggle(details) {
+      _setSectionOpen(currentProyectoId(), details.getAttribute('data-key'), details.open);
+    }
+
+    function _setSectionOpen(pid, key, open) {
+      localStorage.setItem(_sectionStorageKey(pid, key), open ? '1' : '0');
+    }
+
+    function toggleAllGroups() {
+      const groups = document.querySelectorAll('#groupsContainer > .sprint-group');
+      const expand = document.getElementById('btnToggleAll').textContent === 'Expandir todo';
+      groups.forEach(function (g) {
+        g.open = expand;
+        _setSectionOpen(currentProyectoId(), g.getAttribute('data-key'), expand);
+      });
+      document.getElementById('btnToggleAll').textContent = expand ? 'Colapsar todo' : 'Expandir todo';
+    }
+
+    // Reparte las tareas (ya filtradas/ordenadas) en secciones: cada sprint con tareas
+    // (Activo/Planificado primero, Cerrado/Cancelado al final) y Backlog siempre al final.
+    function _buildGroups(rows) {
+      const order = { 'Activo': 0, 'Planificado': 1, 'Cerrado': 2, 'Cancelado': 2 };
+      const sprints = (STATE.sprints || []).slice().sort(function (a, b) {
+        const oa = order[a.estado] != null ? order[a.estado] : 3;
+        const ob = order[b.estado] != null ? order[b.estado] : 3;
+        if (oa !== ob) return oa - ob;
+        return String(a.fecha_inicio || '').localeCompare(String(b.fecha_inicio || ''));
+      });
+      const groups = sprints.map(function (s) {
+        return {
+          key: 'sprint-' + s.id, title: s.nombre, estado: s.estado, isSprint: true,
+          tasks: rows.filter(function (t) { return Number(t.id_sprint) === Number(s.id); }),
+        };
+      }).filter(function (g) { return g.tasks.length; });
+      groups.push({
+        key: 'backlog', title: 'Backlog', estado: null, isSprint: false,
+        tasks: rows.filter(function (t) { return !t.id_sprint; }),
+      });
+      return groups.filter(function (g) { return g.tasks.length; });
+    }
+
+    function _groupTableHead() {
+      return '<thead><tr>' +
+        '<th class="sort-th" onclick="sortBy(\'titulo\')">Tarea <span class="sort-icon" data-col="titulo"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'tipo\')">Tipo <span class="sort-icon" data-col="tipo"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'estado\')">Estado <span class="sort-icon" data-col="estado"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'prioridad\')">Prioridad <span class="sort-icon" data-col="prioridad"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'responsable\')">Responsable <span class="sort-icon" data-col="responsable"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'avance_pct\')">Avance <span class="sort-icon" data-col="avance_pct"></span></th>' +
+        '<th class="sort-th" onclick="sortBy(\'fecha_limite\')">Vence <span class="sort-icon" data-col="fecha_limite"></span></th>' +
+        '<th style="text-align:right">Acciones</th>' +
+      '</tr></thead>';
     }
 
     /* ─── Filter + render ───────────────────────────────────── */
@@ -307,18 +328,52 @@
     }
 
     function render() {
-      _updateSortIcons();
-      const rows = filtered();
-      const tb = document.getElementById('tbody');
-      if (!rows.length) { tb.innerHTML = '<tr><td colspan="8" class="empty-row">Sin tareas</td></tr>'; return; }
+      const pid = currentProyectoId();
+      const groups = _buildGroups(filtered());
+      const container = document.getElementById('groupsContainer');
 
+      if (!groups.length) {
+        container.innerHTML = '<div class="empty-row" style="padding:24px;text-align:center">Sin tareas</div>';
+        _updateSortIcons();
+        return;
+      }
+
+      container.innerHTML = groups.map(function (g) {
+        const defaultOpen = g.isSprint && g.estado === 'Activo';
+        const open = _isSectionOpen(pid, g.key, defaultOpen);
+        const badge = g.isSprint
+          ? '<span class="badge ' + ((typeof ESTADO_CLASS_SPRINT !== 'undefined' && ESTADO_CLASS_SPRINT[g.estado]) || 'st-todo') + '" style="font-size:10px">' + escapeHtml(g.estado) + '</span>'
+          : '';
+        return '<details class="sprint-group" data-key="' + g.key + '"' + (open ? ' open' : '') + ' ontoggle="_onGroupToggle(this)">' +
+          '<summary>' + escapeHtml(g.title) + badge + '<span class="group-count">' + g.tasks.length + ' tarea' + (g.tasks.length === 1 ? '' : 's') + '</span></summary>' +
+          '<div class="table-wrap"><table>' + _groupTableHead() + '<tbody>' + _renderRows(g.tasks) + '</tbody></table></div>' +
+        '</details>';
+      }).join('');
+      _updateSortIcons();
+      restrictWriteIfAgent();
+    }
+
+    /* ─── Helpers de render ─────────────────────────────────── */
+
+    function tipoOptions(current) {
+      let html = '';
+      if (current && TIPOS_TAREA.indexOf(current) === -1) {
+        html += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (legacy)</option>';
+      }
+      html += TIPOS_TAREA.map(function (v) {
+        return '<option' + (v === current ? ' selected' : '') + '>' + v + '</option>';
+      }).join('');
+      return html;
+    }
+
+    function _renderRows(tasks) {
       const estOpts = function (sel) {
         return ESTADOS_TAREA.map(function (e) {
           return '<option' + (e === sel ? ' selected' : '') + '>' + e + '</option>';
         }).join('');
       };
 
-      tb.innerHTML = rows.map(function (t) {
+      return tasks.map(function (t) {
         const cls  = ESTADO_CLASS[t.estado] || 'st-todo';
         const venc = t.vencida ? ' <span class="badge vencida">Vencida</span>' : '';
         const prc  = PRIORIDAD_CLASS[t.prioridad] || '';
@@ -346,27 +401,12 @@
             '<button class="danger sm admin-only" onclick="del(' + t.id + ')">Eliminar</button>' +
           '</td></tr>';
       }).join('');
-      restrictWriteIfAgent();
-    }
-
-    /* ─── Helpers de render ─────────────────────────────────── */
-
-    function tipoOptions(current) {
-      let html = '';
-      if (current && TIPOS_TAREA.indexOf(current) === -1) {
-        html += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (legacy)</option>';
-      }
-      html += TIPOS_TAREA.map(function (v) {
-        return '<option' + (v === current ? ' selected' : '') + '>' + v + '</option>';
-      }).join('');
-      return html;
     }
 
     function metaChips(t) {
       let out = '';
       if (t.area)   out += ' <span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
       if (t.tienda) out += ' <span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
-      if (t.id_sprint) { const chip = _sprintChip(t.id_sprint); if (chip) out += ' ' + chip; }
       return out;
     }
 
@@ -410,15 +450,10 @@
       downloadCSV('tareas.csv', _csvRows(filtered()));
     }
 
-    // Exporta todas las tareas del proyecto, ignorando el tab/sprint activo.
-    async function exportAllCSV() {
-      const pid = currentProyectoId();
-      setStatus('statusBar', 'Exportando todo…', 'info');
-      try {
-        const all = await apiGetTareas(pid ? { id_proyecto: pid } : {});
-        downloadCSV('tareas_todas.csv', _csvRows(all));
-        setStatus('statusBar', 'Exportado: ' + all.length + ' tareas (todas).', 'success');
-      } catch (e) { setStatus('statusBar', 'Error al exportar: ' + e.message, 'error'); }
+    // Exporta todas las tareas del proyecto ya cargadas en memoria, ignorando los filtros activos.
+    function exportAllCSV() {
+      downloadCSV('tareas_todas.csv', _csvRows(STATE.tareas));
+      setStatus('statusBar', 'Exportado: ' + STATE.tareas.length + ' tareas (todas).', 'success');
     }
 
     /* ─── Modal ABM ─────────────────────────────────────────── */
@@ -532,14 +567,13 @@
 
     /* ─── ABM de sprints (gestor) ───────────────────────────── */
 
-    // Recarga sprints, repuebla el filtro y re-renderiza la tabla de tareas.
+    // Recarga sprints y re-renderiza las secciones de tareas.
     async function _refreshSprints() {
       try {
         STATE.sprints = await apiGetSprints({});
       } catch (e) {
         toast('✕', 'No se pudo actualizar sprints: ' + e.message, 'error');
       }
-      _rebuildSprintFilter();
       render();
     }
 
