@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.16.6',
+  number: '1.16.7',
   date:   '2026-07-01',
-  notes:  'Fix visual: el chip de proyecto ya no comparte color con los estados "En Curso"/"Activo"',
+  notes:  'Tareas: barra de filtros/acciones separada en dos filas y filas de tabla más prolijas',
 };
 
 const CHANGELOG = [
+  { v: '1.16.7', date: '2026-07-01', desc: 'Tareas: la barra superior mezclaba filtros y botones de acción en un mismo contenedor que hacía wrap sin criterio a 1440px; se separa en dos filas fijas (filtros arriba, acciones abajo). Además, en cada fila el título, los chips (proyecto/área/tienda) y los links externos pasan a ser bloques apilados en vez de texto corrido, así el alto de fila crece de forma predecible con el contenido en vez de cortar en cualquier punto.' },
   { v: '1.16.6', date: '2026-07-01', desc: 'Fix visual: el chip de proyecto 📁 (v1.16.0/v1.16.2) usaba la clase st-progress, la misma que el estado de tarea "En Curso" y el estado de sprint "Activo" — una fila con esas dos condiciones mostraba dos badges ámbar idénticos con significados distintos. Se agrega la clase chip-proyecto (índigo, con variante dark) exclusiva para metadatos, separada de la paleta de estados.' },
   { v: '1.16.5', date: '2026-07-01', desc: 'Tareas: como los filtros ahora persisten entre sesiones (v1.16.3), se agrega el botón "Limpiar filtros (N)" que solo aparece cuando hay al menos uno activo — evita que una vista filtrada de una sesión anterior se lea como "faltan tareas".' },
   { v: '1.16.4', date: '2026-07-01', desc: 'Fix: el botón de acciones de Tareas decía "Eliminar" pero siempre hizo soft delete (pasa la tarea a estado Cancelada, sin borrar la fila ni perder historial). Se renombra a "Cancelar" y se aclara en el confirm, igual que ya se llama la acción equivalente en Sprints, para no sugerir una eliminación irreversible que nunca ocurre.' },

@@ -17,6 +17,11 @@
     .agent-badge { display: none; }
     body.no-edit .agent-badge { display: inline-flex; }
 
+    /* Filas de tarea: título y chips en líneas separadas (no mezclados en un mismo
+       flujo de texto) para que el alto de fila crezca de forma predecible. */
+    .tarea-title { font-weight: 600; }
+    .tarea-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+
     /* Mini barra de avance */
     .avance-bar { display: flex; align-items: center; gap: 6px; }
     .avance-track { width: 44px; height: 5px; background: var(--border, #ddd); border-radius: 3px; flex-shrink: 0; }
@@ -80,7 +85,7 @@
           <h1>Tareas</h1>
         </div>
         <section class="panel">
-          <div class="toolbar">
+          <div class="toolbar toolbar-filtros">
             <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
             <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
             <select id="fTipo"   onchange="render()" style="max-width:130px"><option value="">Todos los tipos</option></select>
@@ -91,11 +96,13 @@
             <button class="secondary sm" onclick="misTareas()">Mis tareas</button>
             <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
             <button class="secondary sm" id="btnLimpiarFiltros" onclick="limpiarFiltros()" style="display:none">Limpiar filtros</button>
-            <span class="spacer"></span>
+          </div>
+          <div class="toolbar toolbar-acciones">
             <button class="secondary sm" onclick="toggleAllGroups()" id="btnToggleAll">Expandir todo</button>
             <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="secondary sm" onclick="exportAllCSV()">Exportar todo</button>
+            <span class="spacer"></span>
             <button class="sm admin-only" onclick="openModal()" id="btnNew">+ Nueva tarea</button>
           </div>
           <div id="statusBar" class="status-bar">Cargando…</div>
@@ -469,8 +476,12 @@
         const prc  = PRIORIDAD_CLASS[t.prioridad] || '';
         const pct  = Number(t.avance_pct) || 0;
 
+        const chips = metaChips(t);
         return '<tr onclick="openDetalle(' + t.id + ')" style="cursor:pointer">' +
-          '<td><b>' + escapeHtml(t.titulo) + '</b>' + metaChips(t) + linkIcons(t) + '</td>' +
+          '<td><div class="tarea-title">' + escapeHtml(t.titulo) + '</div>' +
+            (chips ? '<div class="tarea-chips">' + chips + '</div>' : '') +
+            linkIcons(t) +
+          '</td>' +
           '<td>' + escapeHtml(t.tipo || '—') + '</td>' +
           '<td onclick="event.stopPropagation()">' +
             '<select class="admin-only" style="font-size:11px;padding:4px 8px" onchange="quickEstado(' + t.id + ', this.value)">' + estOpts(t.estado) + '</select>' +
@@ -499,9 +510,9 @@
     function metaChips(t) {
       let out = '';
       // Sin proyecto seleccionado, el board mezcla tareas de todos: se aclara de cuál es cada una.
-      if (!currentProyectoId()) out += ' <span class="badge chip-proyecto" style="font-size:10px">📁 ' + escapeHtml(proyNombre(t.id_proyecto)) + '</span>';
-      if (t.area)   out += ' <span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
-      if (t.tienda) out += ' <span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
+      if (!currentProyectoId()) out += '<span class="badge chip-proyecto" style="font-size:10px">📁 ' + escapeHtml(proyNombre(t.id_proyecto)) + '</span>';
+      if (t.area)   out += '<span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
+      if (t.tienda) out += '<span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
       return out;
     }
 
