@@ -42,6 +42,27 @@
     .sprint-group summary .group-count { font-weight: 400; opacity: .65; font-size: 12px; }
     .sprint-group .table-wrap { margin: 0; }
     .sprint-group table { min-width: 0; }
+
+    /* Selector de vista (lista / kanban) */
+    .view-tabs { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
+    .view-tab { background: transparent; color: var(--muted); border: 0; border-radius: 0; padding: 6px 12px; font-size: 12.5px; }
+    .view-tab:hover { background: var(--card2); transform: none; }
+    .view-tab.active { background: var(--primary); color: #fff; }
+
+    /* Kanban del sprint activo */
+    .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; align-items: start; }
+    .kanban-col { border: 1px solid var(--line); border-radius: 8px; background: var(--card2); min-width: 0; overflow: hidden; }
+    .kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--card); font-size: 12.5px; font-weight: 700; }
+    .kanban-count { font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 500; }
+    .kanban-list { display: grid; gap: 8px; padding: 10px; min-height: 76px; }
+    .kanban-empty { color: var(--muted); font-size: 12px; padding: 8px 2px; }
+    .kanban-card { border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 10px; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .1s; }
+    .kanban-card:hover { border-color: var(--primary-mid); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .kanban-title { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 7px; }
+    .kanban-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 7px; }
+    .kanban-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11.5px; }
+    .kanban-actions { display: flex; gap: 6px; margin-top: 8px; }
+    @media (max-width: 700px) { .kanban-board { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -98,6 +119,10 @@
             <button class="secondary sm" id="btnLimpiarFiltros" onclick="limpiarFiltros()" style="display:none">Limpiar filtros</button>
           </div>
           <div class="toolbar toolbar-acciones">
+            <div class="view-tabs" role="tablist" aria-label="Vista de tareas">
+              <button class="view-tab active" id="viewListBtn" type="button" onclick="setTaskView('list')">Lista</button>
+              <button class="view-tab" id="viewKanbanBtn" type="button" onclick="setTaskView('kanban')">Kanban</button>
+            </div>
             <button class="secondary sm" onclick="toggleAllGroups()" id="btnToggleAll">Expandir todo</button>
             <button class="secondary sm admin-only" onclick="openSprintsManager()">Gestionar sprints</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
@@ -125,6 +150,7 @@
     let _cerrarSprintId = null;
     let _sortCol = null;
     let _sortDir = 1;
+    let _taskView = 'list';
 
     /* ─── Proyecto selector ─────────────────────────────────── */
 
@@ -396,6 +422,81 @@
       '</tr></thead>';
     }
 
+    function setTaskView(view) {
+      _taskView = view === 'kanban' ? 'kanban' : 'list';
+      render();
+    }
+
+    function _updateViewTabs() {
+      const isKanban = _taskView === 'kanban';
+      document.getElementById('viewListBtn').classList.toggle('active', !isKanban);
+      document.getElementById('viewKanbanBtn').classList.toggle('active', isKanban);
+      document.getElementById('btnToggleAll').style.display = isKanban ? 'none' : '';
+    }
+
+    function _activeSprint() {
+      const activos = (STATE.sprints || []).filter(function (s) { return s.estado === 'Activo'; });
+      activos.sort(function (a, b) { return String(a.fecha_inicio || '').localeCompare(String(b.fecha_inicio || '')); });
+      return activos[0] || null;
+    }
+
+    function _kanbanStatuses(rows) {
+      const used = {};
+      rows.forEach(function (t) { if (t.estado) used[t.estado] = true; });
+      return ESTADOS_TAREA.filter(function (estado) {
+        return ESTADOS_TAREA_CERRADOS.indexOf(estado) === -1 || used[estado];
+      });
+    }
+
+    function _renderKanbanCard(t) {
+      const prc = PRIORIDAD_CLASS[t.prioridad] || '';
+      const pct = Number(t.avance_pct) || 0;
+      const chips = metaChips(t);
+      return '<article class="kanban-card" onclick="openDetalle(' + t.id + ')">' +
+        '<div class="kanban-title">' + escapeHtml(t.titulo) + '</div>' +
+        '<div class="kanban-meta">' +
+          (t.tipo ? '<span class="badge" style="font-size:10px;background:var(--card2);border:1px solid var(--line);color:var(--text2)">' + escapeHtml(t.tipo) + '</span>' : '') +
+          (t.prioridad ? '<span class="badge ' + prc + '" style="font-size:10px">' + escapeHtml(t.prioridad) + '</span>' : '') +
+          (chips || '') +
+        '</div>' +
+        '<div class="avance-bar" style="margin-bottom:7px">' +
+          '<div class="avance-track" style="width:100%"><div class="avance-fill" style="width:' + pct + '%"></div></div>' +
+          '<span class="mono" style="font-size:11px">' + pct + '%</span>' +
+        '</div>' +
+        '<div class="kanban-foot"><span>' + escapeHtml(t.responsable || 'Sin responsable') + '</span><span class="mono">' + fmtDate(t.fecha_limite) + '</span></div>' +
+        '<div class="kanban-actions admin-only" onclick="event.stopPropagation()">' +
+          '<button class="secondary sm" onclick="openModal(' + t.id + ')">Editar</button>' +
+          '<button class="danger sm" onclick="del(' + t.id + ')">Cancelar</button>' +
+        '</div>' +
+      '</article>';
+    }
+
+    function _renderKanban(rows) {
+      const sprint = _activeSprint();
+      const container = document.getElementById('groupsContainer');
+      if (!sprint) {
+        container.innerHTML = '<div class="empty-row" style="padding:24px;text-align:center">No hay sprint activo para mostrar en Kanban.</div>';
+        return;
+      }
+      const sprintRows = rows.filter(function (t) { return Number(t.id_sprint) === Number(sprint.id); });
+      if (!sprintRows.length) {
+        container.innerHTML = '<div class="empty-row" style="padding:24px;text-align:center">Sin tareas en el sprint activo: ' + escapeHtml(sprint.nombre) + '</div>';
+        return;
+      }
+      const statuses = _kanbanStatuses(sprintRows);
+      const board = statuses.map(function (estado) {
+        const tasks = sprintRows.filter(function (t) { return t.estado === estado; });
+        const cls = ESTADO_CLASS[estado] || 'st-todo';
+        return '<section class="kanban-col">' +
+          '<div class="kanban-head"><span class="badge ' + cls + '" style="font-size:10px">' + escapeHtml(estado) + '</span><span class="kanban-count">' + tasks.length + '</span></div>' +
+          '<div class="kanban-list">' + (tasks.length ? tasks.map(_renderKanbanCard).join('') : '<div class="kanban-empty">Sin tareas</div>') + '</div>' +
+        '</section>';
+      }).join('');
+      container.innerHTML =
+        '<div class="status-bar info" style="margin-bottom:10px">Sprint activo: <b>' + escapeHtml(sprint.nombre) + '</b> - ' + sprintRows.length + ' tarea' + (sprintRows.length === 1 ? '' : 's') + '</div>' +
+        '<div class="kanban-board">' + board + '</div>';
+      restrictWriteIfAgent();
+    }
     /* ─── Filter + render ───────────────────────────────────── */
 
     // Sin un estado puntual elegido, el board oculta Finalizada/Cancelada por defecto
@@ -426,8 +527,16 @@
     function render() {
       _saveFiltros();
       _updateFiltrosIndicator();
+      _updateViewTabs();
+      const rows = filtered();
+
+      if (_taskView === 'kanban') {
+        _renderKanban(rows);
+        return;
+      }
+
       const pid = currentProyectoId();
-      const groups = _buildGroups(filtered());
+      const groups = _buildGroups(rows);
       const container = document.getElementById('groupsContainer');
 
       if (!groups.length) {
@@ -450,7 +559,6 @@
       _updateSortIcons();
       restrictWriteIfAgent();
     }
-
     /* ─── Helpers de render ─────────────────────────────────── */
 
     function tipoOptions(current) {

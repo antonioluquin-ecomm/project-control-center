@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.17.2',
+  number: '1.18.0',
   date:   '2026-07-07',
-  notes:  'Tareas: las descripciones renderizan negrita con **texto** en el detalle',
+  notes:  'Tareas: vista Kanban y mejoras del modal de detalle',
 };
 
 const CHANGELOG = [
+  { v: '1.18.0', date: '2026-07-07', desc: 'Tareas: se agrega selector de vista Lista/Kanban. Lista queda como vista por defecto; Kanban muestra solo las tareas del sprint activo, agrupadas por estado y respetando los filtros actuales. El modal de detalle ahora es mas ancho, muestra los links externos junto al contexto de la tarea y colapsa descripciones largas con Ver mas.' },
   { v: '1.17.2', date: '2026-07-07', desc: 'Tareas: las descripciones y observaciones ahora admiten negrita inline con **texto** dentro del subset de formato existente. Se renderiza despues de escapeHtml, igual que titulos y vinetas, para mantener el contenido seguro.' },
   { v: '1.17.1', date: '2026-07-01', desc: 'Gantt: mejora visual respetando la paleta de estados. Las barras dejan de ser un bloque plano con el % en texto y pasan a ser una pista (track) con relleno proporcional al avance_pct, con todos los tonos derivados por color-mix del color del estado (track claro, relleno saturado, borde). Se agregan gridlines verticales por mes alineadas al eje, banderín "Hoy" sobre la línea roja, zebra y hover en filas (label + lane), cabecera del eje sticky y más aire (filas 34→38px, barras 22→24px). Sin cambios de datos ni de lógica: mismas tareas, mismo rango, mismo auto-scroll a hoy.' },
   { v: '1.17.0', date: '2026-07-01', desc: 'Sprints: se agrega la acción "Cerrar" (solo para sprints Activos) en el gestor. Al cerrar, si el sprint tiene tareas sin finalizar, un modal pregunta qué hacer con ellas: moverlas al Backlog, moverlas a otro sprint abierto, o dejarlas en el sprint cerrado. Antes cerrar un sprint (cambiar su estado a Cerrado) no movía nada y las tareas pendientes quedaban "colgadas" bajo el sprint terminado sin aviso. Nuevo handler closeSprint_ en el backend que mueve las tareas (registrando cada cambio en HISTORIAL) y cierra el sprint de forma atómica.' },

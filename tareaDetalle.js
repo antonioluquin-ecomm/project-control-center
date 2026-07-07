@@ -10,6 +10,14 @@
 
 let _tdOnEdit = null;
 function _tdEditClick() { if (_tdOnEdit) _tdOnEdit(); }
+function _tdToggleDesc() {
+  const wrap = document.getElementById('td-desc-wrap');
+  const btn = document.getElementById('td-desc-toggle');
+  if (!wrap || !btn) return;
+  const expanded = wrap.classList.toggle('expanded');
+  btn.textContent = expanded ? 'Ver menos' : 'Ver mas';
+  btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+}
 
 function openTareaDetalleModal(t, opts) {
   opts = opts || {};
@@ -49,6 +57,15 @@ function openTareaDetalleModal(t, opts) {
     return '<a class="link-chip" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">↗ ' + escapeHtml(l.label) + '</a>';
   }).join('');
 
+  const descText = String(t.descripcion || '');
+  const descLong = descText.length > 900 || descText.split('\n').length > 16;
+  const descBlock = t.descripcion
+    ? '<div class="td-desc-wrap' + (descLong ? ' is-collapsed' : '') + '" id="td-desc-wrap">' +
+        '<div class="td-desc" id="td-desc">' + renderRichText(t.descripcion) + '</div>' +
+        (descLong ? '<button class="td-desc-toggle" id="td-desc-toggle" type="button" aria-expanded="false" onclick="_tdToggleDesc()">Ver mas</button>' : '') +
+      '</div>'
+    : '';
+
   const editBtn = _tdOnEdit ? '<button class="secondary sm admin-only" onclick="_tdEditClick()">Editar</button>' : '';
 
   document.getElementById('modals').innerHTML =
@@ -63,8 +80,8 @@ function openTareaDetalleModal(t, opts) {
     '<h3 class="td-title">' + escapeHtml(t.titulo) + '</h3>' +
     (chips ? '<div class="td-chips">' + chips + '</div>' : '') +
     '<div class="td-meta">' + metaParts + '</div>' +
-    (t.descripcion ? '<div class="td-desc">' + renderRichText(t.descripcion) + '</div>' : '') +
-    (extLinks ? '<div class="link-row" style="margin-bottom:12px">' + extLinks + '</div>' : '') +
+    (extLinks ? '<div class="td-links">' + extLinks + '</div>' : '') +
+    descBlock +
     '<hr class="td-sep" />' +
     '<div class="act-tabs">' +
       '<button class="act-tab active" id="act-tab-com" onclick="_actShow(\'com\')">Comentarios</button>' +
