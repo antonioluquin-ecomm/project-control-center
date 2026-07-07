@@ -337,7 +337,7 @@ th {
 td { padding: 10px 12px; font-size: 12.5px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 tbody tr:hover { background: color-mix(in srgb, var(--primary) 4%, var(--card)); }
 tbody tr:last-child td { border-bottom: 0; }
-.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 .empty-row { text-align: center; color: var(--muted); padding: 24px; }
 
 /* ─── 9. Formularios ─────────────────────────────────────── */
@@ -414,6 +414,7 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .adj-card .adj-del { margin: 0 7px 7px; padding: 4px 8px; font-size: 11px; }
 
 /* ─── 12d. Modal de detalle de tarea ─────────────────────── */
+.kanban-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .td-modal { max-width: min(860px, calc(100vw - 48px)); }
 .td-header-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 .td-header-actions { margin-left: auto; display: flex; gap: 6px; }
@@ -433,6 +434,15 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .td-desc .rt-h2 { font-size: 13.5px; font-weight: 700; margin: 4px 0 4px; }
 .td-desc .rt-list { margin: 2px 0 6px; padding-left: 20px; }
 .td-sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0 0; }
+
+.td-edit-modal { max-width: min(860px, calc(100vw - 48px)); }
+.td-edit-form { display: grid; gap: 14px; }
+.td-edit-section { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card2); padding: 14px; }
+.td-edit-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
+.td-edit-section .field:last-child { margin-bottom: 0; }
+.td-edit-section .field-row:last-child .field { margin-bottom: 0; }
+.td-edit-desc { min-height: 150px; line-height: 1.5; }
+
 
 /* ─── 12c. Seguimiento / Reportes ────────────────────────── */
 .seg-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }

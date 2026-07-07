@@ -5,11 +5,13 @@
    Compartido por Tareas y Gantt. Cargar después de actividad.js.
    Requiere en la página host: STATE, ESTADO_CLASS, PRIORIDAD_CLASS,
    _sprintChip, escapeHtml, fmtDate, closeModal(), restrictWriteIfAgent().
-   Uso: openTareaDetalleModal(tarea, { onEdit: fn|null })
+   Uso: openTareaDetalleModal(tarea, { onEdit: fn|null, onClone: fn|null })
    ============================================================ */
 
 let _tdOnEdit = null;
+let _tdOnClone = null;
 function _tdEditClick() { if (_tdOnEdit) _tdOnEdit(); }
+function _tdCloneClick() { if (_tdOnClone) _tdOnClone(); }
 function _tdToggleDesc() {
   const wrap = document.getElementById('td-desc-wrap');
   const btn = document.getElementById('td-desc-toggle');
@@ -22,6 +24,7 @@ function _tdToggleDesc() {
 function openTareaDetalleModal(t, opts) {
   opts = opts || {};
   _tdOnEdit = opts.onEdit || null;
+  _tdOnClone = opts.onClone || null;
   _actCtx = { entidad: 'TAREA', id: Number(t.id) };
 
   const cls  = ESTADO_CLASS[t.estado] || 'st-todo';
@@ -67,6 +70,7 @@ function openTareaDetalleModal(t, opts) {
     : '';
 
   const editBtn = _tdOnEdit ? '<button class="secondary sm admin-only" onclick="_tdEditClick()">Editar</button>' : '';
+  const cloneBtn = _tdOnClone ? '<button class="secondary sm admin-only" onclick="_tdCloneClick()">Clonar</button>' : '';
 
   document.getElementById('modals').innerHTML =
     '<div class="modal-overlay"><div class="modal td-modal">' +
@@ -74,7 +78,8 @@ function openTareaDetalleModal(t, opts) {
       '<span class="badge ' + cls + '">' + escapeHtml(t.estado) + '</span>' + venc +
       '<div class="td-header-actions">' +
         editBtn +
-        '<button class="secondary sm" onclick="closeModal()">✕</button>' +
+        cloneBtn +
+        '<button class="secondary sm" onclick="closeModal()">X</button>' +
       '</div>' +
     '</div>' +
     '<h3 class="td-title">' + escapeHtml(t.titulo) + '</h3>' +

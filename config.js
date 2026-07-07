@@ -9,12 +9,15 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.18.0',
+  number: '1.19.0',
   date:   '2026-07-07',
-  notes:  'Tareas: vista Kanban y mejoras del modal de detalle',
+  notes:  'Tareas: edicion integrada en modal de detalle',
 };
 
 const CHANGELOG = [
+  { v: '1.19.0', date: '2026-07-07', desc: 'Tareas: el formulario de edicion se integra visualmente al modal de detalle. Desde la vista de tarea, Editar abre el mismo contenedor ancho, con secciones ordenadas, Cancelar vuelve al detalle y Guardar refresca la tarea actualizada.' },
+  { v: '1.18.2', date: '2026-07-07', desc: 'Fix visual: la vista Kanban mantiene las columnas en una sola fila con scroll horizontal en vez de bajarlas de linea, y la barra de avance reserva espacio para el porcentaje para que no se salga de la tarjeta.' },
+  { v: '1.18.1', date: '2026-07-07', desc: 'Tareas: se agrega la accion Clonar en lista, Kanban y modal de detalle. El clon abre el formulario como tarea nueva con la informacion original precargada, permite cambiar tienda, titulo y descripcion antes de guardar, resetea estado/avance y deja una nota editable de origen en la descripcion.' },
   { v: '1.18.0', date: '2026-07-07', desc: 'Tareas: se agrega selector de vista Lista/Kanban. Lista queda como vista por defecto; Kanban muestra solo las tareas del sprint activo, agrupadas por estado y respetando los filtros actuales. El modal de detalle ahora es mas ancho, muestra los links externos junto al contexto de la tarea y colapsa descripciones largas con Ver mas.' },
   { v: '1.17.2', date: '2026-07-07', desc: 'Tareas: las descripciones y observaciones ahora admiten negrita inline con **texto** dentro del subset de formato existente. Se renderiza despues de escapeHtml, igual que titulos y vinetas, para mantener el contenido seguro.' },
   { v: '1.17.1', date: '2026-07-01', desc: 'Gantt: mejora visual respetando la paleta de estados. Las barras dejan de ser un bloque plano con el % en texto y pasan a ser una pista (track) con relleno proporcional al avance_pct, con todos los tonos derivados por color-mix del color del estado (track claro, relleno saturado, borde). Se agregan gridlines verticales por mes alineadas al eje, banderín "Hoy" sobre la línea roja, zebra y hover en filas (label + lane), cabecera del eje sticky y más aire (filas 34→38px, barras 22→24px). Sin cambios de datos ni de lógica: mismas tareas, mismo rango, mismo auto-scroll a hoy.' },
