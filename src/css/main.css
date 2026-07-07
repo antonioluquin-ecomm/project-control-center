@@ -435,13 +435,17 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .td-desc .rt-list { margin: 2px 0 6px; padding-left: 20px; }
 .td-sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0 0; }
 
-.td-edit-modal { max-width: min(860px, calc(100vw - 48px)); }
+.td-edit-modal { max-width: min(860px, calc(100vw - 48px)); padding: 24px 26px 22px; }
 .td-edit-form { display: grid; gap: 14px; }
-.td-edit-section { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card2); padding: 14px; }
-.td-edit-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
-.td-edit-section .field:last-child { margin-bottom: 0; }
-.td-edit-section .field-row:last-child .field { margin-bottom: 0; }
-.td-edit-desc { min-height: 150px; line-height: 1.5; }
+.td-edit-section { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card2); padding: 14px; display: grid; gap: 12px; }
+.td-edit-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.td-edit-section .field { margin: 0; min-width: 0; }
+.td-edit-section .field-row { gap: 12px; align-items: start; }
+.td-edit-section input,
+.td-edit-section select { min-height: 40px; }
+.td-edit-section textarea { width: 100%; }
+.td-edit-desc { min-height: 170px; line-height: 1.5; }
+.td-edit-section .modal-actions { margin-top: 6px; }
 
 
 /* ─── 12c. Seguimiento / Reportes ────────────────────────── */
