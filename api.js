@@ -404,6 +404,12 @@ async function _mockCall(action, p) {
     case 'updateTarea': {
       const x = _mock.tareas.filter(function (r) { return Number(r.id) === Number(p.id); })[0];
       if (!x) throw new Error('Tarea no encontrada');
+      if (x.estado === 'Documentaci\u00f3n' && p.estado === 'Finalizada') {
+        throw new Error('No se puede pasar de Documentaci\u00f3n a Finalizada. Primero debe ir a Revisi\u00f3n.');
+      }
+      if (x.estado === 'Documentaci\u00f3n' && p.estado === 'Revisi\u00f3n' && !(p.url_informe_gestion || x.url_informe_gestion)) {
+        throw new Error('Para pasar a Revisi\u00f3n una tarea documentada, carga la URL del informe de gestion del portal ecommerce.');
+      }
       Object.assign(x, p);
       return { id: x.id };
     }

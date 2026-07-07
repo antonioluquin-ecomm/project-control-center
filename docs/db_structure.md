@@ -55,6 +55,7 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | U | url_figma_prototipo | URL | prototipo Figma (maquetación) *(S6)* |
 | V | url_figma_editable | URL | editable Figma (maquetación) *(S6)* |
 | W | id_sprint | entero | FK → SPRINTS.id (nullable; '' = sin sprint) *(sprints)* |
+| X | url_informe_gestion | URL | informe de gestion del portal ecommerce; obligatorio para pasar de Documentacion a Revision si la tarea paso por Documentacion |
 
 `vencida` se calcula al servir (estado no cerrado + `fecha_limite < hoy`).
 

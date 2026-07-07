@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.20.0',
+  number: '1.21.0',
   date:   '2026-07-07',
-  notes:  'Actividad: nueva minuta diaria de cambios y comentarios',
+  notes:  'Tareas: URL de informe obligatoria al pasar de Documentacion a Revision',
 };
 
 const CHANGELOG = [
+  { v: '1.21.0', date: '2026-07-07', desc: 'Tareas: se agrega la URL del informe de gestion del portal ecommerce para tareas documentadas. Al pasar de Documentacion a Revision es obligatoria y desde Documentacion ya no se puede saltar directo a Finalizada.' },
   { v: '1.20.0', date: '2026-07-07', desc: 'Actividad: nuevo modulo de minuta diaria para revisar por fecha los comentarios nuevos y cambios registrados, con KPIs, participantes, filtros y exportacion CSV.' },
   { v: '1.19.3', date: '2026-07-07', desc: 'Fix visual: el modal de edicion de tareas alinea sus secciones y campos con una grilla consistente, normaliza la altura de inputs y mejora el espaciado interno.' },
   { v: '1.19.2', date: '2026-07-07', desc: 'Fix visual: el boton Ver mas del detalle de tarea deja de quedar pegado al degradado de la descripcion; ahora se muestra como una accion separada debajo del bloque colapsado.' },

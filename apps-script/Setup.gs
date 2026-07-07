@@ -15,7 +15,7 @@ const _HEADERS = {
            'fecha_inicio','fecha_limite','avance_pct','orden',
            'fecha_creacion','fecha_modificacion','creado_por','modificado_por',
            'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable',
-           'id_sprint'],
+           'id_sprint','url_informe_gestion'],
   SPRINTS: ['id','nombre','objetivo','estado','fecha_inicio','fecha_fin',
             'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
   COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],

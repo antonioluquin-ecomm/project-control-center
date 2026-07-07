@@ -147,6 +147,7 @@
   <script src="../../tareaDetalle.js"></script>
   <script>
     let _editId  = null;
+    let _editOriginalEstado = null;
     let _editSprintId = null;
     let _cerrarSprintId = null;
     let _cloneSourceId = null;
@@ -636,6 +637,7 @@
         { url: t.url_gitlab, label: 'GitLab' },
         { url: t.url_figma_prototipo, label: 'Figma proto' },
         { url: t.url_figma_editable, label: 'Figma edit' },
+        { url: t.url_informe_gestion, label: 'Informe gestion' },
       ];
       const html = links.filter(function (l) { return l.url; }).map(function (l) {
         return '<a class="link-chip" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">↗ ' + escapeHtml(l.label) + '</a>';
@@ -646,11 +648,23 @@
     /* ─── Quick estado inline ───────────────────────────────── */
 
     async function quickEstado(id, estado) {
-      try {
-        await apiUpdateTarea({ id: id, estado: estado });
-        toast('✓', 'Estado actualizado', 'success');
+      const t = STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0];
+      const data = { id: id, estado: estado };
+      if (t && t.estado === 'Documentaci\u00f3n' && estado === 'Finalizada') {
+        toast('!', 'Primero debe pasar a Revisi\u00f3n', 'error');
         loadTareas();
-      } catch (e) { toast('✕', e.message, 'error'); loadTareas(); }
+        return;
+      }
+      if (t && t.estado === 'Documentaci\u00f3n' && estado === 'Revisi\u00f3n' && !t.url_informe_gestion) {
+        const url = prompt('URL del informe de gestion del portal ecommerce');
+        if (!url) { loadTareas(); return; }
+        data.url_informe_gestion = url.trim();
+      }
+      try {
+        await apiUpdateTarea(data);
+        toast('OK', 'Estado actualizado', 'success');
+        loadTareas();
+      } catch (e) { toast('!', e.message, 'error'); loadTareas(); }
     }
 
     async function quickResp(id, responsable) {
@@ -664,12 +678,12 @@
     /* ─── Export CSV ────────────────────────────────────────── */
 
     function _csvRows(list) {
-      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable']];
+      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable', 'url_informe_gestion']];
       list.forEach(function (t) {
         const s = _sprintById(t.id_sprint);
         rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable,
           s ? s.nombre : '', t.area, t.tienda, t.avance_pct,
-          (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable]);
+          (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable, t.url_informe_gestion]);
       });
       return rows;
     }
@@ -722,11 +736,13 @@
       if (!id && !pid) { toast('!', 'Selecciona un proyecto primero', 'error'); return; }
       const isClone = !!opts.clone;
       _editId = isClone ? null : (id || null);
+      _editOriginalEstado = null;
       _cloneSourceId = null;
       _editReturnToDetailId = opts.detailEdit && id && !isClone ? Number(id) : null;
       const source = id ? STATE.tareas.filter(function (x) { return Number(x.id) === Number(id); })[0] : {};
       if (id && !source) { toast('!', 'Tarea no encontrada', 'error'); return; }
       const t = isClone ? _cloneDefaults(source) : source;
+      _editOriginalEstado = t.estado || null;
       if (isClone) _cloneSourceId = Number(source.id);
       // Si la tarea tiene un sprint que ya no figura en STATE.sprints (p.ej. cancelado), lo
       // resolvemos aparte para poder seguir mostrándolo en el <select> y no perder la asignación.
@@ -761,7 +777,7 @@
           '<section class="td-edit-section"><div class="td-edit-section-title">Gestion</div>' +
             '<div class="field-row">' +
               '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
-              '<div class="field"><label>Estado</label><select id="m_estado">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
+              '<div class="field"><label>Estado</label><select id="m_estado" onchange="toggleInformeGestion()">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
             '</div>' +
             '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint, orphanSprint) + '</select></div>' +
             '<div class="field-row">' +
@@ -787,6 +803,7 @@
               '<div class="field"><label>Figma - prototipo</label><input id="m_figp" type="url" placeholder="https://..." value="' + escapeHtml(t.url_figma_prototipo || '') + '"></div>' +
               '<div class="field"><label>Figma - editable</label><input id="m_fige" type="url" placeholder="https://..." value="' + escapeHtml(t.url_figma_editable || '') + '"></div>' +
             '</div>' +
+            '<div id="m_informe_wrap" class="field" hidden><label>Informe de gestion del portal ecommerce</label><input id="m_informe" type="url" placeholder="https://..." value="' + escapeHtml(t.url_informe_gestion || '') + '"></div>' +
             '<div id="m_err" class="status-bar error" hidden></div>' +
             '<div class="modal-actions">' +
               '<button class="secondary" onclick="cancelTaskEdit()">Cancelar</button>' +
@@ -795,6 +812,7 @@
           '</section>' +
         '</div></div></div>';
       toggleAreaLinks();
+      toggleInformeGestion();
       const firstInput = document.getElementById('m_tit');
       if (firstInput) firstInput.focus();
     }
@@ -803,6 +821,16 @@
       const area = document.getElementById('m_area').value;
       document.getElementById('m_jira_wrap').hidden   = (area !== 'InfraCommerce');
       document.getElementById('m_gitlab_wrap').hidden = (area !== 'PIM');
+    }
+
+    function toggleInformeGestion() {
+      const wrap = document.getElementById('m_informe_wrap');
+      const input = document.getElementById('m_informe');
+      const estadoEl = document.getElementById('m_estado');
+      if (!wrap || !input || !estadoEl) return;
+      const estado = estadoEl.value;
+      wrap.hidden = !(estado === 'Documentaci\u00f3n' || estado === 'Revisi\u00f3n' || input.value.trim());
+      input.required = (_editOriginalEstado === 'Documentaci\u00f3n' && estado === 'Revisi\u00f3n');
     }
 
     function closeModal() { _cloneSourceId = null; _editReturnToDetailId = null; document.getElementById('modals').innerHTML = ''; }
@@ -829,7 +857,10 @@
         url_gitlab:           document.getElementById('m_gitlab').value.trim(),
         url_figma_prototipo:  document.getElementById('m_figp').value.trim(),
         url_figma_editable:   document.getElementById('m_fige').value.trim(),
+        url_informe_gestion:  document.getElementById('m_informe').value.trim(),
       };
+      if (_editOriginalEstado === 'Documentaci\u00f3n' && data.estado === 'Finalizada') { err.textContent = 'No se puede pasar de Documentaci\u00f3n a Finalizada. Primero debe ir a Revisi\u00f3n.'; err.hidden = false; return; }
+      if (_editOriginalEstado === 'Documentaci\u00f3n' && data.estado === 'Revisi\u00f3n' && !data.url_informe_gestion) { err.textContent = 'Para pasar a Revisi\u00f3n carga la URL del informe de gestion del portal ecommerce.'; err.hidden = false; return; }
       const btn = document.getElementById('m_save'); btn.disabled = true;
       try {
         const detailId = _editReturnToDetailId;

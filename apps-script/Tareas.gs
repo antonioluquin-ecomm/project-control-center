@@ -57,6 +57,7 @@ function createTarea_(params, user) {
   const urlGitlab  = optionalUrl_(params.url_gitlab, 'url_gitlab');
   const urlFigmaP  = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   const urlFigmaE  = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
+  const urlInforme = optionalUrl_(params.url_informe_gestion, 'url_informe_gestion');
   // Sprint (global, opcional). Verifica existencia para evitar FK rota.
   const idSprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
   if (idSprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), idSprint)) {
@@ -71,7 +72,7 @@ function createTarea_(params, user) {
   sheet.appendRow([
     id, idProyecto, titulo, descripcion, tipo, estado, prioridad, responsable,
     fechaInicio, fechaLimite, avance, orden, now, now, email, email,
-    area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE, idSprint,
+    area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE, idSprint, urlInforme,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
   return { ok: true, data: { id: id } };
@@ -111,10 +112,22 @@ function updateTarea_(params, user) {
   if (params.url_gitlab !== undefined)          updates.url_gitlab = optionalUrl_(params.url_gitlab, 'url_gitlab');
   if (params.url_figma_prototipo !== undefined) updates.url_figma_prototipo = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
+  if (params.url_informe_gestion !== undefined) updates.url_informe_gestion = optionalUrl_(params.url_informe_gestion, 'url_informe_gestion');
   if (params.id_sprint !== undefined) {
     updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
     if (updates.id_sprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), updates.id_sprint)) {
       return { ok: false, error: 'Sprint no encontrado', code: 404 };
+    }
+  }
+
+  if (actual.estado === 'Documentaci\u00f3n' && updates.estado === ESTADO_TAREA_COMPLETADA) {
+    return { ok: false, error: 'No se puede pasar de Documentaci\u00f3n a Finalizada. Primero debe ir a Revisi\u00f3n.', code: 409 };
+  }
+
+  if (updates.estado === 'Revisi\u00f3n' && _tareaPasoPorDocumentacion_(id, actual)) {
+    const informe = updates.url_informe_gestion !== undefined ? updates.url_informe_gestion : actual.url_informe_gestion;
+    if (!informe) {
+      return { ok: false, error: 'Para pasar a Revisi\u00f3n una tarea documentada, carga la URL del informe de gestion del portal ecommerce.', code: 409 };
     }
   }
 
@@ -158,4 +171,14 @@ function _clampPct_(v) {
   const n = parseInt(v, 10);
   if (isNaN(n)) return 0;
   return Math.max(0, Math.min(100, n));
+}
+
+function _tareaPasoPorDocumentacion_(id, actual) {
+  if (actual && actual.estado === 'Documentaci\u00f3n') return true;
+  return getAllRows_(SHEETS.HISTORIAL, HISTORIAL_COLS).some(function(h) {
+    return h.entidad === 'TAREA'
+      && Number(h.id_entidad) === Number(id)
+      && h.campo === 'estado'
+      && (h.valor_anterior === 'Documentaci\u00f3n' || h.valor_nuevo === 'Documentaci\u00f3n');
+  });
 }

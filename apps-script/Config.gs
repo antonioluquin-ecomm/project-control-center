@@ -76,6 +76,7 @@ const TAREAS_COLS = {
   url_figma_editable:  22, // V  — editable Figma (maquetación)
   // ── Sprints (append al final) ──
   id_sprint:          23,  // W  — FK → SPRINTS.id (nullable; '' = sin sprint)
+  url_informe_gestion: 24, // X  - informe de gestion del portal ecommerce
 };
 
 // Sprints globales (multi-proyecto): agrupan TAREAS por id_sprint.
