@@ -69,6 +69,7 @@ function routePost_(action, params, user, body) {
   if (action === 'getSprints')      return getSprints_(params);
   if (action === 'getSprintById')   return getSprintById_(params);
   if (action === 'getResumen')      return getResumen_();
+  if (action === 'getActividadDiaria') return getActividadDiaria_(params);
   if (action === 'getCatalogos')    return getCatalogos_();
   if (action === 'getComentarios')  return getComentarios_(params);
   if (action === 'getHistorial')    return getHistorial_(params);

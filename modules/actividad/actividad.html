@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actividad - Project Control Center</title>
+  <script>(function(){var saved=localStorage.getItem('pcc_theme');var t=saved?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('pcc_sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed');})();</script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../src/css/main.css" />
+  <style>
+    .activity-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+    .activity-feed { display: grid; gap: 10px; }
+    .activity-item { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); padding: 12px 14px; }
+    .activity-time { font-family: var(--mono); color: var(--muted); font-size: 12px; padding-top: 2px; white-space: nowrap; }
+    .activity-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+    .activity-title { font-weight: 700; font-size: 13.5px; color: var(--text); }
+    .activity-meta { color: var(--muted); font-size: 12px; }
+    .activity-text { font-size: 13px; line-height: 1.5; color: var(--text); white-space: pre-wrap; }
+    .activity-change { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .activity-old { color: var(--muted); text-decoration: line-through; }
+    .activity-new { color: var(--success); font-weight: 700; }
+    .activity-side { position: sticky; top: 66px; display: grid; gap: 12px; }
+    .activity-user-list { display: grid; gap: 8px; }
+    .activity-user-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; border-bottom: 1px solid var(--line); padding-bottom: 7px; }
+    .activity-user-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .activity-user-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    @media (max-width: 980px) { .activity-layout { grid-template-columns: 1fr; } .activity-side { position: static; } }
+    @media (max-width: 620px) { .activity-item { grid-template-columns: 1fr; } .activity-time { padding-top: 0; } }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">PC</span>
+        <div>
+          <div class="brand-name">Control Center</div>
+          <div class="brand-meta" id="sidebarVersionBtn" title="Ver historial de cambios">
+            <span id="sidebarVersion">v...</span>
+            <span>&middot; Proyectos</span>
+          </div>
+          <div class="sidebar-version-popover" id="versionPopover" style="display:none;"></div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="../../index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Inicio</a>
+        <a class="nav-item" href="../proyectos/proyectos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> Proyectos</a>
+        <a class="nav-item" href="../tareas/tareas.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Tareas</a>
+        <a class="nav-item" href="../seguimiento/seguimiento.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Seguimiento</a>
+        <a class="nav-item active" href="actividad.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Actividad</a>
+        <a class="nav-item" href="../reportes/reportes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Reportes</a>
+        <a class="nav-item" href="../gantt/gantt.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="15" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg> Gantt</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-footer" id="sidebarFooter">
+        <a class="nav-item admin-only" href="../admin/usuarios.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg> Configuraci&oacute;n</a>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <div class="topbar">
+        <button class="topbar-toggle" id="sidebarCollapseBtn" type="button" aria-pressed="false" title="Ocultar men&uacute; lateral" aria-label="Mostrar u ocultar men&uacute; lateral"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
+        <span class="topbar-brand">Control Center</span>
+        <span class="topbar-sep">/</span>
+        <span class="topbar-crumb">Actividad</span>
+      </div>
+
+      <main class="container">
+        <div class="page-header">
+          <h1>Actividad</h1>
+          <p class="subtitle">Minuta r&aacute;pida de cambios y comentarios por d&iacute;a</p>
+        </div>
+
+        <section class="panel">
+          <div class="toolbar">
+            <div class="field" style="margin:0;max-width:180px">
+              <label for="fechaActividad">D&iacute;a</label>
+              <input type="date" id="fechaActividad" onchange="loadActividad()" />
+            </div>
+            <div class="field" style="margin:0;max-width:180px">
+              <label for="fTipo">Tipo</label>
+              <select id="fTipo" onchange="renderActividad()">
+                <option value="">Todo</option>
+                <option value="comentario">Comentarios</option>
+                <option value="cambio">Cambios</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;max-width:300px">
+              <label for="q">Buscar</label>
+              <input type="search" id="q" placeholder="Tarea, proyecto, usuario..." oninput="renderActividad()" />
+            </div>
+            <span class="spacer"></span>
+            <button class="secondary sm" onclick="setToday()">Hoy</button>
+            <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
+          </div>
+          <div id="statusBar" class="status-bar">Cargando...</div>
+        </section>
+
+        <section class="panel">
+          <div class="kpi-grid" id="kpiGrid"></div>
+        </section>
+
+        <div class="activity-layout" style="margin-top:16px">
+          <section class="panel">
+            <div class="toolbar" style="margin-bottom:14px">
+              <h2 style="margin:0">Minuta del d&iacute;a</h2>
+              <span class="spacer"></span>
+              <span class="text-muted" id="activityCount" style="font-size:12px"></span>
+            </div>
+            <div id="activityFeed" class="activity-feed"></div>
+          </section>
+
+          <aside class="activity-side">
+            <section class="panel">
+              <h2 style="margin-bottom:12px">Participantes</h2>
+              <div id="userList" class="activity-user-list"></div>
+            </section>
+            <section class="panel">
+              <h2 style="margin-bottom:12px">Lectura r&aacute;pida</h2>
+              <div id="quickSummary" class="text-muted" style="font-size:13px;line-height:1.5"></div>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../config.js"></script>
+  <script src="../../auth.js"></script>
+  <script src="../../api.js"></script>
+  <script>
+    let _actividad = { fecha: '', items: [], resumen: {} };
+
+    function localDateValue(d) {
+      const date = d || new Date();
+      const offset = date.getTimezoneOffset() * 60000;
+      return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+    }
+
+    function setToday() {
+      document.getElementById('fechaActividad').value = localDateValue();
+      loadActividad();
+    }
+
+    async function loadActividad() {
+      const fecha = document.getElementById('fechaActividad').value || localDateValue();
+      setStatus('statusBar', 'Cargando actividad...', 'info');
+      try {
+        _actividad = await apiGetActividadDiaria({ fecha: fecha });
+        renderActividad();
+        setStatus('statusBar', 'Actividad cargada para ' + fmtInputDate(fecha) + '.', 'success');
+      } catch (err) {
+        setStatus('statusBar', 'Error: ' + err.message, 'error');
+      }
+    }
+
+    function filteredItems() {
+      const tipo = document.getElementById('fTipo').value;
+      const q = normalizeText(document.getElementById('q').value || '');
+      return (_actividad.items || []).filter(function (item) {
+        if (tipo && item.tipo !== tipo) return false;
+        if (!q) return true;
+        return normalizeText([item.titulo, item.proyecto, item.usuario, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
+      });
+    }
+
+    function renderActividad() {
+      const items = filteredItems();
+      renderKpis(items);
+      renderFeed(items);
+      renderUsers(items);
+      renderSummary(items);
+      document.getElementById('activityCount').textContent = items.length + ' movimientos';
+    }
+
+    function renderKpis(items) {
+      const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
+      const cambios = items.filter(function (i) { return i.tipo === 'cambio'; }).length;
+      const usuarios = unique(items.map(function (i) { return i.usuario; })).length;
+      const tareas = unique(items.filter(function (i) { return i.entidad === 'TAREA'; }).map(function (i) { return i.id_entidad; })).length;
+      document.getElementById('kpiGrid').innerHTML =
+        kpi('Movimientos', items.length) +
+        kpi('Comentarios', comentarios) +
+        kpi('Cambios', cambios) +
+        kpi('Usuarios', usuarios) +
+        kpi('Tareas tocadas', tareas);
+    }
+
+    function renderFeed(items) {
+      const feed = document.getElementById('activityFeed');
+      if (!items.length) {
+        feed.innerHTML = '<div class="empty-row">Sin actividad para los filtros seleccionados.</div>';
+        return;
+      }
+      feed.innerHTML = items.map(function (item) {
+        const badge = item.tipo === 'comentario'
+          ? '<span class="badge st-analysis">Comentario</span>'
+          : '<span class="badge st-progress">Cambio</span>';
+        const proyecto = item.proyecto ? '<span class="badge chip-proyecto">' + escapeHtml(item.proyecto) + '</span>' : '';
+        const body = item.tipo === 'comentario'
+          ? '<div class="activity-text">' + escapeHtml(item.texto || '') + '</div>'
+          : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>';
+        return '<article class="activity-item">' +
+          '<div class="activity-time">' + fmtTime(item.fecha) + '</div>' +
+          '<div>' +
+            '<div class="activity-head">' + badge + proyecto + '<span class="activity-title">' + escapeHtml(item.titulo || '') + '</span></div>' +
+            '<div class="activity-meta">' + escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '') + '</div>' +
+            body +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    function renderUsers(items) {
+      const counts = {};
+      items.forEach(function (item) { const u = item.usuario || 'Sin usuario'; counts[u] = (counts[u] || 0) + 1; });
+      const rows = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+      document.getElementById('userList').innerHTML = rows.length ? rows.map(function (u) {
+        return '<div class="activity-user-row"><b title="' + escapeHtml(u) + '">' + escapeHtml(u) + '</b><span class="mono">' + counts[u] + '</span></div>';
+      }).join('') : '<div class="text-muted" style="font-size:13px">Sin participantes.</div>';
+    }
+
+    function renderSummary(items) {
+      const cambios = items.filter(function (i) { return i.tipo === 'cambio'; }).length;
+      const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
+      const proyectos = unique(items.map(function (i) { return i.proyecto; }).filter(Boolean));
+      const usuarios = unique(items.map(function (i) { return i.usuario; }).filter(Boolean));
+      document.getElementById('quickSummary').textContent = items.length
+        ? 'Se registraron ' + items.length + ' movimientos: ' + cambios + ' ' + plural(cambios, 'cambio', 'cambios') + ' y ' + comentarios + ' ' + plural(comentarios, 'comentario', 'comentarios') + '. Participaron ' + usuarios.length + ' usuario(s) en ' + proyectos.length + ' proyecto(s).'
+        : 'No hay comentarios ni cambios registrados para este dia.';
+    }
+
+    function kpi(label, value) {
+      return '<div class="kpi-card"><div class="kpi-label">' + escapeHtml(label) + '</div><div class="kpi-value">' + value + '</div></div>';
+    }
+
+    function unique(arr) {
+      const seen = {};
+      arr.forEach(function (v) { if (v !== undefined && v !== null && v !== '') seen[v] = true; });
+      return Object.keys(seen);
+    }
+
+    function plural(n, one, many) {
+      return Number(n) === 1 ? one : many;
+    }
+
+    function fmtTime(v) {
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return '--:--';
+      return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function fmtInputDate(v) {
+      const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      return m ? (m[3] + '/' + m[2] + '/' + m[1]) : fmtDate(v);
+    }
+
+    function exportCSV() {
+      const rows = [['fecha', 'hora', 'tipo', 'entidad', 'id_entidad', 'titulo', 'proyecto', 'usuario', 'detalle']];
+      filteredItems().forEach(function (item) {
+        const detalle = item.tipo === 'comentario'
+          ? item.texto
+          : (item.campo + ': ' + (item.valor_anterior || '') + ' -> ' + (item.valor_nuevo || ''));
+        rows.push([(_actividad.fecha || '').slice(0, 10), fmtTime(item.fecha), item.tipo, item.entidad, item.id_entidad, item.titulo, item.proyecto, item.usuario, detalle]);
+      });
+      downloadCSV('actividad-' + (document.getElementById('fechaActividad').value || localDateValue()) + '.csv', rows);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initTheme(); initVersionBadge(); requireAuth(); renderSidebarUser(); initSidebarCollapse(); restrictWriteIfAgent();
+      document.getElementById('fechaActividad').value = localDateValue();
+      loadActividad();
+    });
+  </script>
+</body>
+</html>

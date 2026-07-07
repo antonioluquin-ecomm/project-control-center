@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.19.3',
+  number: '1.20.0',
   date:   '2026-07-07',
-  notes:  'Tareas: mejora visual del modal de edicion',
+  notes:  'Actividad: nueva minuta diaria de cambios y comentarios',
 };
 
 const CHANGELOG = [
+  { v: '1.20.0', date: '2026-07-07', desc: 'Actividad: nuevo modulo de minuta diaria para revisar por fecha los comentarios nuevos y cambios registrados, con KPIs, participantes, filtros y exportacion CSV.' },
   { v: '1.19.3', date: '2026-07-07', desc: 'Fix visual: el modal de edicion de tareas alinea sus secciones y campos con una grilla consistente, normaliza la altura de inputs y mejora el espaciado interno.' },
   { v: '1.19.2', date: '2026-07-07', desc: 'Fix visual: el boton Ver mas del detalle de tarea deja de quedar pegado al degradado de la descripcion; ahora se muestra como una accion separada debajo del bloque colapsado.' },
   { v: '1.19.1', date: '2026-07-07', desc: 'Tareas: se reordena el formulario de edicion para mostrar Area responsable junto a Responsable dentro de Gestion, dejando Alcance enfocado en tienda y enlaces asociados.' },

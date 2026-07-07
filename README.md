@@ -2,7 +2,7 @@
 
 Sistema interno de gestión, seguimiento y presentación de proyectos. Centraliza
 proyectos, tareas, estados, responsables, comentarios, adjuntos, dashboard,
-reportes e historial de cambios. Reemplaza Jira en el flujo propio del equipo.
+reportes, actividad diaria e historial de cambios. Reemplaza Jira en el flujo propio del equipo.
 
 ## Stack
 
@@ -25,7 +25,7 @@ reportes e historial de cambios. Reemplaza Jira en el flujo propio del equipo.
 ├── apps-script/            # Backend GAS (ver docs/gas-setup.md)
 │   ├── Config.gs Helpers.gs Logger.gs Validators.gs
 │   ├── Auth.gs Usuarios.gs Proyectos.gs Tareas.gs
-│   ├── Comentarios.gs Historial.gs Adjuntos.gs Dashboard.gs
+│   ├── Comentarios.gs Historial.gs Adjuntos.gs Dashboard.gs Actividad.gs
 │   └── Code.gs Setup.gs
 ├── actividad.js            # Panel Comentarios + Historial (reutilizable)
 ├── tareaDetalle.js         # Modal de detalle de tarea (Tareas + Gantt)
@@ -65,6 +65,7 @@ cargar la URL del Web App desde la pantalla de configuración.
 | S8 — Checklists + racionalización de tipos | ✅ Hoja CHECKLIST + drawer + Subtarea deprecada (validado en demo) |
 | S9 — Vista Gantt | ✅ Cronograma por proyecto, CSS/JS puro (validado en demo) |
 | S10 — Pulido (front, estructura, UX) | ✅ Filtros área/tienda, reportes por área/tienda, quick-create (validado en demo) |
+| S11 - Actividad diaria | Implementado: minuta por dia con comentarios, historial, KPIs y exportacion CSV |
 
 Plan completo y decisiones: ver `CLAUDE.md` y la planificación aprobada.
 

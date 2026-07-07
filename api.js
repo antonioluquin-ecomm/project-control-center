@@ -104,6 +104,7 @@ async function callApiRaw(action, params) {
 /* ─── HELPERS DE DOMINIO ─────────────────────────────────── */
 
 function apiGetResumen()        { return callApiRaw('getResumen'); }
+function apiGetActividadDiaria(p) { return callApiRaw('getActividadDiaria', p); }
 function apiGetCatalogos()      { return callApiRaw('getCatalogos'); }
 function apiGetProyectos(p)     { return callApiRaw('getProyectos', p); }
 function apiGetProyecto(id)     { return callApiRaw('getProyectoById', { id: id }); }
@@ -268,6 +269,62 @@ async function _mockCall(action, p) {
         throw new Error('Catálogo o valores inválidos');
       _mock.catalogos[p.catalogo] = p.valores.map(function(v) { return String(v).trim(); }).filter(Boolean);
       return { catalogo: p.catalogo, count: _mock.catalogos[p.catalogo].length };
+    }
+
+    case 'getActividadDiaria': {
+      const fecha = p.fecha || today;
+      const proyById = {};
+      const tareaById = {};
+      const sprintById = {};
+      _mock.proyectos.forEach(function (x) { proyById[Number(x.id)] = x; });
+      _mock.tareas.forEach(function (x) { tareaById[Number(x.id)] = x; });
+      _mock.sprints.forEach(function (x) { sprintById[Number(x.id)] = x; });
+      const dateKey = function (v) { return v ? String(v).slice(0, 10) : ''; };
+      const ref = function (entidad, idEntidad) {
+        const id = Number(idEntidad);
+        if (entidad === 'PROYECTO') {
+          const pr = proyById[id];
+          return { titulo: pr ? pr.nombre : 'Proyecto #' + id, proyecto: pr ? pr.nombre : '' };
+        }
+        if (entidad === 'TAREA') {
+          const ta = tareaById[id];
+          const pr = ta ? proyById[Number(ta.id_proyecto)] : null;
+          return { titulo: ta ? ta.titulo : 'Tarea #' + id, proyecto: pr ? pr.nombre : '' };
+        }
+        if (entidad === 'SPRINT') {
+          const sp = sprintById[id];
+          return { titulo: sp ? sp.nombre : 'Sprint #' + id, proyecto: '' };
+        }
+        return { titulo: entidad + ' #' + id, proyecto: '' };
+      };
+      const comentarios = _mock.comentarios
+        .filter(function (c) { return dateKey(c.fecha_creacion) === fecha; })
+        .map(function (c) {
+          const r = ref(c.entidad, c.id_entidad);
+          return { tipo: 'comentario', fecha: c.fecha_creacion, entidad: c.entidad, id_entidad: c.id_entidad, titulo: r.titulo, proyecto: r.proyecto, usuario: c.usuario, texto: c.texto };
+        });
+      const cambios = _mock.historial
+        .filter(function (h) { return dateKey(h.timestamp) === fecha; })
+        .map(function (h) {
+          const r = ref(h.entidad, h.id_entidad);
+          return { tipo: 'cambio', fecha: h.timestamp, entidad: h.entidad, id_entidad: h.id_entidad, titulo: r.titulo, proyecto: r.proyecto, usuario: h.usuario, campo: h.campo, valor_anterior: h.valor_anterior, valor_nuevo: h.valor_nuevo };
+        });
+      const items = comentarios.concat(cambios).sort(function (a, b) { return new Date(b.fecha) - new Date(a.fecha); });
+      const unique = function (arr) { const o = {}; arr.forEach(function (v) { if (v) o[v] = true; }); return Object.keys(o).length; };
+      return {
+        fecha: fecha,
+        comentarios: comentarios,
+        cambios: cambios,
+        items: items,
+        resumen: {
+          total: items.length,
+          comentarios: comentarios.length,
+          cambios: cambios.length,
+          usuarios: unique(items.map(function (i) { return i.usuario; })),
+          proyectos: unique(items.map(function (i) { return i.proyecto; })),
+          tareas: unique(items.filter(function (i) { return i.entidad === 'TAREA'; }).map(function (i) { return i.id_entidad; })),
+        },
+      };
     }
 
     case 'getResumen': {
