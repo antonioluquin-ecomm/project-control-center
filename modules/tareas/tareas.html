@@ -764,20 +764,20 @@
             '</div>' +
             '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint, orphanSprint) + '</select></div>' +
             '<div class="field-row">' +
-              '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
+              '<div class="field"><label>Area responsable</label><select id="m_area" onchange="toggleAreaLinks()"><option value="">-</option>' + opt(AREAS, t.area || '') + '</select></div>' +
               '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(t.responsable || '') + '</select></div>' +
+            '</div>' +
+            '<div class="field-row">' +
+              '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
+              '<div class="field"><label>Avance (%)</label><input id="m_av" type="number" min="0" max="100" value="' + (t.avance_pct || 0) + '"></div>' +
             '</div>' +
             '<div class="field-row">' +
               '<div class="field"><label>Fecha inicio</label><input id="m_ini" type="date" value="' + (t.fecha_inicio || '').slice(0, 10) + '"></div>' +
               '<div class="field"><label>Fecha limite</label><input id="m_lim" type="date" value="' + (t.fecha_limite || '').slice(0, 10) + '"></div>' +
             '</div>' +
-            '<div class="field"><label>Avance (%)</label><input id="m_av" type="number" min="0" max="100" value="' + (t.avance_pct || 0) + '"></div>' +
           '</section>' +
           '<section class="td-edit-section"><div class="td-edit-section-title">Alcance</div>' +
-            '<div class="field-row">' +
-              '<div class="field"><label>Area responsable</label><select id="m_area" onchange="toggleAreaLinks()"><option value="">-</option>' + opt(AREAS, t.area || '') + '</select></div>' +
-              '<div class="field"><label>Tienda</label><select id="m_tienda"><option value="">-</option>' + opt(TIENDAS, t.tienda || '') + '</select></div>' +
-            '</div>' +
+            '<div class="field"><label>Tienda</label><select id="m_tienda"><option value="">-</option>' + opt(TIENDAS, t.tienda || '') + '</select></div>' +
             '<div id="m_jira_wrap" class="field" hidden><label>Enlace Jira (Infracommerce)</label><input id="m_jira" type="url" placeholder="https://..." value="' + escapeHtml(t.url_jira || '') + '"></div>' +
             '<div id="m_gitlab_wrap" class="field" hidden><label>Enlace GitLab (PIM)</label><input id="m_gitlab" type="url" placeholder="https://..." value="' + escapeHtml(t.url_gitlab || '') + '"></div>' +
           '</section>' +

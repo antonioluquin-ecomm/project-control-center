@@ -9,12 +9,14 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.19.0',
+  number: '1.19.2',
   date:   '2026-07-07',
-  notes:  'Tareas: edicion integrada en modal de detalle',
+  notes:  'Tareas: mejora visual del boton Ver mas',
 };
 
 const CHANGELOG = [
+  { v: '1.19.2', date: '2026-07-07', desc: 'Fix visual: el boton Ver mas del detalle de tarea deja de quedar pegado al degradado de la descripcion; ahora se muestra como una accion separada debajo del bloque colapsado.' },
+  { v: '1.19.1', date: '2026-07-07', desc: 'Tareas: se reordena el formulario de edicion para mostrar Area responsable junto a Responsable dentro de Gestion, dejando Alcance enfocado en tienda y enlaces asociados.' },
   { v: '1.19.0', date: '2026-07-07', desc: 'Tareas: el formulario de edicion se integra visualmente al modal de detalle. Desde la vista de tarea, Editar abre el mismo contenedor ancho, con secciones ordenadas, Cancelar vuelve al detalle y Guardar refresca la tarea actualizada.' },
   { v: '1.18.2', date: '2026-07-07', desc: 'Fix visual: la vista Kanban mantiene las columnas en una sola fila con scroll horizontal en vez de bajarlas de linea, y la barra de avance reserva espacio para el porcentaje para que no se salga de la tarjeta.' },
   { v: '1.18.1', date: '2026-07-07', desc: 'Tareas: se agrega la accion Clonar en lista, Kanban y modal de detalle. El clon abre el formulario como tarea nueva con la informacion original precargada, permite cambiar tienda, titulo y descripcion antes de guardar, resetea estado/avance y deja una nota editable de origen en la descripcion.' },
