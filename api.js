@@ -12,8 +12,12 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// Subset de markdown para descripciones/observaciones (# / ## títulos, - / * viñetas).
+// Subset de markdown para descripciones/observaciones (# / ## títulos, - / * viñetas, **negrita**).
 // Trabaja siempre sobre texto ya escapado con escapeHtml — nunca sobre el raw del usuario.
+function renderRichInlineText(escapedLine) {
+  return escapedLine.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
 function renderRichText(value) {
   const lines = escapeHtml(value).split('\n');
   let html = '';
@@ -23,11 +27,11 @@ function renderRichText(value) {
     const h2 = line.match(/^##\s+(.*)/);
     const h1 = line.match(/^#\s+(.*)/);
     const li = line.match(/^[-*]\s+(.*)/);
-    if (h2) { closeList(); html += '<h5 class="rt-h2">' + h2[1] + '</h5>'; }
-    else if (h1) { closeList(); html += '<h4 class="rt-h1">' + h1[1] + '</h4>'; }
-    else if (li) { if (!inList) { html += '<ul class="rt-list">'; inList = true; } html += '<li>' + li[1] + '</li>'; }
+    if (h2) { closeList(); html += '<h5 class="rt-h2">' + renderRichInlineText(h2[1]) + '</h5>'; }
+    else if (h1) { closeList(); html += '<h4 class="rt-h1">' + renderRichInlineText(h1[1]) + '</h4>'; }
+    else if (li) { if (!inList) { html += '<ul class="rt-list">'; inList = true; } html += '<li>' + renderRichInlineText(li[1]) + '</li>'; }
     else if (line.trim() === '') { closeList(); html += '<br>'; }
-    else { closeList(); html += line + '<br>'; }
+    else { closeList(); html += renderRichInlineText(line) + '<br>'; }
   });
   closeList();
   return html;
