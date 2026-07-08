@@ -112,6 +112,7 @@
             <div class="toolbar" style="margin-bottom:14px">
               <h2 style="margin:0">Minuta</h2>
               <span class="spacer"></span>
+              <button class="secondary sm" onclick="copyResumen()">Copiar resumen</button>
               <span class="text-muted" id="activityCount" style="font-size:12px"></span>
             </div>
             <div class="tabs" id="tipoTabs">
@@ -120,6 +121,7 @@
               <button class="tab-btn" data-tipo="estado" onclick="_setTab('estado')">Estados</button>
               <button class="tab-btn" data-tipo="cambio" onclick="_setTab('cambio')">Otros cambios</button>
               <button class="tab-btn" data-tipo="comentario" onclick="_setTab('comentario')">Comentarios</button>
+              <button class="tab-btn" data-tipo="finalizada" onclick="_setTab('finalizada')">Finalizadas</button>
             </div>
             <div id="activityFeed" class="activity-feed"></div>
           </section>
@@ -204,17 +206,36 @@
       renderActividad();
     }
 
+    // Tareas que pasaron a Finalizada dentro del rango, una fila por tarea
+    // (no por evento): si se finalizo mas de una vez en el rango, se queda
+    // con la mas reciente. Los items ya vienen ordenados por fecha desc,
+    // asi que la primera aparicion de cada id_entidad es la mas reciente.
+    function finalizadasList() {
+      const vistas = {};
+      const out = [];
+      (_actividad.items || []).forEach(function (item) {
+        if (item.tipo !== 'estado' || item.entidad !== 'TAREA' || item.valor_nuevo !== 'Finalizada') return;
+        if (vistas[item.id_entidad]) return;
+        vistas[item.id_entidad] = true;
+        out.push(Object.assign({}, item, { tipo: 'finalizada' }));
+      });
+      return out;
+    }
+
     function filteredItems() {
       const q = normalizeText(document.getElementById('q').value || '');
-      return (_actividad.items || []).filter(function (item) {
-        if (_tab && item.tipo !== _tab) return false;
-        if (!q) return true;
-        return normalizeText([item.titulo, item.proyecto, item.usuario, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
+      const base = _tab === 'finalizada'
+        ? finalizadasList()
+        : (_actividad.items || []).filter(function (item) { return !_tab || item.tipo === _tab; });
+      if (!q) return base;
+      return base.filter(function (item) {
+        return normalizeText([item.titulo, item.proyecto, item.usuario, item.responsable, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
       });
     }
 
-    const TIPO_LABEL = { alta: 'Alta', estado: 'Estado', cambio: 'Cambio', comentario: 'Comentario' };
-    const TIPO_BADGE_CLASS = { alta: 'st-done', estado: 'st-progress', cambio: 'st-revision', comentario: 'st-analysis' };
+    const TAB_TITLE = { '': 'Todo', alta: 'Altas', estado: 'Estados', cambio: 'Otros cambios', comentario: 'Comentarios', finalizada: 'Finalizadas' };
+    const TIPO_LABEL = { alta: 'Alta', estado: 'Estado', cambio: 'Cambio', comentario: 'Comentario', finalizada: 'Finalizada' };
+    const TIPO_BADGE_CLASS = { alta: 'st-done', estado: 'st-progress', cambio: 'st-revision', comentario: 'st-analysis', finalizada: 'st-done' };
 
     function renderActividad() {
       const items = filteredItems();
@@ -230,11 +251,15 @@
       const estados = items.filter(function (i) { return i.tipo === 'estado'; }).length;
       const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
       const usuarios = unique(items.map(function (i) { return i.usuario; })).length;
+      // Finalizadas se calcula siempre sobre el rango completo (no sobre el
+      // tab activo), asi queda visible aunque estes mirando otro filtro.
+      const finalizadas = finalizadasList().length;
       document.getElementById('kpiGrid').innerHTML =
         kpi('Movimientos', items.length) +
         kpi('Altas', altas) +
         kpi('Cambios de estado', estados) +
         kpi('Comentarios', comentarios) +
+        kpi('Finalizadas', finalizadas, 'success') +
         kpi('Usuarios', usuarios);
     }
 
@@ -280,14 +305,17 @@
       const badge = '<span class="badge ' + (TIPO_BADGE_CLASS[item.tipo] || 'st-todo') + '">' + escapeHtml(TIPO_LABEL[item.tipo] || item.tipo) + '</span>';
       const body = item.tipo === 'comentario'
         ? '<div class="activity-text">' + escapeHtml(item.texto || '') + '</div>'
-        : (item.tipo === 'alta'
+        : ((item.tipo === 'alta' || item.tipo === 'finalizada')
           ? ''
           : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>');
+      const meta = item.tipo === 'finalizada'
+        ? (item.responsable ? 'Responsable: ' + escapeHtml(item.responsable) : 'Sin responsable asignado')
+        : escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '');
       return '<article class="activity-item">' +
         '<div class="activity-time">' + escapeHtml(itemTimeLabel_(item)) + '</div>' +
         '<div>' +
           '<div class="activity-head">' + badge + '<span class="activity-title">' + escapeHtml(item.titulo || '') + '</span></div>' +
-          '<div class="activity-meta">' + escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '') + '</div>' +
+          '<div class="activity-meta">' + meta + '</div>' +
           body +
         '</div>' +
       '</article>';
@@ -310,19 +338,25 @@
     }
 
     function renderSummary(items) {
+      const proyectos = unique(items.map(function (i) { return i.proyecto; }).filter(Boolean));
+      if (_tab === 'finalizada') {
+        document.getElementById('quickSummary').textContent = items.length
+          ? 'Se finalizaron ' + items.length + ' ' + plural(items.length, 'tarea', 'tareas') + ' en ' + proyectos.length + ' proyecto(s). Usa "Copiar resumen" para armar el detalle a enviar.'
+          : 'No se finalizo ninguna tarea en ' + (esRangoUnico_() ? 'este dia' : 'este periodo') + '.';
+        return;
+      }
       const altas = items.filter(function (i) { return i.tipo === 'alta'; }).length;
       const estados = items.filter(function (i) { return i.tipo === 'estado'; }).length;
       const cambios = items.filter(function (i) { return i.tipo === 'cambio'; }).length;
       const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
-      const proyectos = unique(items.map(function (i) { return i.proyecto; }).filter(Boolean));
       const usuarios = unique(items.map(function (i) { return i.usuario; }).filter(Boolean));
       document.getElementById('quickSummary').textContent = items.length
         ? 'Se registraron ' + items.length + ' movimientos: ' + altas + ' ' + plural(altas, 'alta', 'altas') + ', ' + estados + ' ' + plural(estados, 'cambio de estado', 'cambios de estado') + ', ' + cambios + ' ' + plural(cambios, 'otro cambio', 'otros cambios') + ' y ' + comentarios + ' ' + plural(comentarios, 'comentario', 'comentarios') + '. Participaron ' + usuarios.length + ' usuario(s) en ' + proyectos.length + ' proyecto(s).'
         : 'No hay actividad registrada para ' + (esRangoUnico_() ? 'este dia' : 'este periodo') + '.';
     }
 
-    function kpi(label, value) {
-      return '<div class="kpi-card"><div class="kpi-label">' + escapeHtml(label) + '</div><div class="kpi-value">' + value + '</div></div>';
+    function kpi(label, value, cls) {
+      return '<div class="kpi-card ' + (cls || '') + '"><div class="kpi-label">' + escapeHtml(label) + '</div><div class="kpi-value">' + value + '</div></div>';
     }
 
     function unique(arr) {
@@ -350,6 +384,31 @@
       });
       const nombreRango = esRangoUnico_() ? _actividad.fecha : (_actividad.fecha + '_a_' + _actividad.fecha_hasta);
       downloadCSV('actividad-' + (nombreRango || localDateValue()) + '.csv', rows);
+    }
+
+    // Texto plano listo para pegar en un mail/chat (ej. el resumen semanal
+    // de tareas finalizadas), respetando el tab y los filtros activos.
+    function copyResumen() {
+      const items = filteredItems();
+      const lineas = [rangoLabel_() + ' — ' + (TAB_TITLE[_tab] || 'Actividad') + ' (' + items.length + ')', ''];
+      items.forEach(function (item) {
+        if (item.tipo === 'finalizada') {
+          lineas.push('- ' + item.titulo + (item.proyecto ? ' (' + item.proyecto + ')' : '') + (item.responsable ? ' — ' + item.responsable : '') + ' — ' + fmtInputDate(item.dia));
+        } else if (item.tipo === 'comentario') {
+          lineas.push('- [' + (item.hora || '') + '] ' + item.titulo + ': ' + item.texto);
+        } else if (item.tipo === 'alta') {
+          lineas.push('- [' + (item.hora || '') + '] Alta: ' + item.titulo);
+        } else {
+          lineas.push('- [' + (item.hora || '') + '] ' + item.titulo + ' — ' + item.campo + ': ' + (item.valor_anterior || 'vacio') + ' a ' + (item.valor_nuevo || 'vacio'));
+        }
+      });
+      if (items.length === 0) lineas.push('Sin movimientos para este filtro.');
+      const texto = lineas.join('\n');
+      navigator.clipboard.writeText(texto).then(function () {
+        toast('\u{1F4CB}', 'Resumen copiado al portapapeles.', 'success');
+      }).catch(function () {
+        setStatus('statusBar', 'No se pudo copiar al portapapeles.', 'error');
+      });
     }
 
     document.addEventListener('DOMContentLoaded', function () {

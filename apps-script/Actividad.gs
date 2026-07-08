@@ -75,6 +75,7 @@ function _actividadItem_(tipo, fecha, entidad, idEntidad, ref, usuario) {
     titulo: ref.titulo,
     proyecto: ref.proyecto,
     id_proyecto: ref.id_proyecto || null,
+    responsable: ref.responsable || '',
     usuario: usuario || '',
   };
 }
@@ -126,7 +127,7 @@ function _actividadRef_(entidad, idEntidad, proyectoById, tareaById, sprintById)
     const t = tareaById[id];
     const pid = t ? Number(t.id_proyecto) : null;
     const p = t ? proyectoById[pid] : null;
-    return { titulo: t ? t.titulo : 'Tarea #' + id, proyecto: p ? p.nombre : '', id_proyecto: p ? pid : null };
+    return { titulo: t ? t.titulo : 'Tarea #' + id, proyecto: p ? p.nombre : '', id_proyecto: p ? pid : null, responsable: t ? t.responsable : '' };
   }
   if (entidad === 'SPRINT') {
     const s = sprintById[id];

@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.22.1',
+  number: '1.23.0',
   date:   '2026-07-08',
-  notes:  'Actividad: lectura acotada de HISTORIAL/LOGS/COMENTARIOS por rango de fecha',
+  notes:  'Actividad: tab de tareas finalizadas y boton para copiar el resumen',
 };
 
 const CHANGELOG = [
+  { v: '1.23.0', date: '2026-07-08', desc: 'Actividad: nuevo tab "Finalizadas" con las tareas que pasaron a Finalizada en el rango elegido (una fila por tarea, sin duplicar si se finalizo mas de una vez), mostrando responsable y fecha. Se agrega el boton "Copiar resumen" para armar en texto plano el detalle a enviar (ej. el cierre semanal).' },
   { v: '1.22.1', date: '2026-07-08', desc: 'Actividad: la minuta ya no lee HISTORIAL/LOGS/COMENTARIOS completos en cada consulta; ahora lee solo la columna de fecha para ubicar las filas del rango pedido y trae unicamente esas filas completas. Mismo resultado, mejor tiempo de respuesta a medida que crecen esas hojas.' },
   { v: '1.22.0', date: '2026-07-08', desc: 'Actividad: se agrega un rango Desde/Hasta (maximo 31 dias) con flechas para navegar al periodo anterior/siguiente manteniendo la duracion elegida; en rangos de mas de un dia cada movimiento muestra su fecha ademas de la hora.' },
   { v: '1.21.2', date: '2026-07-07', desc: 'Actividad: el filtro de tipo pasa a tabs (Todo/Altas/Estados/Otros cambios/Comentarios), la minuta agrupa los movimientos por proyecto y el nombre del proyecto linkea a sus tareas.' },

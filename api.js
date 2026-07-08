@@ -294,7 +294,7 @@ async function _mockCall(action, p) {
           const ta = tareaById[id];
           const pid = ta ? Number(ta.id_proyecto) : null;
           const pr = ta ? proyById[pid] : null;
-          return { titulo: ta ? ta.titulo : 'Tarea #' + id, proyecto: pr ? pr.nombre : '', id_proyecto: pr ? pid : null };
+          return { titulo: ta ? ta.titulo : 'Tarea #' + id, proyecto: pr ? pr.nombre : '', id_proyecto: pr ? pid : null, responsable: ta ? ta.responsable : '' };
         }
         if (entidad === 'SPRINT') {
           const sp = sprintById[id];
@@ -310,13 +310,13 @@ async function _mockCall(action, p) {
         .filter(function (c) { return enRango(c.fecha_creacion); })
         .map(function (c) {
           const r = ref(c.entidad, c.id_entidad);
-          return { tipo: 'comentario', fecha: c.fecha_creacion, dia: dateKey(c.fecha_creacion), hora: hora(c.fecha_creacion), entidad: c.entidad, id_entidad: c.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, usuario: c.usuario, texto: c.texto };
+          return { tipo: 'comentario', fecha: c.fecha_creacion, dia: dateKey(c.fecha_creacion), hora: hora(c.fecha_creacion), entidad: c.entidad, id_entidad: c.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, responsable: r.responsable || '', usuario: c.usuario, texto: c.texto };
         });
       const cambios = _mock.historial
         .filter(function (h) { return enRango(h.timestamp); })
         .map(function (h) {
           const r = ref(h.entidad, h.id_entidad);
-          return { tipo: h.campo === 'estado' ? 'estado' : 'cambio', fecha: h.timestamp, dia: dateKey(h.timestamp), hora: hora(h.timestamp), entidad: h.entidad, id_entidad: h.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, usuario: h.usuario, campo: h.campo, valor_anterior: h.valor_anterior, valor_nuevo: h.valor_nuevo };
+          return { tipo: h.campo === 'estado' ? 'estado' : 'cambio', fecha: h.timestamp, dia: dateKey(h.timestamp), hora: hora(h.timestamp), entidad: h.entidad, id_entidad: h.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, responsable: r.responsable || '', usuario: h.usuario, campo: h.campo, valor_anterior: h.valor_anterior, valor_nuevo: h.valor_nuevo };
         });
       const items = comentarios.concat(cambios).sort(function (a, b) { return new Date(b.fecha) - new Date(a.fecha); });
       return { fecha: fecha, fecha_hasta: fechaHasta, items: items };
