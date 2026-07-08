@@ -758,8 +758,8 @@
       const checkboxes = function (arr, csv, cls) {
         const sel = String(csv || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
         return arr.map(function (v) {
-          return '<label style="display:flex;align-items:center;gap:5px;font-size:13px">' +
-            '<input type="checkbox" class="' + cls + '" value="' + v + '"' + (sel.indexOf(v) !== -1 ? ' checked' : '') + ' /> ' + v +
+          return '<label style="display:flex;align-items:flex-start;gap:6px;font-size:13px;width:130px;min-width:130px">' +
+            '<input type="checkbox" class="' + cls + '" value="' + v + '"' + (sel.indexOf(v) !== -1 ? ' checked' : '') + ' style="margin-top:2px" /><span>' + escapeHtml(v) + '</span>' +
             '</label>';
         }).join('');
       };

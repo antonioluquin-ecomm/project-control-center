@@ -131,8 +131,8 @@ function openTareaDetalleModal(t, opts) {
       '<button class="act-tab" id="act-tab-chk" onclick="_actShow(\'chk\')">Checklist</button>' +
       '<button class="act-tab" id="act-tab-adj" onclick="_actShow(\'adj\')">Adjuntos</button>' +
       '<button class="act-tab" id="act-tab-his" onclick="_actShow(\'his\')">Historial</button>' +
-      '<button class="act-tab' + (infDestacado ? ' act-tab-highlight' : '') + '" id="act-tab-inf" onclick="_actShow(\'inf\')">Informe de gestión ' + infBadge + '</button>' +
       '<button class="act-tab' + (reqDestacado ? ' act-tab-highlight' : '') + '" id="act-tab-req" onclick="_actShow(\'req\')">Requerimiento ' + reqBadge + '</button>' +
+      '<button class="act-tab' + (infDestacado ? ' act-tab-highlight' : '') + '" id="act-tab-inf" onclick="_actShow(\'inf\')">Informe de gestión ' + infBadge + '</button>' +
     '</div>' +
     '<div id="act-com">' +
       '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario…"></textarea></div>' +
@@ -155,6 +155,20 @@ function openTareaDetalleModal(t, opts) {
       '<div id="act-adj-list" class="adj-grid"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
     '</div>' +
     '<div id="act-his" hidden><div id="act-his-list" style="margin-top:12px"><div class="text-muted" style="font-size:13px">Cargando…</div></div></div>' +
+    '<div id="act-req" hidden>' +
+      '<div class="td-meta" style="margin-top:12px">' + reqAuto + '</div>' +
+      '<div class="field"><label>Requerimiento</label><textarea id="req-texto" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_texto || '') + '</textarea></div>' +
+      '<div class="field"><label>Detalles</label><textarea id="req-detalles" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_detalles || '') + '</textarea></div>' +
+      '<div class="field"><label>Objetivo</label><textarea id="req-objetivo" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_objetivo || '') + '</textarea></div>' +
+      '<div class="text-muted" style="font-size:12px;margin-bottom:12px">Brief para crear el ticket en Jira (InfraCommerce) o GitLab (PIM). Sección y dispositivos se editan desde "Editar tarea".</div>' +
+      '<div id="req-status" class="status-bar" style="display:none;margin-bottom:10px"></div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">' +
+        '<button class="secondary sm" onclick="_reqVistaPrevia()">Vista previa</button>' +
+        '<button class="secondary sm" onclick="_reqCopiar()">Copiar</button>' +
+        '<button class="secondary sm" onclick="_reqExportarMd()">Exportar .md</button>' +
+        '<button id="req-save-btn" class="sm admin-only" onclick="_reqGuardar()">Guardar requerimiento</button>' +
+      '</div>' +
+    '</div>' +
     '<div id="act-inf" hidden>' +
       '<div class="td-meta" style="margin-top:12px">' + infAuto + '</div>' +
       '<div class="field-row">' +
@@ -171,20 +185,6 @@ function openTareaDetalleModal(t, opts) {
         '<button class="secondary sm" onclick="_infCopiar()">Copiar</button>' +
         '<button class="secondary sm" onclick="_infExportarMd()">Exportar .md</button>' +
         '<button id="inf-save-btn" class="sm admin-only" onclick="_infGuardar()">Guardar informe</button>' +
-      '</div>' +
-    '</div>' +
-    '<div id="act-req" hidden>' +
-      '<div class="td-meta" style="margin-top:12px">' + reqAuto + '</div>' +
-      '<div class="field"><label>Requerimiento</label><textarea id="req-texto" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_texto || '') + '</textarea></div>' +
-      '<div class="field"><label>Detalles</label><textarea id="req-detalles" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_detalles || '') + '</textarea></div>' +
-      '<div class="field"><label>Objetivo</label><textarea id="req-objetivo" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_objetivo || '') + '</textarea></div>' +
-      '<div class="text-muted" style="font-size:12px;margin-bottom:12px">Brief para crear el ticket en Jira (InfraCommerce) o GitLab (PIM). Sección y dispositivos se editan desde "Editar tarea".</div>' +
-      '<div id="req-status" class="status-bar" style="display:none;margin-bottom:10px"></div>' +
-      '<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">' +
-        '<button class="secondary sm" onclick="_reqVistaPrevia()">Vista previa</button>' +
-        '<button class="secondary sm" onclick="_reqCopiar()">Copiar</button>' +
-        '<button class="secondary sm" onclick="_reqExportarMd()">Exportar .md</button>' +
-        '<button id="req-save-btn" class="sm admin-only" onclick="_reqGuardar()">Guardar requerimiento</button>' +
       '</div>' +
     '</div>' +
     '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cerrar</button></div>' +
@@ -355,14 +355,14 @@ function _reqMarkdown_() {
   const t = _tdTarea || {};
   const d = _reqDatos_();
   return [
-    '* Título: ' + (t.titulo || ''),
-    '* Proyecto: ' + (t.nombre_proyecto || ''),
-    '* Tienda: ' + (t.tienda || ''),
-    '* Sección: ' + (t.seccion || ''),
-    '* Dispositivos: ' + (t.dispositivos || ''),
-    '* Requerimiento: ' + (d.requerimiento_texto || ''),
-    '* Detalles: ' + (d.requerimiento_detalles || ''),
-    '* Objetivo: ' + (d.requerimiento_objetivo || ''),
+    '* **Título:** ' + (t.titulo || ''),
+    '* **Proyecto:** ' + (t.nombre_proyecto || ''),
+    '* **Tienda:** ' + (t.tienda || ''),
+    '* **Sección:** ' + (t.seccion || ''),
+    '* **Dispositivos:** ' + (t.dispositivos || ''),
+    '* **Requerimiento:** ' + (d.requerimiento_texto || ''),
+    '* **Detalles:** ' + (d.requerimiento_detalles || ''),
+    '* **Objetivo:** ' + (d.requerimiento_objetivo || ''),
   ].join('\n');
 }
 
@@ -387,7 +387,7 @@ function _reqVistaPrevia() {
     '<div class="modal-overlay" id="req-preview-overlay" onclick="if(event.target===this) this.remove()">' +
       '<div class="modal">' +
         '<h3>Vista previa del requerimiento</h3>' +
-        '<pre class="td-desc" style="white-space:pre-wrap;font-family:inherit">' + escapeHtml(_reqMarkdown_()) + '</pre>' +
+        '<div class="td-desc">' + renderRichText(_reqMarkdown_()) + '</div>' +
         '<div class="modal-actions"><button class="secondary" onclick="document.getElementById(\'req-preview-overlay\').remove()">Cerrar</button></div>' +
       '</div>' +
     '</div>');

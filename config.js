@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.25.0',
+  number: '1.25.1',
   date:   '2026-07-08',
-  notes:  'Catalogos editables desde Configuracion, consolidados en una sola hoja',
+  notes:  'Fix visual: checkboxes, orden de tabs y vista previa del requerimiento',
 };
 
 const CHANGELOG = [
+  { v: '1.25.1', date: '2026-07-08', desc: 'Fix visual: una regla global de inputs (pensada para texto) inflaba cualquier checkbox a 100% de ancho x 40px de alto. Afectaba sobre todo a los checkboxes de Seccion/Dispositivos del modal de edicion de tarea, que se veian como cuadrados gigantes desalineados de su etiqueta cuando el catalogo tenia valores largos (ej. "Checkout Payment"). Se corrige el tamano de los checkboxes en general, sin afectar el estilo custom del checklist. Ademas, el tab Requerimiento pasa a ir antes que Informe de Gestion, y su vista previa ahora se renderiza con el mismo formato (negritas, lista) que la del Informe en vez de texto plano.' },
   { v: '1.25.0', date: '2026-07-08', desc: 'Fix de fondo: los formularios (Tareas, Proyectos, Gantt) ya no usan listas fijas en el codigo para Estados/Tipos/Prioridades/Sitios/Areas/Tiendas — ahora piden los catalogos reales al servidor, asi que editarlos desde Configuracion > Catalogos se ve reflejado sin esperar un redeploy. Se agregan a esa pantalla los catalogos de Tiendas, Secciones, Estados de sprint y Responsables externos (antes sin UI de edicion). Estados de sprint pasa a validarse de verdad contra su catalogo (antes se ignoraba). El selector de Responsable ahora tambien ofrece los nombres cargados en "Responsables externos" ademas de los usuarios del sistema. Ademas, los 10 catalogos dejan de tener una hoja propia cada uno: ahora viven como filas de la hoja CONFIG (clave/valor), asi el Sheet no se llena de pestanas CAT_* que nadie editaba a mano.' },
   { v: '1.24.0', date: '2026-07-08', desc: 'Tareas: se agregan Seccion y Dispositivos como dimensiones de la tarea (multi-seleccion, editables desde "Editar tarea", igual que Area/Tienda). Nuevo tab "Informe de gestion" en el modal de detalle (autocompletado: proyecto/tienda/seccion/dispositivos/area/responsable/estado/fecha de creacion; manual: version, fecha de implementacion, descripcion general, detalles tecnicos, resultado), se destaca cuando la tarea esta en Documentacion. Nuevo tab "Requerimiento" para armar el brief de Jira/GitLab (Titulo/Proyecto/Tienda/Seccion/Dispositivos/Requerimiento/Detalles/Objetivo), se destaca cuando el area es InfraCommerce o PIM. Ambos tabs tienen indicador de completitud, vista previa, copiar al portapapeles y exportar en Markdown.' },
   { v: '1.23.2', date: '2026-07-08', desc: 'Actividad: el tab Finalizadas muestra el link al informe de gestion de la tarea (cuando lo tiene) y lo incluye en "Copiar resumen".' },
