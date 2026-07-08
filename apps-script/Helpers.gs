@@ -57,6 +57,54 @@ function getAllRows_(sheetName, colMap) {
     .map(function(r) { return rowToObj_(r, colMap); });
 }
 
+// Carga solo las filas cuya fecha (columna dateKey del colMap) cae en
+// [fechaDesde, fechaHasta] (YYYY-MM-DD, inclusive, dia completo en la TZ del script).
+// Pensado para hojas tipo audit-log (HISTORIAL/LOGS/COMENTARIOS) que pueden crecer
+// mucho: primero lee solo la columna de fecha (liviano) para ubicar las filas que
+// matchean, y recien ahi trae el ancho completo de esas filas. No asume ningun
+// orden de las filas, asi que es correcto aunque la hoja se haya reordenado a mano.
+function getRowsInDateRange_(sheetName, colMap, dateKey, fechaDesde, fechaHasta) {
+  const sheet = getSheet_(sheetName);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const numRows = lastRow - 1;
+  const dateCol = colMap[dateKey];
+  const dates = sheet.getRange(2, dateCol, numRows, 1).getValues();
+  const desde = new Date(fechaDesde + 'T00:00:00');
+  const hasta = new Date(fechaHasta + 'T23:59:59.999');
+
+  const matchRows = [];
+  for (let i = 0; i < numRows; i++) {
+    const v = dates[i][0];
+    if (v === '' || v === null) continue;
+    const d = v instanceof Date ? v : new Date(v);
+    if (!isNaN(d.getTime()) && d >= desde && d <= hasta) matchRows.push(i + 2);
+  }
+  if (!matchRows.length) return [];
+
+  const numCols = Math.max.apply(null, Object.keys(colMap).map(function(k) { return colMap[k]; }));
+  const out = [];
+  _forEachContiguousRun_(matchRows, function(startRow, count) {
+    sheet.getRange(startRow, 1, count, numCols).getValues().forEach(function(r) {
+      if (r[0] !== '' && r[0] !== null) out.push(rowToObj_(r, colMap));
+    });
+  });
+  return out;
+}
+
+// Agrupa numeros de fila consecutivos en tramos, para minimizar la cantidad
+// de getRange() cuando las filas que matchean son contiguas (caso tipico:
+// un audit-log se escribe siempre en orden cronologico).
+function _forEachContiguousRun_(rows, cb) {
+  let start = rows[0];
+  let count = 1;
+  for (let i = 1; i <= rows.length; i++) {
+    if (i < rows.length && rows[i] === start + count) { count++; continue; }
+    cb(start, count);
+    if (i < rows.length) { start = rows[i]; count = 1; }
+  }
+}
+
 // ── Búsqueda e IDs ────────────────────────────────────────────
 function findRowNumber_(sheet, id) {
   const ids = sheet.getRange('A:A').getValues().flat();

@@ -128,6 +128,17 @@ const HISTORIAL_COLS = {
   usuario:        8,
 };
 
+const LOGS_COLS = {
+  id:         1,
+  timestamp:  2,
+  accion:     3,
+  entidad:    4,
+  entidad_id: 5,
+  usuario:    6,
+  resultado:  7,
+  detalle:    8,
+};
+
 const CHECKLIST_COLS = {
   id:             1,
   entidad:        2,   // PROYECTO | TAREA

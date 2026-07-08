@@ -68,7 +68,9 @@ function fmtDate(v) {
 /* ─── CSV ────────────────────────────────────────────────── */
 
 function csvEscape(value) {
-  const str = String(value == null ? '' : value).replace(/"/g, '""');
+  let str = String(value == null ? '' : value).replace(/"/g, '""');
+  // Evita CSV/formula injection: Excel/Sheets ejecuta como formula si la celda arranca con = + - @.
+  if (/^[=+\-@]/.test(str)) str = "'" + str;
   return /[,;\n"]/.test(str) ? '"' + str + '"' : str;
 }
 
@@ -273,6 +275,7 @@ async function _mockCall(action, p) {
 
     case 'getActividadDiaria': {
       const fecha = p.fecha || today;
+      const fechaHasta = p.fecha_hasta || fecha;
       const proyById = {};
       const tareaById = {};
       const sprintById = {};
@@ -280,51 +283,43 @@ async function _mockCall(action, p) {
       _mock.tareas.forEach(function (x) { tareaById[Number(x.id)] = x; });
       _mock.sprints.forEach(function (x) { sprintById[Number(x.id)] = x; });
       const dateKey = function (v) { return v ? String(v).slice(0, 10) : ''; };
+      const enRango = function (v) { const k = dateKey(v); return k >= fecha && k <= fechaHasta; };
       const ref = function (entidad, idEntidad) {
         const id = Number(idEntidad);
         if (entidad === 'PROYECTO') {
           const pr = proyById[id];
-          return { titulo: pr ? pr.nombre : 'Proyecto #' + id, proyecto: pr ? pr.nombre : '' };
+          return { titulo: pr ? pr.nombre : 'Proyecto #' + id, proyecto: pr ? pr.nombre : '', id_proyecto: pr ? id : null };
         }
         if (entidad === 'TAREA') {
           const ta = tareaById[id];
-          const pr = ta ? proyById[Number(ta.id_proyecto)] : null;
-          return { titulo: ta ? ta.titulo : 'Tarea #' + id, proyecto: pr ? pr.nombre : '' };
+          const pid = ta ? Number(ta.id_proyecto) : null;
+          const pr = ta ? proyById[pid] : null;
+          return { titulo: ta ? ta.titulo : 'Tarea #' + id, proyecto: pr ? pr.nombre : '', id_proyecto: pr ? pid : null };
         }
         if (entidad === 'SPRINT') {
           const sp = sprintById[id];
-          return { titulo: sp ? sp.nombre : 'Sprint #' + id, proyecto: '' };
+          return { titulo: sp ? sp.nombre : 'Sprint #' + id, proyecto: '', id_proyecto: null };
         }
-        return { titulo: entidad + ' #' + id, proyecto: '' };
+        return { titulo: entidad + ' #' + id, proyecto: '', id_proyecto: null };
+      };
+      const hora = function (v) {
+        const d = new Date(v);
+        return isNaN(d.getTime()) ? '--:--' : d.toISOString().slice(11, 16);
       };
       const comentarios = _mock.comentarios
-        .filter(function (c) { return dateKey(c.fecha_creacion) === fecha; })
+        .filter(function (c) { return enRango(c.fecha_creacion); })
         .map(function (c) {
           const r = ref(c.entidad, c.id_entidad);
-          return { tipo: 'comentario', fecha: c.fecha_creacion, entidad: c.entidad, id_entidad: c.id_entidad, titulo: r.titulo, proyecto: r.proyecto, usuario: c.usuario, texto: c.texto };
+          return { tipo: 'comentario', fecha: c.fecha_creacion, dia: dateKey(c.fecha_creacion), hora: hora(c.fecha_creacion), entidad: c.entidad, id_entidad: c.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, usuario: c.usuario, texto: c.texto };
         });
       const cambios = _mock.historial
-        .filter(function (h) { return dateKey(h.timestamp) === fecha; })
+        .filter(function (h) { return enRango(h.timestamp); })
         .map(function (h) {
           const r = ref(h.entidad, h.id_entidad);
-          return { tipo: 'cambio', fecha: h.timestamp, entidad: h.entidad, id_entidad: h.id_entidad, titulo: r.titulo, proyecto: r.proyecto, usuario: h.usuario, campo: h.campo, valor_anterior: h.valor_anterior, valor_nuevo: h.valor_nuevo };
+          return { tipo: h.campo === 'estado' ? 'estado' : 'cambio', fecha: h.timestamp, dia: dateKey(h.timestamp), hora: hora(h.timestamp), entidad: h.entidad, id_entidad: h.id_entidad, titulo: r.titulo, proyecto: r.proyecto, id_proyecto: r.id_proyecto, usuario: h.usuario, campo: h.campo, valor_anterior: h.valor_anterior, valor_nuevo: h.valor_nuevo };
         });
       const items = comentarios.concat(cambios).sort(function (a, b) { return new Date(b.fecha) - new Date(a.fecha); });
-      const unique = function (arr) { const o = {}; arr.forEach(function (v) { if (v) o[v] = true; }); return Object.keys(o).length; };
-      return {
-        fecha: fecha,
-        comentarios: comentarios,
-        cambios: cambios,
-        items: items,
-        resumen: {
-          total: items.length,
-          comentarios: comentarios.length,
-          cambios: cambios.length,
-          usuarios: unique(items.map(function (i) { return i.usuario; })),
-          proyectos: unique(items.map(function (i) { return i.proyecto; })),
-          tareas: unique(items.filter(function (i) { return i.entidad === 'TAREA'; }).map(function (i) { return i.id_entidad; })),
-        },
-      };
+      return { fecha: fecha, fecha_hasta: fechaHasta, items: items };
     }
 
     case 'getResumen': {

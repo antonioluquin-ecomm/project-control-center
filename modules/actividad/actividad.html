@@ -8,9 +8,18 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../src/css/main.css" />
   <style>
+    #tipoTabs { max-width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+    #tipoTabs .tab-btn { white-space: nowrap; }
     .activity-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+    .activity-group { margin-bottom: 18px; }
+    .activity-group:last-child { margin-bottom: 0; }
+    .activity-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .activity-group-title { font-weight: 700; font-size: 13px; color: var(--text); text-decoration: none; }
+    .activity-group-title:hover { color: var(--primary); }
+    .activity-group-count { color: var(--muted); font-size: 12px; }
     .activity-feed { display: grid; gap: 10px; }
     .activity-item { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); padding: 12px 14px; }
+    #activityFeed.has-dates .activity-item { grid-template-columns: 118px minmax(0, 1fr); }
     .activity-time { font-family: var(--mono); color: var(--muted); font-size: 12px; padding-top: 2px; white-space: nowrap; }
     .activity-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
     .activity-title { font-weight: 700; font-size: 13.5px; color: var(--text); }
@@ -25,7 +34,7 @@
     .activity-user-row:last-child { border-bottom: 0; padding-bottom: 0; }
     .activity-user-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     @media (max-width: 980px) { .activity-layout { grid-template-columns: 1fr; } .activity-side { position: static; } }
-    @media (max-width: 620px) { .activity-item { grid-template-columns: 1fr; } .activity-time { padding-top: 0; } }
+    @media (max-width: 620px) { .activity-item, #activityFeed.has-dates .activity-item { grid-template-columns: 1fr; } .activity-time { padding-top: 0; } }
   </style>
 </head>
 <body>
@@ -73,18 +82,16 @@
 
         <section class="panel">
           <div class="toolbar">
-            <div class="field" style="margin:0;max-width:180px">
-              <label for="fechaActividad">D&iacute;a</label>
+            <button class="secondary sm" id="navPrev" onclick="shiftRange(-1)" title="Periodo anterior">&#9664;</button>
+            <div class="field" style="margin:0;max-width:170px">
+              <label for="fechaActividad">Desde</label>
               <input type="date" id="fechaActividad" onchange="loadActividad()" />
             </div>
-            <div class="field" style="margin:0;max-width:180px">
-              <label for="fTipo">Tipo</label>
-              <select id="fTipo" onchange="renderActividad()">
-                <option value="">Todo</option>
-                <option value="comentario">Comentarios</option>
-                <option value="cambio">Cambios</option>
-              </select>
+            <div class="field" style="margin:0;max-width:170px">
+              <label for="fechaHasta">Hasta</label>
+              <input type="date" id="fechaHasta" onchange="loadActividad()" />
             </div>
+            <button class="secondary sm" id="navNext" onclick="shiftRange(1)" title="Periodo siguiente">&#9654;</button>
             <div class="field" style="margin:0;max-width:300px">
               <label for="q">Buscar</label>
               <input type="search" id="q" placeholder="Tarea, proyecto, usuario..." oninput="renderActividad()" />
@@ -103,9 +110,16 @@
         <div class="activity-layout" style="margin-top:16px">
           <section class="panel">
             <div class="toolbar" style="margin-bottom:14px">
-              <h2 style="margin:0">Minuta del d&iacute;a</h2>
+              <h2 style="margin:0">Minuta</h2>
               <span class="spacer"></span>
               <span class="text-muted" id="activityCount" style="font-size:12px"></span>
+            </div>
+            <div class="tabs" id="tipoTabs">
+              <button class="tab-btn active" data-tipo="" onclick="_setTab('')">Todo</button>
+              <button class="tab-btn" data-tipo="alta" onclick="_setTab('alta')">Altas</button>
+              <button class="tab-btn" data-tipo="estado" onclick="_setTab('estado')">Estados</button>
+              <button class="tab-btn" data-tipo="cambio" onclick="_setTab('cambio')">Otros cambios</button>
+              <button class="tab-btn" data-tipo="comentario" onclick="_setTab('comentario')">Comentarios</button>
             </div>
             <div id="activityFeed" class="activity-feed"></div>
           </section>
@@ -129,7 +143,7 @@
   <script src="../../auth.js"></script>
   <script src="../../api.js"></script>
   <script>
-    let _actividad = { fecha: '', items: [], resumen: {} };
+    let _actividad = { fecha: '', fecha_hasta: '', items: [] };
 
     function localDateValue(d) {
       const date = d || new Date();
@@ -137,32 +151,70 @@
       return new Date(date.getTime() - offset).toISOString().slice(0, 10);
     }
 
-    function setToday() {
-      document.getElementById('fechaActividad').value = localDateValue();
-      loadActividad();
+    function addDays(dateStr, delta) {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + delta);
+      return localDateValue(d);
     }
 
-    async function loadActividad() {
-      const fecha = document.getElementById('fechaActividad').value || localDateValue();
+    // "Hoy" lo define el servidor (su zona horaria es la que agrupa la minuta),
+    // no el navegador: evita pedir un dia que el backend agrupa distinto.
+    function setToday() {
+      loadActividad('', '');
+    }
+
+    // Mueve todo el rango (Desde/Hasta) manteniendo su duracion, para navegar
+    // dia a dia o semana a semana segun el rango que haya elegido el usuario.
+    function shiftRange(deltaDays) {
+      const desde = document.getElementById('fechaActividad').value || _actividad.fecha;
+      const hasta = document.getElementById('fechaHasta').value || desde;
+      loadActividad(addDays(desde, deltaDays), addDays(hasta, deltaDays));
+    }
+
+    async function loadActividad(fechaParam, fechaHastaParam) {
+      const fecha = fechaParam !== undefined ? fechaParam : (document.getElementById('fechaActividad').value || '');
+      const fechaHasta = fechaHastaParam !== undefined ? fechaHastaParam : (document.getElementById('fechaHasta').value || '');
       setStatus('statusBar', 'Cargando actividad...', 'info');
       try {
-        _actividad = await apiGetActividadDiaria({ fecha: fecha });
+        _actividad = await apiGetActividadDiaria({ fecha: fecha, fecha_hasta: fechaHasta });
+        document.getElementById('fechaActividad').value = _actividad.fecha;
+        document.getElementById('fechaHasta').value = _actividad.fecha_hasta;
         renderActividad();
-        setStatus('statusBar', 'Actividad cargada para ' + fmtInputDate(fecha) + '.', 'success');
+        setStatus('statusBar', 'Actividad cargada para ' + rangoLabel_() + '.', 'success');
       } catch (err) {
         setStatus('statusBar', 'Error: ' + err.message, 'error');
       }
     }
 
+    function esRangoUnico_() {
+      return !_actividad.fecha_hasta || _actividad.fecha_hasta === _actividad.fecha;
+    }
+
+    function rangoLabel_() {
+      return esRangoUnico_() ? fmtInputDate(_actividad.fecha) : (fmtInputDate(_actividad.fecha) + ' a ' + fmtInputDate(_actividad.fecha_hasta));
+    }
+
+    let _tab = '';
+
+    function _setTab(tipo) {
+      _tab = tipo;
+      document.querySelectorAll('#tipoTabs .tab-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.tipo === tipo);
+      });
+      renderActividad();
+    }
+
     function filteredItems() {
-      const tipo = document.getElementById('fTipo').value;
       const q = normalizeText(document.getElementById('q').value || '');
       return (_actividad.items || []).filter(function (item) {
-        if (tipo && item.tipo !== tipo) return false;
+        if (_tab && item.tipo !== _tab) return false;
         if (!q) return true;
         return normalizeText([item.titulo, item.proyecto, item.usuario, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
       });
     }
+
+    const TIPO_LABEL = { alta: 'Alta', estado: 'Estado', cambio: 'Cambio', comentario: 'Comentario' };
+    const TIPO_BADGE_CLASS = { alta: 'st-done', estado: 'st-progress', cambio: 'st-revision', comentario: 'st-analysis' };
 
     function renderActividad() {
       const items = filteredItems();
@@ -170,45 +222,82 @@
       renderFeed(items);
       renderUsers(items);
       renderSummary(items);
-      document.getElementById('activityCount').textContent = items.length + ' movimientos';
+      document.getElementById('activityCount').textContent = rangoLabel_() + ' · ' + items.length + ' movimientos';
     }
 
     function renderKpis(items) {
+      const altas = items.filter(function (i) { return i.tipo === 'alta'; }).length;
+      const estados = items.filter(function (i) { return i.tipo === 'estado'; }).length;
       const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
-      const cambios = items.filter(function (i) { return i.tipo === 'cambio'; }).length;
       const usuarios = unique(items.map(function (i) { return i.usuario; })).length;
-      const tareas = unique(items.filter(function (i) { return i.entidad === 'TAREA'; }).map(function (i) { return i.id_entidad; })).length;
       document.getElementById('kpiGrid').innerHTML =
         kpi('Movimientos', items.length) +
+        kpi('Altas', altas) +
+        kpi('Cambios de estado', estados) +
         kpi('Comentarios', comentarios) +
-        kpi('Cambios', cambios) +
-        kpi('Usuarios', usuarios) +
-        kpi('Tareas tocadas', tareas);
+        kpi('Usuarios', usuarios);
     }
 
     function renderFeed(items) {
       const feed = document.getElementById('activityFeed');
+      feed.classList.toggle('has-dates', !esRangoUnico_());
       if (!items.length) {
         feed.innerHTML = '<div class="empty-row">Sin actividad para los filtros seleccionados.</div>';
         return;
       }
-      feed.innerHTML = items.map(function (item) {
-        const badge = item.tipo === 'comentario'
-          ? '<span class="badge st-analysis">Comentario</span>'
-          : '<span class="badge st-progress">Cambio</span>';
-        const proyecto = item.proyecto ? '<span class="badge chip-proyecto">' + escapeHtml(item.proyecto) + '</span>' : '';
-        const body = item.tipo === 'comentario'
-          ? '<div class="activity-text">' + escapeHtml(item.texto || '') + '</div>'
-          : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>';
-        return '<article class="activity-item">' +
-          '<div class="activity-time">' + fmtTime(item.fecha) + '</div>' +
-          '<div>' +
-            '<div class="activity-head">' + badge + proyecto + '<span class="activity-title">' + escapeHtml(item.titulo || '') + '</span></div>' +
-            '<div class="activity-meta">' + escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '') + '</div>' +
-            body +
-          '</div>' +
-        '</article>';
-      }).join('');
+      feed.innerHTML = groupByProyecto(items).map(renderGroup).join('');
+    }
+
+    // Agrupa preservando el orden de aparicion (los items ya vienen ordenados
+    // por fecha desc), asi el proyecto con actividad mas reciente queda arriba.
+    function groupByProyecto(items) {
+      const order = [];
+      const byKey = {};
+      items.forEach(function (item) {
+        const key = item.proyecto || '';
+        if (!byKey[key]) { byKey[key] = { proyecto: item.proyecto, id_proyecto: item.id_proyecto, items: [] }; order.push(key); }
+        byKey[key].items.push(item);
+      });
+      return order.map(function (k) { return byKey[k]; });
+    }
+
+    function renderGroup(group) {
+      const nombre = group.proyecto || 'Sin proyecto';
+      const titulo = group.id_proyecto
+        ? '<a class="activity-group-title" href="' + proyectoLink_(group.id_proyecto) + '">' + escapeHtml(nombre) + '</a>'
+        : '<span class="activity-group-title">' + escapeHtml(nombre) + '</span>';
+      return '<div class="activity-group">' +
+        '<div class="activity-group-head">' + titulo + '<span class="activity-group-count">' + group.items.length + '</span></div>' +
+        '<div class="activity-feed">' + group.items.map(renderItem).join('') + '</div>' +
+      '</div>';
+    }
+
+    function proyectoLink_(idProyecto) {
+      return '../tareas/tareas.html?proyecto=' + encodeURIComponent(idProyecto);
+    }
+
+    function renderItem(item) {
+      const badge = '<span class="badge ' + (TIPO_BADGE_CLASS[item.tipo] || 'st-todo') + '">' + escapeHtml(TIPO_LABEL[item.tipo] || item.tipo) + '</span>';
+      const body = item.tipo === 'comentario'
+        ? '<div class="activity-text">' + escapeHtml(item.texto || '') + '</div>'
+        : (item.tipo === 'alta'
+          ? ''
+          : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>');
+      return '<article class="activity-item">' +
+        '<div class="activity-time">' + escapeHtml(itemTimeLabel_(item)) + '</div>' +
+        '<div>' +
+          '<div class="activity-head">' + badge + '<span class="activity-title">' + escapeHtml(item.titulo || '') + '</span></div>' +
+          '<div class="activity-meta">' + escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '') + '</div>' +
+          body +
+        '</div>' +
+      '</article>';
+    }
+
+    // En un rango de varios dias la hora sola es ambigua: se antepone la fecha
+    // (item.dia ya viene normalizado por el servidor, no se recalcula en el navegador).
+    function itemTimeLabel_(item) {
+      if (esRangoUnico_()) return item.hora || '--:--';
+      return fmtInputDate(item.dia) + ' ' + (item.hora || '--:--');
     }
 
     function renderUsers(items) {
@@ -221,13 +310,15 @@
     }
 
     function renderSummary(items) {
+      const altas = items.filter(function (i) { return i.tipo === 'alta'; }).length;
+      const estados = items.filter(function (i) { return i.tipo === 'estado'; }).length;
       const cambios = items.filter(function (i) { return i.tipo === 'cambio'; }).length;
       const comentarios = items.filter(function (i) { return i.tipo === 'comentario'; }).length;
       const proyectos = unique(items.map(function (i) { return i.proyecto; }).filter(Boolean));
       const usuarios = unique(items.map(function (i) { return i.usuario; }).filter(Boolean));
       document.getElementById('quickSummary').textContent = items.length
-        ? 'Se registraron ' + items.length + ' movimientos: ' + cambios + ' ' + plural(cambios, 'cambio', 'cambios') + ' y ' + comentarios + ' ' + plural(comentarios, 'comentario', 'comentarios') + '. Participaron ' + usuarios.length + ' usuario(s) en ' + proyectos.length + ' proyecto(s).'
-        : 'No hay comentarios ni cambios registrados para este dia.';
+        ? 'Se registraron ' + items.length + ' movimientos: ' + altas + ' ' + plural(altas, 'alta', 'altas') + ', ' + estados + ' ' + plural(estados, 'cambio de estado', 'cambios de estado') + ', ' + cambios + ' ' + plural(cambios, 'otro cambio', 'otros cambios') + ' y ' + comentarios + ' ' + plural(comentarios, 'comentario', 'comentarios') + '. Participaron ' + usuarios.length + ' usuario(s) en ' + proyectos.length + ' proyecto(s).'
+        : 'No hay actividad registrada para ' + (esRangoUnico_() ? 'este dia' : 'este periodo') + '.';
     }
 
     function kpi(label, value) {
@@ -244,12 +335,6 @@
       return Number(n) === 1 ? one : many;
     }
 
-    function fmtTime(v) {
-      const d = new Date(v);
-      if (isNaN(d.getTime())) return '--:--';
-      return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-    }
-
     function fmtInputDate(v) {
       const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
       return m ? (m[3] + '/' + m[2] + '/' + m[1]) : fmtDate(v);
@@ -260,16 +345,16 @@
       filteredItems().forEach(function (item) {
         const detalle = item.tipo === 'comentario'
           ? item.texto
-          : (item.campo + ': ' + (item.valor_anterior || '') + ' -> ' + (item.valor_nuevo || ''));
-        rows.push([(_actividad.fecha || '').slice(0, 10), fmtTime(item.fecha), item.tipo, item.entidad, item.id_entidad, item.titulo, item.proyecto, item.usuario, detalle]);
+          : (item.tipo === 'alta' ? 'Alta de ' + item.entidad.toLowerCase() : item.campo + ': ' + (item.valor_anterior || '') + ' -> ' + (item.valor_nuevo || ''));
+        rows.push([item.dia, item.hora, item.tipo, item.entidad, item.id_entidad, item.titulo, item.proyecto, item.usuario, detalle]);
       });
-      downloadCSV('actividad-' + (document.getElementById('fechaActividad').value || localDateValue()) + '.csv', rows);
+      const nombreRango = esRangoUnico_() ? _actividad.fecha : (_actividad.fecha + '_a_' + _actividad.fecha_hasta);
+      downloadCSV('actividad-' + (nombreRango || localDateValue()) + '.csv', rows);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
       initTheme(); initVersionBadge(); requireAuth(); renderSidebarUser(); initSidebarCollapse(); restrictWriteIfAgent();
-      document.getElementById('fechaActividad').value = localDateValue();
-      loadActividad();
+      loadActividad('', '');
     });
   </script>
 </body>
