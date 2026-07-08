@@ -55,6 +55,7 @@ function getCatalogos_() {
       sitios:           getCatValues_(SHEETS.CAT_SITIOS).length           ? getCatValues_(SHEETS.CAT_SITIOS)           : SITIOS,
       areas:            getCatValues_(SHEETS.CAT_AREAS).length            ? getCatValues_(SHEETS.CAT_AREAS)            : AREAS,
       tiendas:          getCatValues_(SHEETS.CAT_TIENDAS).length          ? getCatValues_(SHEETS.CAT_TIENDAS)          : TIENDAS,
+      secciones:        getCatValues_(SHEETS.CAT_SECCIONES).length        ? getCatValues_(SHEETS.CAT_SECCIONES)        : SECCIONES,
     },
   };
 }

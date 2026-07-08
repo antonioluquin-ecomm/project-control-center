@@ -56,8 +56,45 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | V | url_figma_editable | URL | editable Figma (maquetación) *(S6)* |
 | W | id_sprint | entero | FK → SPRINTS.id (nullable; '' = sin sprint) *(sprints)* |
 | X | url_informe_gestion | URL | informe de gestion del portal ecommerce; obligatorio para pasar de Documentacion a Revision si la tarea paso por Documentacion |
+| Y | seccion | lista (CSV) | CAT_SECCIONES (PLP/PDP/Home/etc.), multi-valor separado por coma *(dimensión reutilizable)* |
+| Z | dispositivos | lista (CSV) | DISPOSITIVOS (Mobile/Tablet/Desktop), multi-valor separado por coma *(dimensión reutilizable)* |
+| AA | informe_version | texto | máx. 60 *(Informe de Gestion)* |
+| AB | informe_fecha_implementacion | fecha | *(Informe de Gestion)* |
+| AC | informe_descripcion_general | texto | máx. 4000 *(Informe de Gestion)* |
+| AD | informe_detalles_tecnicos | texto | máx. 4000 *(Informe de Gestion)* |
+| AE | informe_resultado | texto | máx. 4000 *(Informe de Gestion)* |
+| AF | requerimiento_texto | texto | máx. 4000 *(Requerimiento — brief Jira/GitLab)* |
+| AG | requerimiento_detalles | texto | máx. 4000 *(Requerimiento)* |
+| AH | requerimiento_objetivo | texto | máx. 4000 *(Requerimiento)* |
 
 `vencida` se calcula al servir (estado no cerrado + `fecha_limite < hoy`).
+
+**Sección / Dispositivos (cols Y, Z):** dimensiones a nivel tarea, igual que
+área/tienda — se completan desde el form de edición (multi-selección), no solo
+desde un tab. Sirven de dato reusable para el Informe de Gestión, el Requerimiento
+y a futuro para filtros/reportes. `CAT_SECCIONES` no tiene UI de administración
+todavía (igual que `CAT_TIENDAS`): para ampliar la lista, editar la hoja
+directamente.
+
+**Informe de Gestión (tab del modal de detalle de tarea):** estructura guiada para
+centralizar la info que hoy se intercambia manualmente entre el PM y quien publica
+en el Portal eComm. Autocompletado desde la propia tarea (no se duplica en
+columnas): título, proyecto, área, responsable, tienda, sección, dispositivos,
+estado, fecha_creacion. Los campos AA–AE son los editables manualmente dentro del
+tab. La "imagen o video ilustrativo" no tiene columna propia: reutiliza ADJUNTOS
+(entidad=TAREA) — el tab simplemente lista los adjuntos existentes de la tarea.
+`url_informe_gestion` (col X) no cambia de rol: sigue siendo el link a la página
+ya publicada; los campos del Informe de Gestión son el borrador estructurado que
+alimenta esa publicación.
+
+**Requerimiento (tab del modal de detalle de tarea):** estructura guiada para
+armar el brief que se copia al crear el ticket en Jira (InfraCommerce) o GitLab
+(PIM), con formato Título/Proyecto/Tienda/Sección/Dispositivos/Requerimiento/
+Detalles/Objetivo. Comparte los mismos autocompletados que el Informe de Gestión
+(título, proyecto, tienda, sección, dispositivos) pero su contenido narrativo
+(cols AF–AH) es independiente: se completa ANTES de trabajar la tarea (brief),
+mientras que el Informe de Gestión se completa AL FINALIZAR (cierre/publicación).
+Se destaca automáticamente cuando `area` es `InfraCommerce` o `PIM`.
 
 ### SPRINTS *(sprints — globales, multi-proyecto)*
 
@@ -144,3 +181,4 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 | sitio | PROYECTOS | `=CAT_SITIOS!A:A` |
 | area | TAREAS | `=CAT_AREAS!A:A` |
 | tienda | TAREAS | `=CAT_TIENDAS!A:A` |
+| seccion | TAREAS | `=CAT_SECCIONES!A:A` (multi-valor, no aplica validación de una sola celda) |

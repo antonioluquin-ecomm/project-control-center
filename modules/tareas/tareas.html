@@ -753,6 +753,14 @@
       const opt = function (arr, sel) {
         return arr.map(function (v) { return '<option' + (v === sel ? ' selected' : '') + '>' + v + '</option>'; }).join('');
       };
+      const checkboxes = function (arr, csv, cls) {
+        const sel = String(csv || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+        return arr.map(function (v) {
+          return '<label style="display:flex;align-items:center;gap:5px;font-size:13px">' +
+            '<input type="checkbox" class="' + cls + '" value="' + v + '"' + (sel.indexOf(v) !== -1 ? ' checked' : '') + ' /> ' + v +
+            '</label>';
+        }).join('');
+      };
       const proyOptions = (STATE.proyectos || []).map(function (p) {
         return '<option value="' + p.id + '"' + (Number(p.id) === Number(t.id_proyecto || pid) ? ' selected' : '') + '>' + escapeHtml(p.nombre) + '</option>';
       }).join('');
@@ -795,6 +803,8 @@
           '</section>' +
           '<section class="td-edit-section"><div class="td-edit-section-title">Alcance</div>' +
             '<div class="field"><label>Tienda</label><select id="m_tienda"><option value="">-</option>' + opt(TIENDAS, t.tienda || '') + '</select></div>' +
+            '<div class="field"><label>Sección</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + checkboxes(SECCIONES, t.seccion, 'm_seccion') + '</div></div>' +
+            '<div class="field"><label>Dispositivos</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + checkboxes(DISPOSITIVOS, t.dispositivos, 'm_dispositivos') + '</div></div>' +
             '<div id="m_jira_wrap" class="field" hidden><label>Enlace Jira (Infracommerce)</label><input id="m_jira" type="url" placeholder="https://..." value="' + escapeHtml(t.url_jira || '') + '"></div>' +
             '<div id="m_gitlab_wrap" class="field" hidden><label>Enlace GitLab (PIM)</label><input id="m_gitlab" type="url" placeholder="https://..." value="' + escapeHtml(t.url_gitlab || '') + '"></div>' +
           '</section>' +
@@ -853,6 +863,8 @@
         avance_pct:           parseInt(document.getElementById('m_av').value, 10) || 0,
         area:                 document.getElementById('m_area').value,
         tienda:               document.getElementById('m_tienda').value,
+        seccion:              Array.prototype.slice.call(document.querySelectorAll('.m_seccion:checked')).map(function (el) { return el.value; }).join(','),
+        dispositivos:         Array.prototype.slice.call(document.querySelectorAll('.m_dispositivos:checked')).map(function (el) { return el.value; }).join(','),
         url_jira:             document.getElementById('m_jira').value.trim(),
         url_gitlab:           document.getElementById('m_gitlab').value.trim(),
         url_figma_prototipo:  document.getElementById('m_figp').value.trim(),

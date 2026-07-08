@@ -28,6 +28,7 @@ const SHEETS = {
   CAT_SITIOS:           'CAT_SITIOS',
   CAT_AREAS:            'CAT_AREAS',
   CAT_TIENDAS:          'CAT_TIENDAS',
+  CAT_SECCIONES:        'CAT_SECCIONES',
 };
 
 // ── MAPAS DE COLUMNAS (1-indexed para getRange) ───────────────
@@ -77,6 +78,19 @@ const TAREAS_COLS = {
   // ── Sprints (append al final) ──
   id_sprint:          23,  // W  — FK → SPRINTS.id (nullable; '' = sin sprint)
   url_informe_gestion: 24, // X  - informe de gestion del portal ecommerce
+  // ── Dimensiones reutilizables (Informe de Gestion / Requerimiento; append al final) ──
+  seccion:                  25, // Y  — CSV multi-valor: CAT_SECCIONES (PLP, PDP, Home, etc.)
+  dispositivos:             26, // Z  — CSV multi-valor: DISPOSITIVOS (Mobile, Tablet, Desktop)
+  // ── Informe de Gestion (append al final) ──
+  informe_version:          27, // AA — texto libre
+  informe_fecha_implementacion: 28, // AB — default hoy, editable
+  informe_descripcion_general:  29, // AC
+  informe_detalles_tecnicos:    30, // AD
+  informe_resultado:            31, // AE
+  // ── Requerimiento (brief para Jira/GitLab; append al final) ──
+  requerimiento_texto:      32, // AF
+  requerimiento_detalles:   33, // AG
+  requerimiento_objetivo:   34, // AH
 };
 
 // Sprints globales (multi-proyecto): agrupan TAREAS por id_sprint.
@@ -228,6 +242,15 @@ const ESTADOS_SPRINT   = ['Planificado', 'Activo', 'Cerrado', 'Cancelado'];
 const AREAS            = ['Ecom', 'InfraCommerce', 'PIM'];
 // Tienda a la que corresponde la tarea.
 const TIENDAS          = ['Sporting', 'Woker', 'B2B'];
+
+// ── Dimensiones reutilizables (Informe de Gestión / Requerimiento) ──
+// Sección de la página/módulo (tarea.seccion guarda un CSV, ej. "PLP,PDP").
+// Sin UI de administración todavía (igual que CAT_TIENDAS): para ampliar la
+// lista, editar directamente la hoja CAT_SECCIONES en el Sheet.
+const SECCIONES = ['PLP', 'PDP', 'Home', 'Checkout', 'Carrito', 'Cuenta', 'Buscador', 'Otro'];
+// Dispositivos alcanzados por la implementación (tarea.dispositivos guarda
+// un CSV de estos valores, ej. "Mobile,Desktop").
+const DISPOSITIVOS = ['Mobile', 'Tablet', 'Desktop'];
 
 // Entidades válidas para COMENTARIOS / ADJUNTOS / HISTORIAL (relación polimórfica).
 const ENTIDADES = ['PROYECTO', 'TAREA', 'SPRINT'];

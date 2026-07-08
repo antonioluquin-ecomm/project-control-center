@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.23.2',
+  number: '1.24.0',
   date:   '2026-07-08',
-  notes:  'Actividad: link al informe de gestion en el tab Finalizadas',
+  notes:  'Tareas: tabs Informe de Gestion y Requerimiento en el detalle de tarea',
 };
 
 const CHANGELOG = [
+  { v: '1.24.0', date: '2026-07-08', desc: 'Tareas: se agregan Seccion y Dispositivos como dimensiones de la tarea (multi-seleccion, editables desde "Editar tarea", igual que Area/Tienda). Nuevo tab "Informe de gestion" en el modal de detalle (autocompletado: proyecto/tienda/seccion/dispositivos/area/responsable/estado/fecha de creacion; manual: version, fecha de implementacion, descripcion general, detalles tecnicos, resultado), se destaca cuando la tarea esta en Documentacion. Nuevo tab "Requerimiento" para armar el brief de Jira/GitLab (Titulo/Proyecto/Tienda/Seccion/Dispositivos/Requerimiento/Detalles/Objetivo), se destaca cuando el area es InfraCommerce o PIM. Ambos tabs tienen indicador de completitud, vista previa, copiar al portapapeles y exportar en Markdown.' },
   { v: '1.23.2', date: '2026-07-08', desc: 'Actividad: el tab Finalizadas muestra el link al informe de gestion de la tarea (cuando lo tiene) y lo incluye en "Copiar resumen".' },
   { v: '1.23.1', date: '2026-07-08', desc: 'Actividad: en el tab Finalizadas, cada tarea muestra su area responsable (Ecom/InfraCommerce/PIM) en vez del responsable individual.' },
   { v: '1.23.0', date: '2026-07-08', desc: 'Actividad: nuevo tab "Finalizadas" con las tareas que pasaron a Finalizada en el rango elegido (una fila por tarea, sin duplicar si se finalizo mas de una vez), mostrando responsable y fecha. Se agrega el boton "Copiar resumen" para armar en texto plano el detalle a enviar (ej. el cierre semanal).' },
@@ -120,6 +121,12 @@ const AREA_LINK = {
   'InfraCommerce': 'url_jira',
   'PIM':           'url_gitlab',
 };
+
+// Dimensiones reutilizables (Informe de Gestión / Requerimiento).
+// Sin UI de administración todavía (igual que TIENDAS): para ampliar la lista,
+// editar directamente la hoja CAT_SECCIONES en el Sheet.
+const SECCIONES    = ['PLP', 'PDP', 'Home', 'Checkout', 'Carrito', 'Cuenta', 'Buscador', 'Otro'];
+const DISPOSITIVOS = ['Mobile', 'Tablet', 'Desktop'];
 
 const ESTADOS_PROYECTO_CERRADOS = ['Finalizado', 'Cancelado'];
 const ESTADOS_TAREA_CERRADOS    = ['Finalizada', 'Cancelada'];

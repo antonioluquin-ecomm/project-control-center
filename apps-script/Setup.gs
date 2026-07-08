@@ -15,7 +15,11 @@ const _HEADERS = {
            'fecha_inicio','fecha_limite','avance_pct','orden',
            'fecha_creacion','fecha_modificacion','creado_por','modificado_por',
            'area','tienda','url_jira','url_gitlab','url_figma_prototipo','url_figma_editable',
-           'id_sprint','url_informe_gestion'],
+           'id_sprint','url_informe_gestion',
+           'seccion','dispositivos','informe_version',
+           'informe_fecha_implementacion','informe_descripcion_general',
+           'informe_detalles_tecnicos','informe_resultado',
+           'requerimiento_texto','requerimiento_detalles','requerimiento_objetivo'],
   SPRINTS: ['id','nombre','objetivo','estado','fecha_inicio','fecha_fin',
             'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
   COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],
@@ -40,6 +44,7 @@ const _CATALOGOS = {
   CAT_SITIOS:           SITIOS,
   CAT_AREAS:            AREAS,
   CAT_TIENDAS:          TIENDAS,
+  CAT_SECCIONES:        SECCIONES,
   CAT_RESPONSABLES:     [], // se llena desde la UI / migración
 };
 

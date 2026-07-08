@@ -393,6 +393,8 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .act-tabs .act-tab:hover, .act-tabs .act-tab:focus, .act-tabs .act-tab:focus-visible, .act-tabs .act-tab:active { background: transparent; transform: none; box-shadow: none; outline: none; }
 .act-tabs .act-tab:hover { color: var(--text); }
 .act-tabs .act-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+/* Se destaca mientras la tarea está en estado Documentación (ver _tdInformeDestacado_). */
+.act-tabs .act-tab.act-tab-highlight:not(.active) { color: var(--warning); border-bottom-color: var(--warning); font-weight: 700; }
 .act-item { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; background: var(--card2); }
 .act-item:hover .act-edit-btn { opacity: 1; }
 .act-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; }

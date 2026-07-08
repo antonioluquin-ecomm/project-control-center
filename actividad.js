@@ -52,7 +52,10 @@ function openActividad(entidad, idEntidad, titulo) {
 function closeActividad() { document.getElementById('modals').innerHTML = ''; }
 
 function _actShow(which) {
-  ['com', 'chk', 'adj', 'his'].forEach(function (k) {
+  // 'inf'/'req' (Informe de Gestión / Requerimiento) solo existen en el modal
+  // de detalle de tarea; en el panel genérico de openActividad() esos ids no
+  // existen y el guard de abajo (if panel/if tab) simplemente no hace nada.
+  ['com', 'chk', 'adj', 'his', 'inf', 'req'].forEach(function (k) {
     const panel = document.getElementById('act-' + k);
     const tab = document.getElementById('act-tab-' + k);
     if (panel) panel.hidden = k !== which;

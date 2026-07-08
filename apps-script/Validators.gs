@@ -49,6 +49,21 @@ function optionalDate_(value, name) {
   return d;
 }
 
+// Lista opcional separada por comas (ej. "Desktop,Mobile"): valida cada valor
+// contra `allowed`, descarta vacíos/duplicados y devuelve el CSV normalizado.
+function optionalEnumList_(value, name, allowed) {
+  if (value === undefined || value === null || value === '') return '';
+  if (typeof value !== 'string') throw _vErr_(name + ' debe ser texto');
+  const seen = {};
+  const items = value.split(',').map(function(v) { return v.trim(); }).filter(function(v) {
+    if (!v || seen[v]) return false;
+    seen[v] = true;
+    return true;
+  });
+  items.forEach(function(v) { validateEnum_(v, name, allowed); });
+  return items.join(',');
+}
+
 // URL opcional: '' (→ '') o URL http/https válida. Tope 1000 chars.
 function optionalUrl_(value, name) {
   if (value === undefined || value === null || value === '') return '';

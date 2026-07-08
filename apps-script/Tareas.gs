@@ -63,6 +63,19 @@ function createTarea_(params, user) {
   if (idSprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), idSprint)) {
     return { ok: false, error: 'Sprint no encontrado', code: 404 };
   }
+  // Dimensiones reutilizables (Informe de Gestion / Requerimiento).
+  const seccion = optionalEnumList_(params.seccion, 'seccion', getCatCached_(SHEETS.CAT_SECCIONES, SECCIONES));
+  const dispositivos = optionalEnumList_(params.dispositivos, 'dispositivos', DISPOSITIVOS);
+  // Informe de Gestion: info estructurada para publicar en el Portal eComm.
+  const informeVersion = optionalString_(params.informe_version, 'informe_version', 60);
+  const informeFechaImpl = optionalDate_(params.informe_fecha_implementacion, 'informe_fecha_implementacion');
+  const informeDescGeneral = optionalString_(params.informe_descripcion_general, 'informe_descripcion_general', 4000);
+  const informeDetallesTec = optionalString_(params.informe_detalles_tecnicos, 'informe_detalles_tecnicos', 4000);
+  const informeResultado = optionalString_(params.informe_resultado, 'informe_resultado', 4000);
+  // Requerimiento: brief para Jira (InfraCommerce) / GitLab (PIM).
+  const requerimientoTexto = optionalString_(params.requerimiento_texto, 'requerimiento_texto', 4000);
+  const requerimientoDetalles = optionalString_(params.requerimiento_detalles, 'requerimiento_detalles', 4000);
+  const requerimientoObjetivo = optionalString_(params.requerimiento_objetivo, 'requerimiento_objetivo', 4000);
 
   const sheet = getSheet_(SHEETS.TAREAS);
   const id = getNextId_(sheet);
@@ -73,6 +86,9 @@ function createTarea_(params, user) {
     id, idProyecto, titulo, descripcion, tipo, estado, prioridad, responsable,
     fechaInicio, fechaLimite, avance, orden, now, now, email, email,
     area, tienda, urlJira, urlGitlab, urlFigmaP, urlFigmaE, idSprint, urlInforme,
+    seccion, dispositivos, informeVersion, informeFechaImpl,
+    informeDescGeneral, informeDetallesTec, informeResultado,
+    requerimientoTexto, requerimientoDetalles, requerimientoObjetivo,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
   return { ok: true, data: { id: id } };
@@ -113,6 +129,19 @@ function updateTarea_(params, user) {
   if (params.url_figma_prototipo !== undefined) updates.url_figma_prototipo = optionalUrl_(params.url_figma_prototipo, 'url_figma_prototipo');
   if (params.url_figma_editable !== undefined)  updates.url_figma_editable = optionalUrl_(params.url_figma_editable, 'url_figma_editable');
   if (params.url_informe_gestion !== undefined) updates.url_informe_gestion = optionalUrl_(params.url_informe_gestion, 'url_informe_gestion');
+  // Dimensiones reutilizables (Informe de Gestion / Requerimiento).
+  if (params.seccion !== undefined) updates.seccion = optionalEnumList_(params.seccion, 'seccion', getCatCached_(SHEETS.CAT_SECCIONES, SECCIONES));
+  if (params.dispositivos !== undefined) updates.dispositivos = optionalEnumList_(params.dispositivos, 'dispositivos', DISPOSITIVOS);
+  // Informe de Gestion: info estructurada para publicar en el Portal eComm.
+  if (params.informe_version !== undefined) updates.informe_version = optionalString_(params.informe_version, 'informe_version', 60);
+  if (params.informe_fecha_implementacion !== undefined) updates.informe_fecha_implementacion = optionalDate_(params.informe_fecha_implementacion, 'informe_fecha_implementacion');
+  if (params.informe_descripcion_general !== undefined) updates.informe_descripcion_general = optionalString_(params.informe_descripcion_general, 'informe_descripcion_general', 4000);
+  if (params.informe_detalles_tecnicos !== undefined) updates.informe_detalles_tecnicos = optionalString_(params.informe_detalles_tecnicos, 'informe_detalles_tecnicos', 4000);
+  if (params.informe_resultado !== undefined) updates.informe_resultado = optionalString_(params.informe_resultado, 'informe_resultado', 4000);
+  // Requerimiento: brief para Jira (InfraCommerce) / GitLab (PIM).
+  if (params.requerimiento_texto !== undefined) updates.requerimiento_texto = optionalString_(params.requerimiento_texto, 'requerimiento_texto', 4000);
+  if (params.requerimiento_detalles !== undefined) updates.requerimiento_detalles = optionalString_(params.requerimiento_detalles, 'requerimiento_detalles', 4000);
+  if (params.requerimiento_objetivo !== undefined) updates.requerimiento_objetivo = optionalString_(params.requerimiento_objetivo, 'requerimiento_objetivo', 4000);
   if (params.id_sprint !== undefined) {
     updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
     if (updates.id_sprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), updates.id_sprint)) {
