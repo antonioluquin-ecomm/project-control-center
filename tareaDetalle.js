@@ -157,7 +157,7 @@ function openTareaDetalleModal(t, opts) {
     '<div id="act-his" hidden><div id="act-his-list" style="margin-top:12px"><div class="text-muted" style="font-size:13px">Cargando…</div></div></div>' +
     '<div id="act-req" hidden>' +
       '<div class="td-meta" style="margin-top:12px">' + reqAuto + '</div>' +
-      '<div class="field"><label>Requerimiento</label><textarea id="req-texto" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_texto || '') + '</textarea></div>' +
+      '<div class="field"><label style="display:flex;align-items:center;justify-content:space-between;gap:8px">Requerimiento <button type="button" class="secondary sm admin-only" style="margin:0" onclick="_reqPrellenar()">Prellenar desde Descripción</button></label><textarea id="req-texto" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_texto || '') + '</textarea></div>' +
       '<div class="field"><label>Detalles</label><textarea id="req-detalles" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_detalles || '') + '</textarea></div>' +
       '<div class="field"><label>Objetivo</label><textarea id="req-objetivo" class="admin-only" rows="3" oninput="_reqActualizarBadge()">' + escapeHtml(t.requerimiento_objetivo || '') + '</textarea></div>' +
       '<div class="text-muted" style="font-size:12px;margin-bottom:12px">Brief para crear el ticket en Jira (InfraCommerce) o GitLab (PIM). Sección y dispositivos se editan desde "Editar tarea".</div>' +
@@ -309,6 +309,19 @@ function _infVistaPrevia() {
    Mismo patrón que Informe de Gestión: autocompletado vía dimAuto(),
    campos manuales (req-*) leídos al guardar/copiar/exportar/previsualizar. */
 
+// Copia la Descripción de la tarea al campo Requerimiento como borrador
+// inicial (flujo provisorio: redactar una vez, pulir afuera con IA si hace
+// falta, y pegar el resultado acá o de vuelta en la Descripción).
+function _reqPrellenar() {
+  if (!_tdTarea) return;
+  const desc = String(_tdTarea.descripcion || '').trim();
+  if (!desc) { toast('⚠', 'La tarea no tiene descripción para copiar.', 'error'); return; }
+  const campo = document.getElementById('req-texto');
+  if (campo.value.trim() && !confirm('Ya hay texto en Requerimiento. ¿Reemplazarlo con la Descripción de la tarea?')) return;
+  campo.value = desc;
+  _reqActualizarBadge();
+}
+
 function _reqActualizarBadge() {
   const campos = ['req-texto', 'req-detalles', 'req-objetivo'];
   let completos = 0;
@@ -355,14 +368,21 @@ function _reqMarkdown_() {
   const t = _tdTarea || {};
   const d = _reqDatos_();
   return [
-    '* **Título:** ' + (t.titulo || ''),
-    '* **Proyecto:** ' + (t.nombre_proyecto || ''),
-    '* **Tienda:** ' + (t.tienda || ''),
-    '* **Sección:** ' + (t.seccion || ''),
-    '* **Dispositivos:** ' + (t.dispositivos || ''),
-    '* **Requerimiento:** ' + (d.requerimiento_texto || ''),
-    '* **Detalles:** ' + (d.requerimiento_detalles || ''),
-    '* **Objetivo:** ' + (d.requerimiento_objetivo || ''),
+    '# ' + (t.titulo || ''),
+    '',
+    '- **Proyecto:** ' + (t.nombre_proyecto || ''),
+    '- **Tienda:** ' + (t.tienda || ''),
+    '- **Sección:** ' + (t.seccion || ''),
+    '- **Dispositivos:** ' + (t.dispositivos || ''),
+    '',
+    '## Requerimiento',
+    d.requerimiento_texto || '_(sin completar)_',
+    '',
+    '## Detalles',
+    d.requerimiento_detalles || '_(sin completar)_',
+    '',
+    '## Objetivo',
+    d.requerimiento_objetivo || '_(sin completar)_',
   ].join('\n');
 }
 
