@@ -34,7 +34,7 @@ function getSprintById_(params) {
 function createSprint_(params, user) {
   const nombre      = validateString_(params.nombre, 'nombre', 200);
   const objetivo    = optionalString_(params.objetivo, 'objetivo', 500);
-  const estado      = optionalEnum_(params.estado, 'estado', ESTADOS_SPRINT, 'Planificado');
+  const estado      = optionalEnum_(params.estado, 'estado', getCatCached_(CATALOGOS.CAT_ESTADOS_SPRINT, ESTADOS_SPRINT), 'Planificado');
   const fechaInicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   const fechaFin    = optionalDate_(params.fecha_fin, 'fecha_fin');
   if (fechaInicio instanceof Date && fechaFin instanceof Date && fechaFin < fechaInicio) {
@@ -85,7 +85,7 @@ function updateSprint_(params, user) {
     if (dup) return { ok: false, error: 'Ya existe un sprint activo con ese nombre', code: 409 };
   }
   if (params.objetivo !== undefined)     updates.objetivo = optionalString_(params.objetivo, 'objetivo', 500);
-  if (params.estado !== undefined)       updates.estado = validateEnum_(params.estado, 'estado', ESTADOS_SPRINT);
+  if (params.estado !== undefined)       updates.estado = validateEnum_(params.estado, 'estado', getCatCached_(CATALOGOS.CAT_ESTADOS_SPRINT, ESTADOS_SPRINT));
   if (params.fecha_inicio !== undefined) updates.fecha_inicio = optionalDate_(params.fecha_inicio, 'fecha_inicio');
   if (params.fecha_fin !== undefined)    updates.fecha_fin = optionalDate_(params.fecha_fin, 'fecha_fin');
 

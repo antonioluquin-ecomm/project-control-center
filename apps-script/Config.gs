@@ -19,6 +19,12 @@ const SHEETS = {
   LOGS:        'LOGS',
   ERRORS:      'ERRORS',
   CONFIG:      'CONFIG',
+};
+
+// Claves de catálogo (NO son hojas: viven como filas de la hoja CONFIG,
+// clave/valor — ver getCatValues_/setCatValues_ en Helpers.gs). El nombre
+// se mantiene "CAT_*" por historia (antes cada uno tenía su propia hoja).
+const CATALOGOS = {
   CAT_ESTADOS_PROYECTO: 'CAT_ESTADOS_PROYECTO',
   CAT_ESTADOS_TAREA:    'CAT_ESTADOS_TAREA',
   CAT_ESTADOS_SPRINT:   'CAT_ESTADOS_SPRINT',

@@ -215,6 +215,7 @@
     async function init() {
       setStatus('statusBar', 'Cargando…', 'info');
       try {
+        await loadCatalogos();
         await loadUsuariosBasico();
         STATE.proyectos = await apiGetProyectos({});
         STATE.sprints    = await apiGetSprints({});
@@ -229,19 +230,19 @@
 
         document.getElementById('fEstado').innerHTML =
           '<option value="">Todos los estados</option>' +
-          ESTADOS_TAREA.map(function (e) { return '<option>' + e + '</option>'; }).join('');
+          cat('estados_tarea', ESTADOS_TAREA).map(function (e) { return '<option>' + e + '</option>'; }).join('');
         document.getElementById('fTipo').innerHTML =
           '<option value="">Todos los tipos</option>' +
-          TIPOS_TAREA.map(function (v) { return '<option>' + v + '</option>'; }).join('');
+          cat('tipos_tarea', TIPOS_TAREA).map(function (v) { return '<option>' + v + '</option>'; }).join('');
         document.getElementById('fPrio').innerHTML =
           '<option value="">Todas las prioridades</option>' +
-          PRIORIDADES.map(function (v) { return '<option>' + v + '</option>'; }).join('');
+          cat('prioridades', PRIORIDADES).map(function (v) { return '<option>' + v + '</option>'; }).join('');
         document.getElementById('fArea').innerHTML =
           '<option value="">Todas las áreas</option>' +
-          AREAS.map(function (a) { return '<option>' + a + '</option>'; }).join('');
+          cat('areas', AREAS).map(function (a) { return '<option>' + a + '</option>'; }).join('');
         document.getElementById('fTienda').innerHTML =
           '<option value="">Todas las tiendas</option>' +
-          TIENDAS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+          cat('tiendas', TIENDAS).map(function (t) { return '<option>' + t + '</option>'; }).join('');
 
         const savedFiltros = _loadSavedFiltros();
         ['fEstado', 'fTipo', 'fPrio', 'fArea', 'fTienda', 'q'].forEach(function (id) { _restoreFiltro(id, savedFiltros); });
@@ -447,7 +448,7 @@
     function _kanbanStatuses(rows) {
       const used = {};
       rows.forEach(function (t) { if (t.estado) used[t.estado] = true; });
-      return ESTADOS_TAREA.filter(function (estado) {
+      return cat('estados_tarea', ESTADOS_TAREA).filter(function (estado) {
         return ESTADOS_TAREA_CERRADOS.indexOf(estado) === -1 || used[estado];
       });
     }
@@ -567,11 +568,12 @@
     /* ─── Helpers de render ─────────────────────────────────── */
 
     function tipoOptions(current) {
+      const tipos = cat('tipos_tarea', TIPOS_TAREA);
       let html = '';
-      if (current && TIPOS_TAREA.indexOf(current) === -1) {
+      if (current && tipos.indexOf(current) === -1) {
         html += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (legacy)</option>';
       }
-      html += TIPOS_TAREA.map(function (v) {
+      html += tipos.map(function (v) {
         return '<option' + (v === current ? ' selected' : '') + '>' + v + '</option>';
       }).join('');
       return html;
@@ -579,7 +581,7 @@
 
     function _renderRows(tasks) {
       const estOpts = function (sel) {
-        return ESTADOS_TAREA.map(function (e) {
+        return cat('estados_tarea', ESTADOS_TAREA).map(function (e) {
           return '<option' + (e === sel ? ' selected' : '') + '>' + e + '</option>';
         }).join('');
       };
@@ -785,15 +787,15 @@
           '<section class="td-edit-section"><div class="td-edit-section-title">Gestion</div>' +
             '<div class="field-row">' +
               '<div class="field"><label>Tipo</label><select id="m_tipo">' + tipoOptions(t.tipo || 'Tarea') + '</select></div>' +
-              '<div class="field"><label>Estado</label><select id="m_estado" onchange="toggleInformeGestion()">' + opt(ESTADOS_TAREA, t.estado || 'Por Hacer') + '</select></div>' +
+              '<div class="field"><label>Estado</label><select id="m_estado" onchange="toggleInformeGestion()">' + opt(cat('estados_tarea', ESTADOS_TAREA), t.estado || 'Por Hacer') + '</select></div>' +
             '</div>' +
             '<div class="field"><label>Sprint</label><select id="m_sprint">' + _sprintOptions(t.id_sprint, orphanSprint) + '</select></div>' +
             '<div class="field-row">' +
-              '<div class="field"><label>Area responsable</label><select id="m_area" onchange="toggleAreaLinks()"><option value="">-</option>' + opt(AREAS, t.area || '') + '</select></div>' +
+              '<div class="field"><label>Area responsable</label><select id="m_area" onchange="toggleAreaLinks()"><option value="">-</option>' + opt(cat('areas', AREAS), t.area || '') + '</select></div>' +
               '<div class="field"><label>Responsable</label><select id="m_resp">' + responsableOptions(t.responsable || '') + '</select></div>' +
             '</div>' +
             '<div class="field-row">' +
-              '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(PRIORIDADES, t.prioridad || 'Medium') + '</select></div>' +
+              '<div class="field"><label>Prioridad</label><select id="m_prio">' + opt(cat('prioridades', PRIORIDADES), t.prioridad || 'Medium') + '</select></div>' +
               '<div class="field"><label>Avance (%)</label><input id="m_av" type="number" min="0" max="100" value="' + (t.avance_pct || 0) + '"></div>' +
             '</div>' +
             '<div class="field-row">' +
@@ -802,8 +804,8 @@
             '</div>' +
           '</section>' +
           '<section class="td-edit-section"><div class="td-edit-section-title">Alcance</div>' +
-            '<div class="field"><label>Tienda</label><select id="m_tienda"><option value="">-</option>' + opt(TIENDAS, t.tienda || '') + '</select></div>' +
-            '<div class="field"><label>Sección</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + checkboxes(SECCIONES, t.seccion, 'm_seccion') + '</div></div>' +
+            '<div class="field"><label>Tienda</label><select id="m_tienda"><option value="">-</option>' + opt(cat('tiendas', TIENDAS), t.tienda || '') + '</select></div>' +
+            '<div class="field"><label>Sección</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + checkboxes(cat('secciones', SECCIONES), t.seccion, 'm_seccion') + '</div></div>' +
             '<div class="field"><label>Dispositivos</label><div style="display:flex;gap:14px;flex-wrap:wrap">' + checkboxes(DISPOSITIVOS, t.dispositivos, 'm_dispositivos') + '</div></div>' +
             '<div id="m_jira_wrap" class="field" hidden><label>Enlace Jira (Infracommerce)</label><input id="m_jira" type="url" placeholder="https://..." value="' + escapeHtml(t.url_jira || '') + '"></div>' +
             '<div id="m_gitlab_wrap" class="field" hidden><label>Enlace GitLab (PIM)</label><input id="m_gitlab" type="url" placeholder="https://..." value="' + escapeHtml(t.url_gitlab || '') + '"></div>' +
@@ -967,7 +969,7 @@
         '<div class="field"><label>Nombre *</label><input id="s_nom" value="' + escapeHtml(s.nombre || '') + '"></div>' +
         '<div class="field"><label>Objetivo</label><textarea id="s_obj">' + escapeHtml(s.objetivo || '') + '</textarea></div>' +
         '<div class="field-row">' +
-          '<div class="field"><label>Estado</label><select id="s_estado">' + opt(ESTADOS_SPRINT, s.estado || 'Planificado') + '</select></div>' +
+          '<div class="field"><label>Estado</label><select id="s_estado">' + opt(cat('estados_sprint', ESTADOS_SPRINT), s.estado || 'Planificado') + '</select></div>' +
           '<div class="field"><label>&nbsp;</label><div></div></div>' +
         '</div>' +
         '<div class="field-row">' +

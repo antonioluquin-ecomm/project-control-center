@@ -35,6 +35,10 @@ const _HEADERS = {
   CONFIG: ['clave','valor','descripcion'],
 };
 
+// Catálogos: semilla por defecto. Se guardan como filas de CONFIG
+// (clave = nombre del catalogo, valor = CSV) — ver getCatValues_/setCatValues_
+// en Helpers.gs. Antes cada uno tenia su propia hoja CAT_*; ver
+// migrarCatalogosAConfig() para instalaciones viejas que todavia las tengan.
 const _CATALOGOS = {
   CAT_ESTADOS_PROYECTO: ESTADOS_PROYECTO,
   CAT_ESTADOS_TAREA:    ESTADOS_TAREA,
@@ -45,7 +49,7 @@ const _CATALOGOS = {
   CAT_AREAS:            AREAS,
   CAT_TIENDAS:          TIENDAS,
   CAT_SECCIONES:        SECCIONES,
-  CAT_RESPONSABLES:     [], // se llena desde la UI / migración
+  CAT_RESPONSABLES:     [], // se llena desde la UI
 };
 
 function setupAll() {
@@ -57,13 +61,13 @@ function setupAll() {
     _ensureHeader_(sheet, _HEADERS[name]);
   });
 
-  // 2) Catálogos (header = nombre de la hoja + valores).
-  Object.keys(_CATALOGOS).forEach(function(name) {
-    const sheet = _ensureSheet_(ss, name);
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow([name]); // header identificador
-      _CATALOGOS[name].forEach(function(v) { sheet.appendRow([v]); });
-    }
+  // 2) Catálogos: una fila por catalogo en CONFIG (solo si todavia no existe).
+  const config = _ensureSheet_(ss, SHEETS.CONFIG);
+  _ensureHeader_(config, _HEADERS.CONFIG);
+  Object.keys(_CATALOGOS).forEach(function(clave) {
+    if (_configFindRow_(config, clave)) return;
+    const valores = _CATALOGOS[clave];
+    if (valores.length) config.appendRow([clave, valores.join(','), '']);
   });
 
   // 3) ROLES — migrar schema viejo (id,nombre) → (id,nombre,descripcion,activo,es_sistema)
@@ -117,19 +121,37 @@ function seedAdmin(email, plainPassword) {
   Logger.log('✓ Admin creado: ' + email);
 }
 
-// Actualiza los catálogos CAT_ existentes con los valores actuales de Config.gs.
-// Correr cuando se agreguen nuevos estados/tipos (ej: después de S5).
+// Fuerza cada catalogo (fila de CONFIG) a los valores por defecto de Config.gs,
+// descartando lo que haya cargado un admin desde la UI. Correr a mano solo si
+// hace falta resetear un catalogo puntual.
 function actualizarCatalogos() {
-  const ss = getSpreadsheet_();
-  Object.keys(_CATALOGOS).forEach(function(name) {
-    const sheet  = ss.getSheetByName(name);
-    if (!sheet) return;
-    // Limpiar valores existentes (mantener fila 1 = header).
-    const last = sheet.getLastRow();
-    if (last > 1) sheet.getRange(2, 1, last - 1, 1).clearContent();
-    _CATALOGOS[name].forEach(function(v) { sheet.appendRow([v]); });
-    Logger.log('✓ ' + name + ' actualizado.');
+  Object.keys(_CATALOGOS).forEach(function(clave) {
+    if (!_CATALOGOS[clave].length) return; // CAT_RESPONSABLES: sin default, no lo pisa
+    setCatValues_(clave, _CATALOGOS[clave]);
+    Logger.log('✓ ' + clave + ' actualizado.');
   });
+}
+
+// Migracion: para instalaciones que todavia tengan una hoja CAT_* dedicada
+// por catalogo (esquema anterior a consolidarlos en CONFIG). Copia los
+// valores de cada hoja CAT_* existente a su fila en CONFIG. NO borra las
+// hojas viejas (por si hace falta revisarlas) — se pueden eliminar a mano
+// despues de confirmar que la migracion salio bien. Correr UNA vez.
+function migrarCatalogosAConfig() {
+  const ss = getSpreadsheet_();
+  const config = _ensureSheet_(ss, SHEETS.CONFIG);
+  _ensureHeader_(config, _HEADERS.CONFIG);
+  let migrados = 0;
+  Object.keys(_CATALOGOS).forEach(function(clave) {
+    const hojaVieja = ss.getSheetByName(clave);
+    if (!hojaVieja) return;
+    const valores = hojaVieja.getRange('A:A').getValues().flat()
+      .filter(function(v) { return v !== '' && v !== clave; });
+    if (!valores.length) return;
+    setCatValues_(clave, valores);
+    migrados++;
+  });
+  Logger.log('✓ Catalogos migrados a CONFIG: ' + migrados + '. Las hojas CAT_* viejas no se borraron; se pueden eliminar a mano si ya no hacen falta.');
 }
 
 // S6: agrega los headers nuevos de TAREAS a una hoja YA poblada, sin tocar datos.
@@ -165,13 +187,13 @@ function agregarColumnaSprintTareas() {
   // 2) Header id_sprint en TAREAS (reusa el sync idempotente de headers).
   agregarColumnasTareas();
 
-  // 3) Catálogo de estados de sprint.
-  const cat = _ensureSheet_(ss, SHEETS.CAT_ESTADOS_SPRINT);
-  if (cat.getLastRow() === 0) {
-    cat.appendRow([SHEETS.CAT_ESTADOS_SPRINT]);
-    ESTADOS_SPRINT.forEach(function(v) { cat.appendRow([v]); });
+  // 3) Catálogo de estados de sprint (fila en CONFIG).
+  const config = _ensureSheet_(ss, SHEETS.CONFIG);
+  _ensureHeader_(config, _HEADERS.CONFIG);
+  if (!_configFindRow_(config, CATALOGOS.CAT_ESTADOS_SPRINT)) {
+    config.appendRow([CATALOGOS.CAT_ESTADOS_SPRINT, ESTADOS_SPRINT.join(','), '']);
   }
-  Logger.log('✓ Sprints: hoja SPRINTS, header id_sprint en TAREAS y CAT_ESTADOS_SPRINT listos.');
+  Logger.log('✓ Sprints: hoja SPRINTS, header id_sprint en TAREAS y catalogo CAT_ESTADOS_SPRINT listos.');
 }
 
 // Migra la hoja ROLES del schema viejo (id, nombre) al actual

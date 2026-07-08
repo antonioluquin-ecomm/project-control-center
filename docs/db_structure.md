@@ -132,19 +132,35 @@ Lo escribe el backend en cada `update*`/`delete*` (ya activo en Sprint 1).
 
 ---
 
-## Hojas de catálogo (`CAT_`)
+## Catálogos (filas de `CONFIG`)
 
-| Hoja | Valores semilla |
-|------|-----------------|
-| CAT_ESTADOS_PROYECTO | Por Hacer · En Análisis · En Curso · Bloqueado · Finalizado · Cancelado |
-| CAT_ESTADOS_TAREA | Por Hacer · En Análisis · En Curso · Bloqueada · Finalizada · Cancelada |
-| CAT_ESTADOS_SPRINT | Planificado · Activo · Cerrado · Cancelado |
-| CAT_TIPOS_TAREA | Historia · Tarea · Error · ~~Subtarea~~ *(legacy S8: no se ofrece, reemplazada por CHECKLIST)* |
-| CAT_PRIORIDADES | Highest · High · Medium · Low · Lowest |
-| CAT_SITIOS | Sporting · Woker · PIM · B2B · Todos |
-| CAT_RESPONSABLES | *(se completa desde la UI / migración)* |
+Cada catálogo es una fila de la hoja `CONFIG` (`clave` = nombre del catalogo,
+`valor` = CSV de sus valores), no una hoja dedicada — antes cada uno tenía su
+propia hoja `CAT_*`, se consolidaron para no llenar el Sheet de pestañas que
+en la práctica nadie editaba a mano. Lectura/escritura vía `getCatValues_` /
+`setCatValues_` (Helpers.gs); editable desde Configuración > Catálogos en la
+app. Instalaciones viejas con hojas `CAT_*` sueltas: correr
+`migrarCatalogosAConfig()` una vez (no borra las hojas viejas).
+
+| Clave (CONFIG) | Valores semilla | Editable en la UI |
+|------|-----------------|--------------------|
+| CAT_ESTADOS_PROYECTO | Por Hacer · En Análisis · En Curso · Bloqueado · Finalizado · Cancelado | Sí |
+| CAT_ESTADOS_TAREA | Por Hacer · En Análisis · En Curso · Bloqueada · Finalizada · Cancelada | Sí |
+| CAT_ESTADOS_SPRINT | Planificado · Activo · Cerrado · Cancelado | Sí |
+| CAT_TIPOS_TAREA | Historia · Tarea · Error · ~~Subtarea~~ *(legacy S8: no se ofrece, reemplazada por CHECKLIST)* | Sí |
+| CAT_PRIORIDADES | Highest · High · Medium · Low · Lowest | Sí |
+| CAT_SITIOS | Sporting · Woker · PIM · B2B · Todos | Sí |
+| CAT_AREAS | Ecom · InfraCommerce · PIM | Sí |
+| CAT_TIENDAS | Sporting · Woker · B2B | Sí |
+| CAT_SECCIONES | PLP · PDP · Home · Checkout · Carrito · Cuenta · Buscador · Otro | Sí |
+| CAT_RESPONSABLES | *(vacío; nombres externos que no son usuarios del sistema)* | Sí |
 
 Estados y tipos tomados del vocabulario real del export de Jira.
+
+Los formularios (Tareas/Proyectos/Gantt) piden estos catálogos al servidor al
+cargar (`loadCatalogos()` + helper `cat(key, fallback)` en `api.js`) en vez de
+usar las constantes de JS directamente — editar un catálogo desde
+Configuración se refleja en los desplegables sin redeploy.
 
 ---
 
@@ -155,7 +171,7 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 - **ROLES** — `id · nombre` → `1 = Admin` (escribe), `2 = Agente` (solo lectura).
 - **LOGS** — `id · timestamp · accion · entidad · entidad_id · usuario · resultado · detalle`.
 - **ERRORS** — `id · timestamp · accion · usuario · mensaje · stack`.
-- **CONFIG** — `clave · valor · descripcion`.
+- **CONFIG** — `clave · valor · descripcion`. Config general + catálogos (ver arriba).
 
 ---
 
@@ -168,17 +184,12 @@ Estados y tipos tomados del vocabulario real del export de Jira.
 
 ---
 
-## Validaciones de datos en el Sheet (opcional pero recomendado)
+## Validaciones de datos en el Sheet
 
-`Datos > Validación de datos`:
-
-| Columna | Hoja | Fuente |
-|---------|------|--------|
-| estado | PROYECTOS | `=CAT_ESTADOS_PROYECTO!A:A` |
-| prioridad | PROYECTOS/TAREAS | `=CAT_PRIORIDADES!A:A` |
-| estado | TAREAS | `=CAT_ESTADOS_TAREA!A:A` |
-| tipo | TAREAS | `=CAT_TIPOS_TAREA!A:A` |
-| sitio | PROYECTOS | `=CAT_SITIOS!A:A` |
-| area | TAREAS | `=CAT_AREAS!A:A` |
-| tienda | TAREAS | `=CAT_TIENDAS!A:A` |
-| seccion | TAREAS | `=CAT_SECCIONES!A:A` (multi-valor, no aplica validación de una sola celda) |
+Al consolidar los catálogos en filas de `CONFIG` (columna B, un catalogo por
+fila) se perdió la referencia simple `=CAT_AREAS!A:A` para `Datos > Validación
+de datos` — ya no hay una columna por catalogo. La validación server-side
+(GAS, contra `getCatCached_`) sigue siendo la que manda; para alguien que
+edite `TAREAS`/`PROYECTOS` directo en el Sheet sin pasar por la app, hoy no
+hay dropdown nativo de ayuda para estas columnas (era el costo aceptado al
+consolidar — ver discusión de arquitectura de catálogos).

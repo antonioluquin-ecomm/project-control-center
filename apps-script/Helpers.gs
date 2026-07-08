@@ -140,24 +140,42 @@ function getConfig_() {
   return config;
 }
 
-// ── Catálogo simple (columna A, sin header de valor) ──────────
-function getCatValues_(sheetName) {
-  const sheet = getSpreadsheet_().getSheetByName(sheetName);
-  if (!sheet) return [];
-  return sheet.getRange('A:A').getValues().flat()
-    .filter(function(v) { return v !== '' && v !== sheetName; });
+function _configFindRow_(sheet, clave) {
+  const claves = sheet.getRange('A:A').getValues().flat();
+  const idx = claves.indexOf(clave);
+  return idx > 0 ? idx + 1 : null; // fila 1 es el header ("clave")
+}
+
+// ── Catálogos ──────────────────────────────────────────────────
+// Cada catálogo (antes: una hoja CAT_* dedicada) es una fila de CONFIG:
+// clave = nombre del catalogo (ej. "CAT_AREAS"), valor = CSV de sus valores.
+// Un solo lugar en el Sheet para todos, editable desde Configuración > Catálogos.
+function getCatValues_(catalogo) {
+  const sheet = getSheet_(SHEETS.CONFIG);
+  const rowNum = _configFindRow_(sheet, catalogo);
+  if (!rowNum) return [];
+  const valor = sheet.getRange(rowNum, 2).getValue();
+  return String(valor || '').split(',').map(function(v) { return v.trim(); }).filter(Boolean);
+}
+
+function setCatValues_(catalogo, valores) {
+  const sheet = getSheet_(SHEETS.CONFIG);
+  const csv = valores.map(function(v) { return String(v).trim(); }).filter(Boolean).join(',');
+  const rowNum = _configFindRow_(sheet, catalogo);
+  if (rowNum) sheet.getRange(rowNum, 2).setValue(csv);
+  else sheet.appendRow([catalogo, csv, '']);
 }
 
 // ── Catálogo con caché por request ───────────────────────────
-// Evita múltiples lecturas de la misma hoja CAT_ dentro de un
+// Evita múltiples lecturas de CONFIG para el mismo catalogo dentro de un
 // mismo request GAS. El objeto _catCache_ se reinicia en cada
 // nueva ejecución (GAS no reutiliza el contexto entre requests).
 const _catCache_ = {};
-function getCatCached_(sheetName, fallback) {
-  if (_catCache_[sheetName]) return _catCache_[sheetName];
-  const vals = getCatValues_(sheetName);
-  _catCache_[sheetName] = vals.length ? vals : (fallback || []);
-  return _catCache_[sheetName];
+function getCatCached_(catalogo, fallback) {
+  if (_catCache_[catalogo]) return _catCache_[catalogo];
+  const vals = getCatValues_(catalogo);
+  _catCache_[catalogo] = vals.length ? vals : (fallback || []);
+  return _catCache_[catalogo];
 }
 
 // ── SHA-256 hex ───────────────────────────────────────────────

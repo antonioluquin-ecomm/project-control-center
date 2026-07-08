@@ -153,6 +153,25 @@ function apiUpdateRol(d)         { return callApiRaw('updateRol', d); }
 
 function apiUpdateCatalogo(catalogo, valores) { return callApiRaw('updateCatalogo', { catalogo: catalogo, valores: valores }); }
 
+/* ─── CATÁLOGOS EDITABLES (CAT_*) ─────────────────────────
+   Cache por página: los forms usan cat(key, fallback) en vez de la
+   constante hardcodeada directamente, para reflejar ediciones hechas
+   desde Configuración > Catálogos sin esperar un redeploy de código.
+   Llamar loadCatalogos() (await) antes de armar cualquier <select>. */
+let _catalogos = null;
+
+async function loadCatalogos() {
+  if (_catalogos) return _catalogos;
+  try { _catalogos = await apiGetCatalogos(); }
+  catch (e) { _catalogos = {}; }
+  return _catalogos;
+}
+
+function cat(key, fallback) {
+  const vals = _catalogos && _catalogos[key];
+  return (vals && vals.length) ? vals : fallback;
+}
+
 /* ─── SELECTOR DE RESPONSABLE (usuarios reales) ──────────── */
 // El responsable se guarda como nombre (string), compatible con datos migrados.
 let _usuariosBasico = null;
@@ -164,11 +183,14 @@ async function loadUsuariosBasico() {
   return _usuariosBasico;
 }
 
-// Opciones <option> para un <select> de responsable. Conserva el valor actual
-// aunque no sea un usuario del sistema (texto migrado de Jira) → "(externo)".
+// Opciones <option> para un <select> de responsable: usuarios reales del
+// sistema + nombres del catálogo CAT_RESPONSABLES (externos conocidos, ej.
+// freelancers). Conserva el valor actual aunque no esté en ninguna lista
+// (texto migrado de Jira) → "(externo)".
 function responsableOptions(current) {
-  const list = _usuariosBasico || [];
-  const names = list.map(function (u) { return u.nombre; });
+  const usuarios = (_usuariosBasico || []).map(function (u) { return u.nombre; });
+  const catalogo = cat('responsables', []).filter(function (n) { return usuarios.indexOf(n) === -1; });
+  const names = usuarios.concat(catalogo);
   let opts = '<option value="">— Sin asignar —</option>';
   if (current && names.indexOf(current) === -1) {
     opts += '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(current) + ' (externo)</option>';
@@ -215,6 +237,10 @@ async function _mockLoad() {
       CAT_PRIORIDADES:      PRIORIDADES.slice(),
       CAT_SITIOS:           SITIOS.slice(),
       CAT_AREAS:            AREAS.slice(),
+      CAT_TIENDAS:          TIENDAS.slice(),
+      CAT_SECCIONES:        SECCIONES.slice(),
+      CAT_ESTADOS_SPRINT:   ESTADOS_SPRINT.slice(),
+      CAT_RESPONSABLES:     [],
     },
   };
   return _mock;
@@ -258,12 +284,13 @@ async function _mockCall(action, p) {
 
   switch (action) {
     case 'getCatalogos': {
-      const cat = _mock.catalogos;
+      const mc = _mock.catalogos;
       return {
-        estados_proyecto: cat.CAT_ESTADOS_PROYECTO, estados_tarea: cat.CAT_ESTADOS_TAREA,
-        tipos_tarea: cat.CAT_TIPOS_TAREA, prioridades: cat.CAT_PRIORIDADES,
-        sitios: cat.CAT_SITIOS, areas: cat.CAT_AREAS, tiendas: TIENDAS,
-        responsables: [],
+        estados_proyecto: mc.CAT_ESTADOS_PROYECTO, estados_tarea: mc.CAT_ESTADOS_TAREA,
+        tipos_tarea: mc.CAT_TIPOS_TAREA, prioridades: mc.CAT_PRIORIDADES,
+        sitios: mc.CAT_SITIOS, areas: mc.CAT_AREAS, tiendas: mc.CAT_TIENDAS,
+        secciones: mc.CAT_SECCIONES, estados_sprint: mc.CAT_ESTADOS_SPRINT,
+        responsables: mc.CAT_RESPONSABLES,
       };
     }
     case 'updateCatalogo': {

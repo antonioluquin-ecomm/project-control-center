@@ -47,23 +47,25 @@ function getCatalogos_() {
   return {
     ok: true,
     data: {
-      estados_proyecto: getCatValues_(SHEETS.CAT_ESTADOS_PROYECTO).length ? getCatValues_(SHEETS.CAT_ESTADOS_PROYECTO) : ESTADOS_PROYECTO,
-      estados_tarea:    getCatValues_(SHEETS.CAT_ESTADOS_TAREA).length    ? getCatValues_(SHEETS.CAT_ESTADOS_TAREA)    : ESTADOS_TAREA,
-      tipos_tarea:      getCatValues_(SHEETS.CAT_TIPOS_TAREA).length      ? getCatValues_(SHEETS.CAT_TIPOS_TAREA)      : TIPOS_TAREA,
-      prioridades:      getCatValues_(SHEETS.CAT_PRIORIDADES).length      ? getCatValues_(SHEETS.CAT_PRIORIDADES)      : PRIORIDADES,
-      responsables:     getCatValues_(SHEETS.CAT_RESPONSABLES),
-      sitios:           getCatValues_(SHEETS.CAT_SITIOS).length           ? getCatValues_(SHEETS.CAT_SITIOS)           : SITIOS,
-      areas:            getCatValues_(SHEETS.CAT_AREAS).length            ? getCatValues_(SHEETS.CAT_AREAS)            : AREAS,
-      tiendas:          getCatValues_(SHEETS.CAT_TIENDAS).length          ? getCatValues_(SHEETS.CAT_TIENDAS)          : TIENDAS,
-      secciones:        getCatValues_(SHEETS.CAT_SECCIONES).length        ? getCatValues_(SHEETS.CAT_SECCIONES)        : SECCIONES,
+      estados_proyecto: getCatValues_(CATALOGOS.CAT_ESTADOS_PROYECTO).length ? getCatValues_(CATALOGOS.CAT_ESTADOS_PROYECTO) : ESTADOS_PROYECTO,
+      estados_tarea:    getCatValues_(CATALOGOS.CAT_ESTADOS_TAREA).length    ? getCatValues_(CATALOGOS.CAT_ESTADOS_TAREA)    : ESTADOS_TAREA,
+      tipos_tarea:      getCatValues_(CATALOGOS.CAT_TIPOS_TAREA).length      ? getCatValues_(CATALOGOS.CAT_TIPOS_TAREA)      : TIPOS_TAREA,
+      prioridades:      getCatValues_(CATALOGOS.CAT_PRIORIDADES).length      ? getCatValues_(CATALOGOS.CAT_PRIORIDADES)      : PRIORIDADES,
+      responsables:     getCatValues_(CATALOGOS.CAT_RESPONSABLES),
+      sitios:           getCatValues_(CATALOGOS.CAT_SITIOS).length           ? getCatValues_(CATALOGOS.CAT_SITIOS)           : SITIOS,
+      areas:            getCatValues_(CATALOGOS.CAT_AREAS).length            ? getCatValues_(CATALOGOS.CAT_AREAS)            : AREAS,
+      tiendas:          getCatValues_(CATALOGOS.CAT_TIENDAS).length          ? getCatValues_(CATALOGOS.CAT_TIENDAS)          : TIENDAS,
+      secciones:        getCatValues_(CATALOGOS.CAT_SECCIONES).length        ? getCatValues_(CATALOGOS.CAT_SECCIONES)        : SECCIONES,
+      estados_sprint:   getCatValues_(CATALOGOS.CAT_ESTADOS_SPRINT).length    ? getCatValues_(CATALOGOS.CAT_ESTADOS_SPRINT)   : ESTADOS_SPRINT,
     },
   };
 }
 
 // Catálogos que el admin puede editar desde la UI (lista blanca).
 const _CATALOGOS_EDITABLES_ = [
-  SHEETS.CAT_ESTADOS_PROYECTO, SHEETS.CAT_ESTADOS_TAREA, SHEETS.CAT_TIPOS_TAREA,
-  SHEETS.CAT_PRIORIDADES, SHEETS.CAT_SITIOS, SHEETS.CAT_AREAS,
+  CATALOGOS.CAT_ESTADOS_PROYECTO, CATALOGOS.CAT_ESTADOS_TAREA, CATALOGOS.CAT_TIPOS_TAREA,
+  CATALOGOS.CAT_PRIORIDADES, CATALOGOS.CAT_SITIOS, CATALOGOS.CAT_AREAS,
+  CATALOGOS.CAT_TIENDAS, CATALOGOS.CAT_SECCIONES, CATALOGOS.CAT_ESTADOS_SPRINT, CATALOGOS.CAT_RESPONSABLES,
 ];
 
 // Reemplaza los valores de una hoja CAT_ por el array recibido.
@@ -79,11 +81,7 @@ function updateCatalogo_(params, user) {
   const limpios = valores.map(function(v) { return String(v).trim(); }).filter(Boolean);
   if (!limpios.length) return { ok: false, error: 'Todos los valores estaban vacíos', code: 400 };
 
-  const sheet = getSheet_(params.catalogo);
-  if (sheet.getLastRow() > 1) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).clearContent();
-  }
-  limpios.forEach(function(v) { sheet.appendRow([v]); });
+  setCatValues_(params.catalogo, limpios);
 
   // Invalida la caché del catálogo para este request (ya actualizado).
   delete _catCache_[params.catalogo];

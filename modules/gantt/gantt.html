@@ -86,6 +86,7 @@
     async function init() {
       setStatus('statusBar', 'Cargando…', 'info');
       try {
+        await loadCatalogos();
         STATE.proyectos = await apiGetProyectos({});
         const sel = document.getElementById('selProyecto');
         sel.innerHTML = '<option value="">Todos los proyectos</option>' +
@@ -93,8 +94,8 @@
         const pre = qsProyecto();
         if (pre && STATE.proyectos.some(function (p) { return Number(p.id) === pre; })) sel.value = pre;
 
-        document.getElementById('fArea').innerHTML = '<option value="">Todas las áreas</option>' + AREAS.map(function (a) { return '<option>' + a + '</option>'; }).join('');
-        document.getElementById('fTienda').innerHTML = '<option value="">Todas las tiendas</option>' + TIENDAS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+        document.getElementById('fArea').innerHTML = '<option value="">Todas las áreas</option>' + cat('areas', AREAS).map(function (a) { return '<option>' + a + '</option>'; }).join('');
+        document.getElementById('fTienda').innerHTML = '<option value="">Todas las tiendas</option>' + cat('tiendas', TIENDAS).map(function (t) { return '<option>' + t + '</option>'; }).join('');
 
         STATE.sprints = await apiGetSprints({});
         document.getElementById('fSprint').innerHTML = '<option value="">Todos los sprints</option>' +
