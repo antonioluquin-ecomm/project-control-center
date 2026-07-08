@@ -229,7 +229,7 @@
         : (_actividad.items || []).filter(function (item) { return !_tab || item.tipo === _tab; });
       if (!q) return base;
       return base.filter(function (item) {
-        return normalizeText([item.titulo, item.proyecto, item.usuario, item.responsable, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
+        return normalizeText([item.titulo, item.proyecto, item.usuario, item.area, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
       });
     }
 
@@ -305,11 +305,13 @@
       const badge = '<span class="badge ' + (TIPO_BADGE_CLASS[item.tipo] || 'st-todo') + '">' + escapeHtml(TIPO_LABEL[item.tipo] || item.tipo) + '</span>';
       const body = item.tipo === 'comentario'
         ? '<div class="activity-text">' + escapeHtml(item.texto || '') + '</div>'
-        : ((item.tipo === 'alta' || item.tipo === 'finalizada')
-          ? ''
-          : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>');
+        : (item.tipo === 'finalizada'
+          ? (item.url_informe ? '<a class="link-chip" href="' + escapeHtml(item.url_informe) + '" target="_blank" rel="noopener">↗ Informe de gestión</a>' : '')
+          : (item.tipo === 'alta'
+            ? ''
+            : '<div class="activity-change"><b>' + escapeHtml(item.campo || '') + '</b><span class="activity-old">' + escapeHtml(item.valor_anterior || 'vacio') + '</span><span class="text-muted">a</span><span class="activity-new">' + escapeHtml(item.valor_nuevo || 'vacio') + '</span></div>'));
       const meta = item.tipo === 'finalizada'
-        ? (item.responsable ? 'Responsable: ' + escapeHtml(item.responsable) : 'Sin responsable asignado')
+        ? (item.area ? 'Área responsable: ' + escapeHtml(item.area) : 'Sin área asignada')
         : escapeHtml(item.usuario || 'Sin usuario') + ' - ' + escapeHtml(item.entidad || '') + ' #' + escapeHtml(item.id_entidad || '');
       return '<article class="activity-item">' +
         '<div class="activity-time">' + escapeHtml(itemTimeLabel_(item)) + '</div>' +
@@ -393,7 +395,7 @@
       const lineas = [rangoLabel_() + ' — ' + (TAB_TITLE[_tab] || 'Actividad') + ' (' + items.length + ')', ''];
       items.forEach(function (item) {
         if (item.tipo === 'finalizada') {
-          lineas.push('- ' + item.titulo + (item.proyecto ? ' (' + item.proyecto + ')' : '') + (item.responsable ? ' — ' + item.responsable : '') + ' — ' + fmtInputDate(item.dia));
+          lineas.push('- ' + item.titulo + (item.proyecto ? ' (' + item.proyecto + ')' : '') + (item.area ? ' — ' + item.area : '') + ' — ' + fmtInputDate(item.dia) + (item.url_informe ? ' — ' + item.url_informe : ''));
         } else if (item.tipo === 'comentario') {
           lineas.push('- [' + (item.hora || '') + '] ' + item.titulo + ': ' + item.texto);
         } else if (item.tipo === 'alta') {

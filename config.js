@@ -9,12 +9,14 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.23.0',
+  number: '1.23.2',
   date:   '2026-07-08',
-  notes:  'Actividad: tab de tareas finalizadas y boton para copiar el resumen',
+  notes:  'Actividad: link al informe de gestion en el tab Finalizadas',
 };
 
 const CHANGELOG = [
+  { v: '1.23.2', date: '2026-07-08', desc: 'Actividad: el tab Finalizadas muestra el link al informe de gestion de la tarea (cuando lo tiene) y lo incluye en "Copiar resumen".' },
+  { v: '1.23.1', date: '2026-07-08', desc: 'Actividad: en el tab Finalizadas, cada tarea muestra su area responsable (Ecom/InfraCommerce/PIM) en vez del responsable individual.' },
   { v: '1.23.0', date: '2026-07-08', desc: 'Actividad: nuevo tab "Finalizadas" con las tareas que pasaron a Finalizada en el rango elegido (una fila por tarea, sin duplicar si se finalizo mas de una vez), mostrando responsable y fecha. Se agrega el boton "Copiar resumen" para armar en texto plano el detalle a enviar (ej. el cierre semanal).' },
   { v: '1.22.1', date: '2026-07-08', desc: 'Actividad: la minuta ya no lee HISTORIAL/LOGS/COMENTARIOS completos en cada consulta; ahora lee solo la columna de fecha para ubicar las filas del rango pedido y trae unicamente esas filas completas. Mismo resultado, mejor tiempo de respuesta a medida que crecen esas hojas.' },
   { v: '1.22.0', date: '2026-07-08', desc: 'Actividad: se agrega un rango Desde/Hasta (maximo 31 dias) con flechas para navegar al periodo anterior/siguiente manteniendo la duracion elegida; en rangos de mas de un dia cada movimiento muestra su fecha ademas de la hora.' },
