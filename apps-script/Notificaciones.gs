@@ -32,6 +32,11 @@ function emitNotificacion_(destinatarioNombre, tipo, entidad, idEntidad, mensaje
 // ── LISTAR (para el usuario logueado) ─────────────────────────
 // Devuelve las últimas ~30 notificaciones del usuario + conteo de no leídas.
 function getNotificaciones_(params, user) {
+  // Defensivo: si la hoja aún no fue creada (migración sin correr), no romper
+  // la carga de la página — devolver vacío. El polling cada 60s lo reintenta.
+  if (!getSpreadsheet_().getSheetByName(SHEETS.NOTIFICACIONES)) {
+    return { ok: true, data: { items: [], no_leidas: 0 } };
+  }
   const nombre = getNombreByEmail_(user && user.email);
   if (!nombre) return { ok: true, data: { items: [], no_leidas: 0 } };
 
@@ -49,7 +54,8 @@ function getNotificaciones_(params, user) {
 function markNotificacionLeida_(params, user) {
   const id = validateId_(params.id, 'id');
   const nombre = getNombreByEmail_(user && user.email);
-  const sheet = getSheet_(SHEETS.NOTIFICACIONES);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.NOTIFICACIONES);
+  if (!sheet) return { ok: false, error: 'Notificación no encontrada', code: 404 };
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Notificación no encontrada', code: 404 };
 
@@ -66,7 +72,8 @@ function markAllNotificacionesLeidas_(params, user) {
   const nombre = getNombreByEmail_(user && user.email);
   if (!nombre) return { ok: true, data: { count: 0 } };
 
-  const sheet = getSheet_(SHEETS.NOTIFICACIONES);
+  const sheet = getSpreadsheet_().getSheetByName(SHEETS.NOTIFICACIONES);
+  if (!sheet) return { ok: true, data: { count: 0 } };
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return { ok: true, data: { count: 0 } };
 
