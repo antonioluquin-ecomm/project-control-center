@@ -16,6 +16,7 @@ const SHEETS = {
   SESIONES:    'SESIONES',
   ROLES:       'ROLES',
   PERMISOS_MODULOS: 'PERMISOS_MODULOS',
+  NOTIFICACIONES: 'NOTIFICACIONES',
   LOGS:        'LOGS',
   ERRORS:      'ERRORS',
   CONFIG:      'CONFIG',
@@ -205,6 +206,23 @@ const PERMISOS_MODULOS_COLS = {
   puede_ver:    3,
   puede_editar: 4,
 };
+
+// Notificaciones por usuario (campana del top header). El destinatario se
+// guarda por NOMBRE (responsable es texto libre, no FK) — ver Notificaciones.gs.
+const NOTIFICACIONES_COLS = {
+  id:           1,   // A
+  timestamp:    2,   // B
+  destinatario: 3,   // C  — nombre de usuario (coincide con responsable/mención)
+  tipo:         4,   // D  — ASIGNACION | ESTADO | COMENTARIO | MENCION
+  entidad:      5,   // E  — TAREA | PROYECTO
+  id_entidad:   6,   // F
+  mensaje:      7,   // G  — texto legible de la notificación
+  origen:       8,   // H  — nombre de quien la generó
+  leida:        9,   // I  — SI | NO
+};
+
+// Tipos válidos de notificación.
+const TIPOS_NOTIFICACION = ['ASIGNACION', 'ESTADO', 'COMENTARIO', 'MENCION'];
 
 // Módulos gobernados por PERMISOS_MODULOS (coinciden con las páginas del frontend).
 const MODULOS = ['proyectos', 'tareas', 'seguimiento', 'reportes', 'gantt'];

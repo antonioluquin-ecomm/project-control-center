@@ -249,6 +249,15 @@
 
         await loadTareas();
         if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
+        // Deep-link desde una notificación: ?tarea=<id> abre el detalle.
+        const mT = location.search.match(/[?&]tarea=(\d+)/);
+        if (mT) {
+          const tid = Number(mT[1]);
+          if (!STATE.tareas.some(function (x) { return Number(x.id) === tid; })) {
+            STATE.tareas = await apiGetTareas({ incluir_canceladas: true });
+          }
+          openDetalle(tid);
+        }
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
 

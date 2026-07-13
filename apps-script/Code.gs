@@ -77,11 +77,15 @@ function routePost_(action, params, user, body) {
   if (action === 'getChecklist')    return getChecklist_(params);
   if (action === 'getUsuariosBasico') return getUsuariosBasico_();
   if (action === 'getPermisos')     return getPermisos_();
+  if (action === 'getNotificaciones') return getNotificaciones_(params, user);
 
   // 2) Colaboración — cualquier usuario autenticado puede comentar y adjuntar.
   if (action === 'createComentario') return createComentario_(params, user);
   if (action === 'updateComentario') return updateComentario_(params, user);
   if (action === 'createAdjunto')    return createAdjunto_(params, user);
+  // Notificaciones propias: cualquier usuario marca las suyas (NO admin-only).
+  if (action === 'markNotificacionLeida')      return markNotificacionLeida_(params, user);
+  if (action === 'markAllNotificacionesLeidas') return markAllNotificacionesLeidas_(params, user);
 
   // 3) Gestión (usuarios / roles / permisos) — solo Administrador.
   if (ADMIN_ACTIONS.indexOf(action) !== -1) {

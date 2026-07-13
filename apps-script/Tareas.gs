@@ -91,6 +91,13 @@ function createTarea_(params, user) {
     requerimientoTexto, requerimientoDetalles, requerimientoObjetivo,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
+
+  // Notificar al responsable si la tarea se creó ya asignada.
+  if (responsable) {
+    const origen = getNombreByEmail_(email);
+    emitNotificacion_(responsable, 'ASIGNACION', 'TAREA', id,
+      origen + ' te asignó la tarea "' + titulo + '"', origen);
+  }
   return { ok: true, data: { id: id } };
 }
 
@@ -179,6 +186,22 @@ function updateTarea_(params, user) {
 
   updateFields_(SHEETS.TAREAS, rowNum, TAREAS_COLS, updates, email);
   writeLog_('updateTarea', 'TAREAS', id, 'OK', '', email);
+
+  // Notificaciones: asignación (cambio de responsable) y cambio de estado.
+  const origen = getNombreByEmail_(email);
+  const titulo = updates.titulo !== undefined ? updates.titulo : (actual.titulo || '');
+  const respActual = updates.responsable !== undefined ? updates.responsable : actual.responsable;
+
+  if (updates.responsable !== undefined
+      && String(updates.responsable || '') !== String(actual.responsable || '')
+      && updates.responsable) {
+    emitNotificacion_(updates.responsable, 'ASIGNACION', 'TAREA', id,
+      origen + ' te asignó la tarea "' + titulo + '"', origen);
+  }
+  if (updates.estado !== undefined && String(updates.estado) !== String(actual.estado || '')) {
+    emitNotificacion_(respActual, 'ESTADO', 'TAREA', id,
+      'La tarea "' + titulo + '" cambió a estado ' + updates.estado, origen);
+  }
   return { ok: true, data: { id: id } };
 }
 

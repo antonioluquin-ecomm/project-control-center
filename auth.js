@@ -267,6 +267,269 @@ async function _submitChangePassword() {
   }
 }
 
+/* ─── NOTIFICACIONES (campana del top header) ─────────────────
+   Se inyecta por JS en todas las páginas con topbar (el topbar está
+   duplicado en cada HTML). Patrón de panel flotante = user-dropdown. */
+
+let _notifTimer = null;
+
+const _NOTIF_ICON = { ASIGNACION: '📌', ESTADO: '🔄', COMENTARIO: '💬', MENCION: '@' };
+
+function initNotificaciones() {
+  // En modo real, solo para sesiones activas; en demo siempre se muestra.
+  if (!CFG.isMock() && !SESSION.isLoggedIn()) return;
+  const actions = document.querySelector('.topbar .topbar-actions') || document.querySelector('.topbar');
+  if (!actions || document.getElementById('notif-bell')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'notif-bell';
+  btn.className = 'notif-bell';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Notificaciones');
+  btn.setAttribute('aria-haspopup', 'true');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = '<span class="notif-bell-icon" aria-hidden="true">🔔</span>' +
+                  '<span class="notif-badge" id="notif-badge" hidden>0</span>';
+  actions.insertBefore(btn, actions.firstChild);
+
+  // Panel adjunto a <body> para evitar clipping del overflow del topbar.
+  const panel = document.createElement('div');
+  panel.id = 'notif-panel';
+  panel.className = 'notif-panel';
+  panel.setAttribute('role', 'menu');
+  panel.style.display = 'none';
+  panel.innerHTML =
+    '<div class="notif-panel-head">' +
+      '<span>Notificaciones</span>' +
+      '<button type="button" class="notif-mark-all" id="notif-mark-all">Marcar todas como leídas</button>' +
+    '</div>' +
+    '<div class="notif-list" id="notif-list"><div class="notif-empty">Cargando…</div></div>';
+  document.body.appendChild(panel);
+  panel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (panel.style.display !== 'none') _closeNotifPanel();
+    else _openNotifPanel();
+  });
+  document.getElementById('notif-mark-all').addEventListener('click', _notifMarkAll);
+  // Delegación: click en un ítem → marcar leída y navegar.
+  document.getElementById('notif-list').addEventListener('click', function (e) {
+    const item = e.target.closest('.notif-item');
+    if (item) _notifOpen(item.dataset.id, item.dataset.entidad, item.dataset.identidad);
+  });
+  document.addEventListener('click', _closeNotifPanel);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') _closeNotifPanel(); });
+
+  refreshNotifCount();
+  if (!_notifTimer) _notifTimer = setInterval(refreshNotifCount, 60000);
+}
+
+function _openNotifPanel() {
+  const btn = document.getElementById('notif-bell');
+  const panel = document.getElementById('notif-panel');
+  if (!btn || !panel) return;
+  panel.style.display = 'block';
+  const rect = btn.getBoundingClientRect();
+  if (window.innerWidth <= 640) {
+    panel.style.top = (rect.bottom + 6) + 'px';
+    panel.style.left = '8px'; panel.style.right = '8px'; panel.style.width = 'auto';
+  } else {
+    panel.style.top = (rect.bottom + 6) + 'px';
+    panel.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
+    panel.style.left = 'auto'; panel.style.width = '340px';
+  }
+  btn.setAttribute('aria-expanded', 'true');
+  _loadNotifList();
+}
+
+function _closeNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('notif-bell');
+  if (panel) panel.style.display = 'none';
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function _setNotifBadge(n) {
+  const b = document.getElementById('notif-badge');
+  if (!b) return;
+  if (n > 0) { b.textContent = n > 99 ? '99+' : String(n); b.hidden = false; }
+  else b.hidden = true;
+}
+
+async function refreshNotifCount() {
+  try {
+    const res = await apiGetNotificaciones();
+    _setNotifBadge(res && res.no_leidas ? Number(res.no_leidas) : 0);
+  } catch (e) { /* silencioso: no romper la página por notificaciones */ }
+}
+
+async function _loadNotifList() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  try {
+    const res = await apiGetNotificaciones();
+    const items = (res && res.items) || [];
+    _setNotifBadge(res && res.no_leidas ? Number(res.no_leidas) : 0);
+    list.innerHTML = items.length ? items.map(function (n) {
+      const icon = _NOTIF_ICON[n.tipo] || '•';
+      const noLeida = String(n.leida) !== 'SI';
+      return '<button type="button" class="notif-item' + (noLeida ? ' unread' : '') + '"' +
+        ' data-id="' + escapeHtml(n.id) + '"' +
+        ' data-entidad="' + escapeHtml(n.entidad) + '"' +
+        ' data-identidad="' + escapeHtml(n.id_entidad) + '">' +
+        '<span class="notif-item-icon" aria-hidden="true">' + escapeHtml(icon) + '</span>' +
+        '<span class="notif-item-body">' +
+          '<span class="notif-item-msg">' + escapeHtml(n.mensaje) + '</span>' +
+          '<span class="notif-item-when">' + escapeHtml(_notifWhen(n.timestamp)) + '</span>' +
+        '</span>' +
+      '</button>';
+    }).join('') : '<div class="notif-empty">No tenés notificaciones.</div>';
+  } catch (e) {
+    list.innerHTML = '<div class="notif-empty">No se pudieron cargar las notificaciones.</div>';
+  }
+}
+
+async function _notifMarkAll(e) {
+  if (e) e.stopPropagation();
+  try {
+    await apiMarkAllNotificacionesLeidas();
+    _setNotifBadge(0);
+    _loadNotifList();
+  } catch (err) { /* silencioso */ }
+}
+
+async function _notifOpen(id, entidad, idEntidad) {
+  try { await apiMarkNotificacionLeida(id); } catch (e) { /* seguir aunque falle */ }
+  const base = (typeof _assetBase === 'function') ? _assetBase() : '';
+  const href = entidad === 'PROYECTO'
+    ? base + 'modules/proyectos/proyectos.html?actividad=' + encodeURIComponent(idEntidad)
+    : base + 'modules/tareas/tareas.html?tarea=' + encodeURIComponent(idEntidad);
+  window.location.href = href;
+}
+
+// Fecha relativa liviana (no depende de actividad.js, que no se carga en index).
+function _notifWhen(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return '';
+  const diff = Date.now() - d.getTime();
+  const min = Math.round(diff / 60000);
+  if (min < 1) return 'recién';
+  if (min < 60) return 'hace ' + min + ' min';
+  const h = Math.round(min / 60);
+  if (h < 24) return 'hace ' + h + ' h';
+  return d.toLocaleDateString('es-AR');
+}
+
+/* ─── MENCIONES @usuario en el editor de comentarios ──────────
+   Delegación sobre #act-input (el textarea del panel de actividad, creado
+   dinámicamente). Al escribir "@" muestra un selector de usuarios activos;
+   al elegir, inserta "@Nombre ". El backend matchea "@Nombre" contra el
+   nombre completo del usuario. */
+
+let _mentionStart = -1;   // posición del "@" que dispara el selector
+let _mentionSel = 0;      // índice resaltado
+
+document.addEventListener('input', function (e) {
+  if (e.target && e.target.id === 'act-input') _mentionOnInput(e.target);
+});
+document.addEventListener('keydown', function (e) {
+  if (e.target && e.target.id === 'act-input') _mentionOnKeydown(e);
+}, true);
+
+function _mentionMatches(token) {
+  const t = normalizeText(token);
+  return (_usuariosBasico || [])
+    .map(function (u) { return u.nombre; })
+    .filter(Boolean)
+    .filter(function (n) { return normalizeText(n).indexOf(t) !== -1; })
+    .slice(0, 6);
+}
+
+function _mentionOnInput(ta) {
+  if (!_usuariosBasico) { loadUsuariosBasico().then(function () { _mentionOnInput(ta); }); return; }
+  const val = ta.value;
+  const caret = ta.selectionStart;
+  const upto = val.slice(0, caret);
+  const at = upto.lastIndexOf('@');
+  // El token va desde el '@' hasta el caret; se corta si hay espacio/salto.
+  if (at === -1 || /[\s]/.test(upto.slice(at + 1))) { _mentionClose(); return; }
+  const token = upto.slice(at + 1);
+  const matches = _mentionMatches(token);
+  if (!matches.length) { _mentionClose(); return; }
+  _mentionStart = at;
+  _mentionSel = 0;
+  _mentionRender(ta, matches);
+}
+
+function _mentionRender(ta, matches) {
+  let pop = document.getElementById('mention-pop');
+  if (!pop) {
+    pop = document.createElement('div');
+    pop.id = 'mention-pop';
+    pop.className = 'mention-pop';
+    document.body.appendChild(pop);
+    pop.addEventListener('mousedown', function (e) {
+      // mousedown (no click) para no perder el foco/caret del textarea antes de insertar.
+      const it = e.target.closest('.mention-item');
+      if (it) { e.preventDefault(); _mentionPick(ta, it.dataset.nombre); }
+    });
+  }
+  pop.innerHTML = matches.map(function (n, i) {
+    return '<div class="mention-item' + (i === _mentionSel ? ' active' : '') + '" data-nombre="' + escapeHtml(n) + '">' + escapeHtml(n) + '</div>';
+  }).join('');
+  pop.dataset.count = matches.length;
+  const rect = ta.getBoundingClientRect();
+  pop.style.display = 'block';
+  pop.style.left = rect.left + 'px';
+  pop.style.top = (rect.bottom + 4) + 'px';
+  pop.style.minWidth = Math.min(rect.width, 260) + 'px';
+}
+
+function _mentionClose() {
+  const pop = document.getElementById('mention-pop');
+  if (pop) pop.style.display = 'none';
+  _mentionStart = -1;
+}
+
+function _mentionPick(ta, nombre) {
+  if (_mentionStart < 0) return;
+  const caret = ta.selectionStart;
+  const val = ta.value;
+  const before = val.slice(0, _mentionStart);
+  const after = val.slice(caret);
+  const insert = '@' + nombre + ' ';
+  ta.value = before + insert + after;
+  const pos = before.length + insert.length;
+  ta.setSelectionRange(pos, pos);
+  ta.focus();
+  _mentionClose();
+}
+
+function _mentionOnKeydown(e) {
+  const pop = document.getElementById('mention-pop');
+  if (!pop || pop.style.display === 'none') return;
+  const count = Number(pop.dataset.count || 0);
+  if (!count) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); _mentionSel = (_mentionSel + 1) % count; _mentionHighlight(pop); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); _mentionSel = (_mentionSel - 1 + count) % count; _mentionHighlight(pop); }
+  else if (e.key === 'Enter' || e.key === 'Tab') {
+    const it = pop.querySelectorAll('.mention-item')[_mentionSel];
+    if (it) { e.preventDefault(); _mentionPick(e.target, it.dataset.nombre); }
+  } else if (e.key === 'Escape') { e.preventDefault(); _mentionClose(); }
+}
+
+function _mentionHighlight(pop) {
+  pop.querySelectorAll('.mention-item').forEach(function (el, i) {
+    el.classList.toggle('active', i === _mentionSel);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  try { initNotificaciones(); } catch (e) { /* no romper la página */ }
+});
+
 function initSidebarCollapse() {
   const btn = document.getElementById('sidebarCollapseBtn');
   if (!btn) return;

@@ -30,6 +30,7 @@ const _HEADERS = {
   SESIONES: ['session_token','id_usuario','email','id_rol','expira_en','creada_en','activa'],
   ROLES: ['id','nombre','descripcion','activo','es_sistema'],
   PERMISOS_MODULOS: ['id_rol','modulo','puede_ver','puede_editar'],
+  NOTIFICACIONES: ['id','timestamp','destinatario','tipo','entidad','id_entidad','mensaje','origen','leida'],
   LOGS: ['id','timestamp','accion','entidad','entidad_id','usuario','resultado','detalle'],
   ERRORS: ['id','timestamp','accion','usuario','mensaje','stack'],
   CONFIG: ['clave','valor','descripcion'],
@@ -194,6 +195,16 @@ function agregarColumnaSprintTareas() {
     config.appendRow([CATALOGOS.CAT_ESTADOS_SPRINT, ESTADOS_SPRINT.join(','), '']);
   }
   Logger.log('✓ Sprints: hoja SPRINTS, header id_sprint en TAREAS y catalogo CAT_ESTADOS_SPRINT listos.');
+}
+
+// Notificaciones: crea la hoja NOTIFICACIONES (si falta) con su header.
+// Idempotente. Correr UNA vez en el editor tras desplegar el código de
+// notificaciones (o simplemente correr setupAll() de nuevo, que ya la incluye).
+function crearHojaNotificaciones() {
+  const ss = getSpreadsheet_();
+  const sheet = _ensureSheet_(ss, SHEETS.NOTIFICACIONES);
+  _ensureHeader_(sheet, _HEADERS.NOTIFICACIONES);
+  Logger.log('✓ Notificaciones: hoja NOTIFICACIONES lista.');
 }
 
 // Migra la hoja ROLES del schema viejo (id, nombre) al actual

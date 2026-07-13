@@ -57,5 +57,46 @@ function createComentario_(params, user) {
   sheet.appendRow([id, entidad, idEntidad, texto, email, new Date()]);
 
   writeLog_('createComentario', entidad, idEntidad, 'OK', '', email);
+
+  // Notificaciones: menciones (@nombre) y aviso al responsable de la entidad.
+  _notificarComentario_(entidad, idEntidad, texto, email);
   return { ok: true, data: { id: id } };
+}
+
+// ── Notificaciones de un comentario nuevo ─────────────────────
+// 1) Menciones: por cada usuario activo cuyo nombre aparezca como "@Nombre"
+//    en el texto (comparar contra el nombre completo evita el problema de
+//    nombres con espacios). 2) Aviso al responsable de la tarea/proyecto.
+// Cada destinatario se notifica una sola vez (la mención tiene prioridad).
+function _notificarComentario_(entidad, idEntidad, texto, email) {
+  const origen = getNombreByEmail_(email);
+  const notificados = {};
+
+  // 1) Menciones.
+  const usuarios = getAllRows_(SHEETS.USUARIOS, USUARIOS_COLS)
+    .filter(function(u) { return String(u.activo) === 'SI' && u.nombre; });
+  usuarios.forEach(function(u) {
+    if (texto.indexOf('@' + u.nombre) !== -1 && !notificados[u.nombre]) {
+      emitNotificacion_(u.nombre, 'MENCION', entidad, idEntidad,
+        origen + ' te mencionó en un comentario', origen);
+      notificados[u.nombre] = true;
+    }
+  });
+
+  // 2) Aviso al responsable de la entidad (si no fue ya notificado por mención).
+  const sheetRef = getSheet_(entidad === 'PROYECTO' ? SHEETS.PROYECTOS : SHEETS.TAREAS);
+  const rowNum = findRowNumber_(sheetRef, idEntidad);
+  if (!rowNum) return;
+  const colMap = entidad === 'PROYECTO' ? PROYECTOS_COLS : TAREAS_COLS;
+  const responsable = String(sheetRef.getRange(rowNum, colMap.responsable).getValue() || '').trim();
+  if (responsable && !notificados[responsable]) {
+    emitNotificacion_(responsable, 'COMENTARIO', entidad, idEntidad,
+      origen + ' comentó en "' + _tituloEntidad_(sheetRef, rowNum, colMap) + '"', origen);
+  }
+}
+
+// Título legible de la entidad para el texto de la notificación.
+function _tituloEntidad_(sheet, rowNum, colMap) {
+  const col = colMap.titulo || colMap.nombre;
+  return String(sheet.getRange(rowNum, col).getValue() || '');
 }

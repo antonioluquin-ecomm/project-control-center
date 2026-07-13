@@ -96,6 +96,9 @@
         render();
         setStatus('statusBar', STATE.proyectos.length + ' proyectos.', 'success');
         if (/[?&]new=1/.test(location.search) && isAdmin()) openModal();
+        // Deep-link desde una notificación: ?actividad=<id> abre el panel de actividad.
+        const mA = location.search.match(/[?&]actividad=(\d+)/);
+        if (mA) actProyecto(Number(mA[1]));
       } catch (err) { setStatus('statusBar', 'Error: ' + err.message, 'error'); }
     }
 

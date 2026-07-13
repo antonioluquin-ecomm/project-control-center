@@ -147,6 +147,10 @@ function apiUpdateUsuario(d)     { return callApiRaw('updateUsuario', d); }
 function apiGetPermisos()        { return callApiRaw('getPermisos'); }
 function apiUpdatePermisos(d)    { return callApiRaw('updatePermisos', d); }
 
+function apiGetNotificaciones()               { return callApiRaw('getNotificaciones'); }
+function apiMarkNotificacionLeida(id)         { return callApiRaw('markNotificacionLeida', { id: id }); }
+function apiMarkAllNotificacionesLeidas()     { return callApiRaw('markAllNotificacionesLeidas'); }
+
 function apiGetRoles()           { return callApiRaw('getRoles'); }
 function apiCreateRol(d)         { return callApiRaw('createRol', d); }
 function apiUpdateRol(d)         { return callApiRaw('updateRol', d); }
@@ -623,6 +627,40 @@ async function _mockCall(action, p) {
       return { ok: true };
     }
 
+    case 'getNotificaciones': {
+      _mockNotifInit();
+      const items = _mockNotif.slice()
+        .sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); })
+        .slice(0, 30);
+      const noLeidas = _mockNotif.filter(function (n) { return String(n.leida) !== 'SI'; }).length;
+      return { items: items, no_leidas: noLeidas };
+    }
+    case 'markNotificacionLeida': {
+      _mockNotifInit();
+      const n = _mockNotif.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
+      if (n) n.leida = 'SI';
+      return { id: p.id };
+    }
+    case 'markAllNotificacionesLeidas': {
+      _mockNotifInit();
+      let count = 0;
+      _mockNotif.forEach(function (n) { if (String(n.leida) !== 'SI') { n.leida = 'SI'; count++; } });
+      return { count: count };
+    }
+
     default: throw new Error('Acción demo no soportada: ' + action);
   }
+}
+
+// Notificaciones demo: datos de ejemplo para ver la campana sin backend.
+let _mockNotif = null;
+function _mockNotifInit() {
+  if (_mockNotif) return;
+  const now = Date.now();
+  const ago = function (min) { return new Date(now - min * 60000).toISOString(); };
+  _mockNotif = [
+    { id: 3, timestamp: ago(15),   destinatario: 'Demo', tipo: 'MENCION',    entidad: 'TAREA', id_entidad: 1, mensaje: 'Ana te mencionó en un comentario', origen: 'Ana', leida: 'NO' },
+    { id: 2, timestamp: ago(120),  destinatario: 'Demo', tipo: 'ASIGNACION', entidad: 'TAREA', id_entidad: 2, mensaje: 'Carlos te asignó la tarea "Ajustar PDP"', origen: 'Carlos', leida: 'NO' },
+    { id: 1, timestamp: ago(1440), destinatario: 'Demo', tipo: 'ESTADO',     entidad: 'TAREA', id_entidad: 1, mensaje: 'La tarea "Home responsive" cambió a estado QA', origen: 'Carlos', leida: 'SI' },
+  ];
 }
