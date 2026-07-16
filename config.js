@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.0',
-  date:   '2026-07-13',
-  notes:  'Notificaciones: campana en el top header con menciones, asignaciones y cambios de estado',
+  number: '1.26.1',
+  date:   '2026-07-16',
+  notes:  'Fix: campana de notificaciones mal ubicada en Tareas, Proyectos, Seguimiento, Reportes, Gantt y Configuracion',
 };
 
 const CHANGELOG = [
+  { v: '1.26.1', date: '2026-07-16', desc: 'Fix: la campana de notificaciones (v1.26.0) solo tenia el contenedor .topbar-actions en Inicio; en el resto de las paginas (Tareas, Proyectos, Seguimiento, Reportes, Gantt, Configuracion) se insertaba al principio del topbar, antes del boton de colapsar el menu lateral, en vez de a la derecha. Se agrega el contenedor faltante en esas 6 paginas para que quede anclada a la derecha en todas.' },
   { v: '1.26.0', date: '2026-07-13', desc: 'Notificaciones por usuario: nueva campana en el top header (visible en todas las paginas, para Admin y Agente) con contador de no leidas y panel de las ultimas novedades. Se genera una notificacion cuando te asignan una tarea, cambia el estado de una tarea de la que sos responsable, alguien comenta en algo tuyo, o te mencionan con @ en un comentario. El editor de comentarios ahora tiene un selector @ para mencionar usuarios. Al hacer click en una notificacion se abre la tarea/proyecto correspondiente. El contador se refresca solo cada 60s. Backend: nueva hoja NOTIFICACIONES (correr setupAll() o crearHojaNotificaciones() una vez).' },
   { v: '1.25.2', date: '2026-07-08', desc: 'El tab Requerimiento ahora arma su Markdown con la misma estructura que el Informe de Gestion (titulo como encabezado, lista de campos autocompletados, y cada campo manual como seccion propia con "_(sin completar)_" si esta vacio) — antes era una lista plana de bullets. Se agrega el boton "Prellenar desde Descripcion" para copiar la Descripcion de la tarea al campo Requerimiento sin escribir dos veces, pidiendo confirmacion si ya habia texto cargado.' },
   { v: '1.25.1', date: '2026-07-08', desc: 'Fix visual: una regla global de inputs (pensada para texto) inflaba cualquier checkbox a 100% de ancho x 40px de alto. Afectaba sobre todo a los checkboxes de Seccion/Dispositivos del modal de edicion de tarea, que se veian como cuadrados gigantes desalineados de su etiqueta cuando el catalogo tenia valores largos (ej. "Checkout Payment"). Se corrige el tamano de los checkboxes en general, sin afectar el estilo custom del checklist. Ademas, el tab Requerimiento pasa a ir antes que Informe de Gestion, y su vista previa ahora se renderiza con el mismo formato (negritas, lista) que la del Informe en vez de texto plano.' },
