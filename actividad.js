@@ -19,7 +19,7 @@ function openActividad(entidad, idEntidad, titulo) {
       '<button class="act-tab" id="act-tab-his" onclick="_actShow(\'his\')">Historial</button>' +
     '</div>' +
     '<div id="act-com">' +
-      '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario…"></textarea></div>' +
+      '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario… Usá **negrita**, # título o - viñeta"></textarea></div>' +
       '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button id="act-send" class="sm" onclick="_actSend()">Comentar</button></div>' +
       '<div id="act-com-list"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
     '</div>' +
@@ -81,7 +81,7 @@ async function _actLoadComentarios() {
             editBtn +
           '</div>' +
         '</div>' +
-        '<div class="act-text">' + escapeHtml(c.texto) + '</div>' +
+        '<div class="act-text act-comment-text">' + renderRichText(c.texto) + '</div>' +
         '</div>';
     }).join('') : '<div class="text-muted" style="font-size:13px">Sin comentarios todavía.</div>';
   } catch (e) { if (wrap) wrap.innerHTML = '<div class="status-bar error">' + escapeHtml(e.message) + '</div>'; }

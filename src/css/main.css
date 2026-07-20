@@ -449,6 +449,12 @@ body.no-edit .admin-only, .admin-only.agent-disabled { display: none !important;
 .act-meta-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .act-meta span { color: var(--muted); font-size: 11px; font-family: var(--mono); }
 .act-text { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+.act-comment-text { white-space: normal; }
+.act-comment-text .rt-h1 { font-size: 14px; font-weight: 700; margin: 8px 0 3px; }
+.act-comment-text .rt-h2 { font-size: 13px; font-weight: 700; margin: 7px 0 3px; }
+.act-comment-text .rt-h1:first-child, .act-comment-text .rt-h2:first-child { margin-top: 0; }
+.act-comment-text .rt-list { margin: 2px 0 7px; padding-left: 19px; }
+.act-comment-text .rt-list:last-child { margin-bottom: 0; }
 .act-edited { font-size: 10px; color: var(--muted); font-style: italic; font-family: var(--mono); }
 .act-edit-btn { opacity: 0; background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-xs); transition: opacity .15s, background .12s, color .12s, border-color .12s; line-height: 1.5; width: auto; height: auto; min-width: unset; flex-shrink: 0; }
 .act-edit-btn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary-mid); transform: none; }

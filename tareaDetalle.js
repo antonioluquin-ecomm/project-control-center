@@ -135,7 +135,7 @@ function openTareaDetalleModal(t, opts) {
       '<button class="act-tab' + (infDestacado ? ' act-tab-highlight' : '') + '" id="act-tab-inf" onclick="_actShow(\'inf\')">Informe de gestión ' + infBadge + '</button>' +
     '</div>' +
     '<div id="act-com">' +
-      '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario…"></textarea></div>' +
+      '<div class="field" style="margin-top:12px"><textarea id="act-input" placeholder="Escribí un comentario… Usá **negrita**, # título o - viñeta"></textarea></div>' +
       '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button id="act-send" class="sm" onclick="_actSend()">Comentar</button></div>' +
       '<div id="act-com-list"><div class="text-muted" style="font-size:13px">Cargando…</div></div>' +
     '</div>' +

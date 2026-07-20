@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.3',
+  number: '1.26.4',
   date:   '2026-07-20',
-  notes:  'Ordenamiento en Proyectos y mejoras de navegacion y filtros en Tareas',
+  notes:  'Formato seguro de titulos, negritas y listas en comentarios',
 };
 
 const CHANGELOG = [
+  { v: '1.26.4', date: '2026-07-20', desc: 'Comentarios: ahora renderizan el mismo subset seguro de formato que las descripciones (titulos con #/##, negritas con **texto** y listas con -/*), con estilos mas compactos para conservar la lectura cronologica. La edicion mantiene el texto fuente y el campo de escritura muestra una ayuda breve de sintaxis.' },
   { v: '1.26.3', date: '2026-07-20', desc: 'Proyectos: las columnas Proyecto, Estado, Prioridad, Responsable, Avance y Vence ahora se pueden ordenar en ambos sentidos, con indicador visual y soporte de teclado. Tareas: la vista Kanban suma una barra de desplazamiento horizontal superior sincronizada con el tablero; la barra de controles se reorganiza en tres grupos estables para priorizar Proyecto, busqueda y Mis tareas, separar los filtros especificos y mantener aparte las acciones.' },
   { v: '1.26.2', date: '2026-07-20', desc: 'Mejora UX: las acciones de fila en Proyectos, Tareas, Kanban, Sprints, Usuarios y Roles usan una jerarquia compacta con iconos SVG, tooltips y etiquetas accesibles. Se conserva texto en acciones ambiguas o sensibles como Tareas, Cerrar, Permisos y Activar/Desactivar. La cancelacion de proyectos deja de presentarse visualmente como eliminacion.' },
   { v: '1.26.1', date: '2026-07-16', desc: 'Fix: la campana de notificaciones (v1.26.0) solo tenia el contenedor .topbar-actions en Inicio; en el resto de las paginas (Tareas, Proyectos, Seguimiento, Reportes, Gantt, Configuracion) se insertaba al principio del topbar, antes del boton de colapsar el menu lateral, en vez de a la derecha. Se agrega el contenedor faltante en esas 6 paginas para que quede anclada a la derecha en todas.' },
