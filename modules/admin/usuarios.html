@@ -377,8 +377,8 @@
           '<td><span class="badge ' + rolCls + '">' + escapeHtml(_rolNombre(u.id_rol)) + '</span></td>' +
           '<td>' + (activo ? '<span class="badge st-done">Activo</span>' : '<span class="badge st-cancel">Inactivo</span>') + '</td>' +
           '<td class="mono">' + (u.ultimo_acceso ? fmtDate(u.ultimo_acceso) : '—') + '</td>' +
-          '<td class="row-actions">' +
-            '<button class="secondary sm admin-only" onclick="openModal(' + u.id + ')">Editar</button>' +
+          '<td class="row-actions compact-actions">' +
+            '<button class="action-icon admin-only" onclick="openModal(' + u.id + ')" title="Editar usuario" aria-label="Editar ' + escapeHtml(u.nombre) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>' +
             '<button class="' + (activo ? 'danger' : 'secondary') + ' sm admin-only" onclick="toggleActivo(' + u.id + ')">' + (activo ? 'Desactivar' : 'Activar') + '</button>' +
           '</td></tr>';
       }).join('');
@@ -452,14 +452,14 @@
         const estado = activo ? '<span class="badge st-done">Activo</span>' : '<span class="badge st-cancel">Inactivo</span>';
         let acciones = '<button class="secondary sm admin-only" onclick="selectRolForPermisos(' + r.id + ')">Permisos</button>';
         if (!sistema) {
-          acciones += '<button class="secondary sm admin-only" onclick="openRolForm(' + r.id + ')">Editar</button>' +
+          acciones += '<button class="action-icon admin-only" onclick="openRolForm(' + r.id + ')" title="Editar rol" aria-label="Editar ' + escapeHtml(r.nombre) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>' +
             '<button class="' + (activo ? 'danger' : 'secondary') + ' sm admin-only" onclick="toggleRolActivo(' + r.id + ')">' + (activo ? 'Desactivar' : 'Activar') + '</button>';
         }
         return '<tr>' +
           '<td><b>' + escapeHtml(r.nombre) + '</b></td>' +
           '<td>' + tipo + '</td>' +
           '<td>' + estado + '</td>' +
-          '<td class="row-actions">' + acciones + '</td></tr>';
+          '<td class="row-actions compact-actions">' + acciones + '</td></tr>';
       }).join('');
       restrictWriteIfAgent();
     }
