@@ -1,6 +1,6 @@
 // ============================================================
 // PROJECT CONTROL CENTER — Comentarios.gs
-// Comentarios de proyectos y tareas. Append-only (historial completo).
+// Comentarios de proyectos y tareas. El autor puede corregirlos durante 15 minutos.
 // Relación polimórfica: (entidad, id_entidad).
 // Cualquier usuario autenticado puede comentar.
 // ============================================================
@@ -27,9 +27,16 @@ function updateComentario_(params, user) {
   const rowNum = findRowNumber_(sheet, id);
   if (!rowNum) return { ok: false, error: 'Comentario no encontrado', code: 404 };
 
-  const autor = sheet.getRange(rowNum, COMENTARIOS_COLS.usuario).getValue();
-  if (autor !== (user && user.email)) {
+  const autor = String(sheet.getRange(rowNum, COMENTARIOS_COLS.usuario).getValue() || '').trim().toLowerCase();
+  const userEmail = String((user && user.email) || '').trim().toLowerCase();
+  if (!userEmail || autor !== userEmail) {
     return { ok: false, error: 'Solo podés editar tus propios comentarios', code: 403 };
+  }
+
+  const fechaCreacion = sheet.getRange(rowNum, COMENTARIOS_COLS.fecha_creacion).getValue();
+  const creadoEn = fechaCreacion instanceof Date ? fechaCreacion.getTime() : new Date(fechaCreacion).getTime();
+  if (isNaN(creadoEn) || Date.now() - creadoEn > 15 * 60 * 1000) {
+    return { ok: false, error: 'El plazo de 15 minutos para editar este comentario venció', code: 403 };
   }
 
   sheet.getRange(rowNum, COMENTARIOS_COLS.texto).setValue(texto);

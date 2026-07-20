@@ -22,7 +22,7 @@ const _HEADERS = {
            'requerimiento_texto','requerimiento_detalles','requerimiento_objetivo'],
   SPRINTS: ['id','nombre','objetivo','estado','fecha_inicio','fecha_fin',
             'fecha_creacion','fecha_modificacion','creado_por','modificado_por'],
-  COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion'],
+  COMENTARIOS: ['id','entidad','id_entidad','texto','usuario','fecha_creacion','fecha_edicion'],
   ADJUNTOS: ['id','entidad','id_entidad','nombre_archivo','file_id','url','thumbnail_url','mime','tamano','subido_por','fecha_creacion'],
   CHECKLIST: ['id','entidad','id_entidad','texto','hecho','orden','fecha_creacion','creado_por'],
   HISTORIAL: ['id','timestamp','entidad','id_entidad','campo','valor_anterior','valor_nuevo','usuario'],
@@ -61,6 +61,9 @@ function setupAll() {
     const sheet = _ensureSheet_(ss, name);
     _ensureHeader_(sheet, _HEADERS[name]);
   });
+
+  // 1b) COMENTARIOS: instalaciones anteriores no tenian fecha_edicion.
+  migrateComentariosSchema(ss.getSheetByName(SHEETS.COMENTARIOS));
 
   // 2) Catálogos: una fila por catalogo en CONFIG (solo si todavia no existe).
   const config = _ensureSheet_(ss, SHEETS.CONFIG);
@@ -258,6 +261,14 @@ function migrateRolesSchema(sheet) {
   }
 }
 
+// Agrega la columna de edición a instalaciones existentes sin alterar comentarios.
+function migrateComentariosSchema(sheet) {
+  if (!sheet) return;
+  const col = COMENTARIOS_COLS.fecha_edicion;
+  const actual = String(sheet.getRange(1, col).getValue() || '').trim();
+  if (!actual) sheet.getRange(1, col).setValue('fecha_edicion');
+  else if (actual !== 'fecha_edicion') throw new Error('COMENTARIOS: la columna ' + col + ' está ocupada por "' + actual + '"');
+}
 // ── internos ──────────────────────────────────────────────────
 function _ensureSheet_(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);

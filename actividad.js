@@ -68,11 +68,15 @@ async function _actLoadComentarios() {
   try {
     const rows = await apiGetComentarios(_actCtx.entidad, _actCtx.id);
     if (!wrap) return;
-    const myEmail = (typeof SESSION !== 'undefined' && SESSION) ? (SESSION.email || '') : '';
+    const sessionUser = (typeof SESSION !== 'undefined' && SESSION) ? SESSION.usuario : null;
+    const myEmail = String((sessionUser && sessionUser.email) || (typeof CFG !== 'undefined' && CFG.isMock() ? 'demo@local' : '')).trim().toLowerCase();
+    const editWindowMs = 15 * 60 * 1000;
     wrap.innerHTML = rows.length ? rows.map(function (c) {
-      const esPropio = myEmail && c.usuario === myEmail;
-      const editadoTag = c.fecha_edicion ? ' <span class="act-edited">(editado)</span>' : '';
-      const editBtn = esPropio ? '<button class="act-edit-btn" onclick="_actEditComentario(' + c.id + ')">Editar</button>' : '';
+      const authorEmail = String(c.usuario || '').trim().toLowerCase();
+      const createdAt = new Date(c.fecha_creacion).getTime();
+      const canEdit = myEmail && authorEmail === myEmail && !isNaN(createdAt) && Date.now() - createdAt <= editWindowMs;
+      const editadoTag = c.fecha_edicion ? ' <span class="act-edited">(editado ' + _actWhen(c.fecha_edicion) + ')</span>' : '';
+      const editBtn = canEdit ? '<button class="act-edit-btn" title="Disponible durante 15 minutos" onclick="_actEditComentario(' + c.id + ')">Editar</button>' : '';
       return '<div class="act-item" id="act-com-' + c.id + '" data-texto="' + escapeHtml(c.texto) + '">' +
         '<div class="act-meta">' +
           '<b>' + escapeHtml(c.usuario || '—') + '</b>' +

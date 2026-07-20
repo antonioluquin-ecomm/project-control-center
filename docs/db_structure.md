@@ -117,7 +117,9 @@ Globales: agrupan TAREAS de cualquier proyecto vía `TAREAS.id_sprint`. Soft del
 **Tabs Sprint/Backlog (`tareas.html`, v1.12.0):** la página tiene dos vistas (`_view = 'sprint' | 'backlog'`) en vez de cargar todo de una. El tab **Sprint** (default) precarga el sprint con `estado = 'Activo'`; si no hay ninguno activo, usa el `Planificado` con `fecha_inicio` más próxima (`_defaultSprintId()`); el `<select>` de sprint sigue permitiendo elegir "Todos los sprints" (carga completa, explícita). El tab **Backlog** oculta el selector de sprint y pide `id_sprint: 'backlog'`. El botón "Exportar todo" ignora el tab activo y exporta todas las tareas del proyecto vía `apiGetTareas({id_proyecto})` sin `id_sprint`.
 
 ### COMENTARIOS *(usada desde Sprint 2)*
-`id · entidad (PROYECTO|TAREA) · id_entidad · texto · usuario · fecha_creacion`
+`id · entidad (PROYECTO|TAREA) · id_entidad · texto · usuario · fecha_creacion · fecha_edicion`
+
+El autor puede editar su comentario durante los 15 minutos posteriores a `fecha_creacion`; el backend valida autor y plazo. Después de ese límite, las correcciones se agregan como un comentario nuevo. Para instalaciones existentes, ejecutar `setupAll()` una vez para agregar de forma idempotente el encabezado `fecha_edicion`.
 
 ### ADJUNTOS *(usada desde Sprint 3 — Google Drive)*
 `id · entidad · id_entidad · nombre_archivo · file_id · url · thumbnail_url · mime · tamano · subido_por · fecha_creacion`

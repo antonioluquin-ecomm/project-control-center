@@ -508,6 +508,9 @@ async function _mockCall(action, p) {
     case 'updateComentario': {
       const c = _mock.comentarios.filter(function (x) { return Number(x.id) === Number(p.id); })[0];
       if (!c) throw new Error('Comentario no encontrado');
+      if (String(c.usuario || '').trim().toLowerCase() !== 'demo@local') throw new Error('Solo podés editar tus propios comentarios');
+      const creadoEn = new Date(c.fecha_creacion).getTime();
+      if (isNaN(creadoEn) || Date.now() - creadoEn > 15 * 60 * 1000) throw new Error('El plazo de 15 minutos para editar este comentario venció');
       c.texto = p.texto;
       c.fecha_edicion = new Date().toISOString();
       return { id: c.id };

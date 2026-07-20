@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.4',
+  number: '1.26.5',
   date:   '2026-07-20',
-  notes:  'Formato seguro de titulos, negritas y listas en comentarios',
+  notes:  'Edicion de comentarios propios limitada a 15 minutos',
 };
 
 const CHANGELOG = [
+  { v: '1.26.5', date: '2026-07-20', desc: 'Comentarios: se corrige la deteccion del autor (el email vive en SESSION.usuario), por lo que Editar vuelve a aparecer cuando corresponde. La edicion queda limitada a comentarios propios durante los primeros 15 minutos, con validacion equivalente en frontend, backend y modo demo; los comentarios editados muestran fecha de edicion. Se agrega fecha_edicion al esquema COMENTARIOS y una migracion idempotente en setupAll() para instalaciones existentes.' },
   { v: '1.26.4', date: '2026-07-20', desc: 'Comentarios: ahora renderizan el mismo subset seguro de formato que las descripciones (titulos con #/##, negritas con **texto** y listas con -/*), con estilos mas compactos para conservar la lectura cronologica. La edicion mantiene el texto fuente y el campo de escritura muestra una ayuda breve de sintaxis.' },
   { v: '1.26.3', date: '2026-07-20', desc: 'Proyectos: las columnas Proyecto, Estado, Prioridad, Responsable, Avance y Vence ahora se pueden ordenar en ambos sentidos, con indicador visual y soporte de teclado. Tareas: la vista Kanban suma una barra de desplazamiento horizontal superior sincronizada con el tablero; la barra de controles se reorganiza en tres grupos estables para priorizar Proyecto, busqueda y Mis tareas, separar los filtros especificos y mantener aparte las acciones.' },
   { v: '1.26.2', date: '2026-07-20', desc: 'Mejora UX: las acciones de fila en Proyectos, Tareas, Kanban, Sprints, Usuarios y Roles usan una jerarquia compacta con iconos SVG, tooltips y etiquetas accesibles. Se conserva texto en acciones ambiguas o sensibles como Tareas, Cerrar, Permisos y Activar/Desactivar. La cancelacion de proyectos deja de presentarse visualmente como eliminacion.' },
