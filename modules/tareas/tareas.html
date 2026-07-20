@@ -49,7 +49,23 @@
     .view-tab:hover { background: var(--card2); transform: none; }
     .view-tab.active { background: var(--primary); color: #fff; }
 
+
+    /* Jerarquia estable: contexto/busqueda, filtros especificos y acciones. */
+    .toolbar-contexto { display: grid; grid-template-columns: minmax(220px, 280px) minmax(240px, 1fr) auto; align-items: center; gap: 10px; }
+    .toolbar-contexto #selProyecto, .toolbar-contexto #q, .toolbar-filtros select { max-width: none !important; }
+    .toolbar-filtros { display: grid; grid-template-columns: repeat(6, minmax(105px, 1fr)) auto; align-items: center; gap: 10px; }
+    @media (max-width: 1100px) {
+      .toolbar-contexto { grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto; }
+      .toolbar-filtros { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 700px) {
+      .toolbar-contexto, .toolbar-filtros { grid-template-columns: 1fr; }
+      .toolbar-contexto .secondary, .toolbar-filtros .secondary { justify-content: center; }
+    }
+
     /* Kanban del sprint activo */
+    .kanban-scroll-top { overflow-x: auto; overflow-y: hidden; height: 16px; margin-bottom: 8px; overscroll-behavior-x: contain; }
+    .kanban-scroll-spacer { height: 1px; }
     .kanban-board { display: grid; grid-auto-flow: column; grid-auto-columns: 254px; grid-template-columns: none; gap: 10px; align-items: start; overflow-x: auto; overflow-y: visible; padding-bottom: 10px; overscroll-behavior-x: contain; }
     .kanban-col { border: 1px solid var(--line); border-radius: 8px; background: var(--card2); min-width: 254px; overflow: hidden; }
     .kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--card); font-size: 12.5px; font-weight: 700; }
@@ -108,16 +124,18 @@
           <h1>Tareas</h1>
         </div>
         <section class="panel">
-          <div class="toolbar toolbar-filtros">
-            <select id="selProyecto" onchange="onProyectoChange()" style="max-width:280px"></select>
-            <select id="fEstado" onchange="render()" style="max-width:150px"><option value="">Todos los estados</option></select>
-            <select id="fTipo"   onchange="render()" style="max-width:130px"><option value="">Todos los tipos</option></select>
-            <select id="fPrio"   onchange="render()" style="max-width:130px"><option value="">Todas las prioridades</option></select>
-            <select id="fArea"   onchange="render()" style="max-width:130px"><option value="">Todas las áreas</option></select>
-            <select id="fTienda" onchange="render()" style="max-width:130px"><option value="">Todas las tiendas</option></select>
-            <select id="fResp"   onchange="render()" style="max-width:150px"><option value="">Todos los resp.</option></select>
+          <div class="toolbar toolbar-contexto">
+            <select id="selProyecto" onchange="onProyectoChange()"></select>
+            <input type="search" id="q" placeholder="Buscar tarea…" oninput="render()" />
             <button class="secondary sm" onclick="misTareas()">Mis tareas</button>
-            <input type="search" id="q" placeholder="Buscar tarea…" style="max-width:200px" oninput="render()" />
+          </div>
+          <div class="toolbar toolbar-filtros">
+            <select id="fEstado" onchange="render()"><option value="">Todos los estados</option></select>
+            <select id="fTipo"   onchange="render()"><option value="">Todos los tipos</option></select>
+            <select id="fPrio"   onchange="render()"><option value="">Todas las prioridades</option></select>
+            <select id="fArea"   onchange="render()"><option value="">Todas las áreas</option></select>
+            <select id="fTienda" onchange="render()"><option value="">Todas las tiendas</option></select>
+            <select id="fResp"   onchange="render()"><option value="">Todos los resp.</option></select>
             <button class="secondary sm" id="btnLimpiarFiltros" onclick="limpiarFiltros()" style="display:none">Limpiar filtros</button>
           </div>
           <div class="toolbar toolbar-acciones">
@@ -487,6 +505,23 @@
       '</article>';
     }
 
+    function _initKanbanScroll() {
+      const top = document.querySelector('.kanban-scroll-top');
+      const spacer = document.querySelector('.kanban-scroll-spacer');
+      const board = document.querySelector('.kanban-board');
+      if (!top || !spacer || !board) return;
+      spacer.style.width = board.scrollWidth + 'px';
+      top.hidden = board.scrollWidth <= board.clientWidth;
+      let syncing = false;
+      function sync(source, target) {
+        if (syncing) return;
+        syncing = true;
+        target.scrollLeft = source.scrollLeft;
+        requestAnimationFrame(function () { syncing = false; });
+      }
+      top.addEventListener('scroll', function () { sync(top, board); });
+      board.addEventListener('scroll', function () { sync(board, top); });
+    }
     function _renderKanban(rows) {
       const sprint = _activeSprint();
       const container = document.getElementById('groupsContainer');
@@ -510,7 +545,9 @@
       }).join('');
       container.innerHTML =
         '<div class="status-bar info" style="margin-bottom:10px">Sprint activo: <b>' + escapeHtml(sprint.nombre) + '</b> - ' + sprintRows.length + ' tarea' + (sprintRows.length === 1 ? '' : 's') + '</div>' +
-        '<div class="kanban-board">' + board + '</div>';
+        '<div class="kanban-scroll-top" role="region" aria-label="Desplazamiento horizontal del tablero"><div class="kanban-scroll-spacer"></div></div>' +
+        '<div class="kanban-board" role="region" aria-label="Tablero Kanban">' + board + '</div>';
+      _initKanbanScroll();
       restrictWriteIfAgent();
     }
     /* ─── Filter + render ───────────────────────────────────── */

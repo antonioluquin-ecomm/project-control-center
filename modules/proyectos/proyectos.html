@@ -7,6 +7,12 @@
   <script>(function(){var saved=localStorage.getItem('pcc_theme');var t=saved?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('pcc_sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed');})();</script>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../src/css/main.css" />
+  <style>
+    .sort-th { cursor: pointer; user-select: none; white-space: nowrap; }
+    .sort-th:hover { background: color-mix(in srgb, var(--text) 5%, var(--bg)); }
+    .sort-th:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+    .sort-icon { display: inline-block; width: 10px; margin-left: 3px; font-size: 9px; color: var(--muted); }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -63,8 +69,13 @@
           <div class="table-wrap" style="margin-top:12px">
             <table>
               <thead><tr>
-                <th>Proyecto</th><th>Estado</th><th>Prioridad</th><th>Responsable</th>
-                <th>Avance</th><th>Vence</th><th style="text-align:right">Acciones</th>
+                <th class="sort-th" tabindex="0" data-sort="nombre" onclick="sortBy('nombre')" onkeydown="sortKey(event,'nombre')">Proyecto <span class="sort-icon" aria-hidden="true"></span></th>
+                <th class="sort-th" tabindex="0" data-sort="estado" onclick="sortBy('estado')" onkeydown="sortKey(event,'estado')">Estado <span class="sort-icon" aria-hidden="true"></span></th>
+                <th class="sort-th" tabindex="0" data-sort="prioridad" onclick="sortBy('prioridad')" onkeydown="sortKey(event,'prioridad')">Prioridad <span class="sort-icon" aria-hidden="true"></span></th>
+                <th class="sort-th" tabindex="0" data-sort="responsable" onclick="sortBy('responsable')" onkeydown="sortKey(event,'responsable')">Responsable <span class="sort-icon" aria-hidden="true"></span></th>
+                <th class="sort-th" tabindex="0" data-sort="avance_pct" onclick="sortBy('avance_pct')" onkeydown="sortKey(event,'avance_pct')">Avance <span class="sort-icon" aria-hidden="true"></span></th>
+                <th class="sort-th" tabindex="0" data-sort="fecha_fin_estimada" onclick="sortBy('fecha_fin_estimada')" onkeydown="sortKey(event,'fecha_fin_estimada')">Vence <span class="sort-icon" aria-hidden="true"></span></th>
+                <th style="text-align:right">Acciones</th>
               </tr></thead>
               <tbody id="tbody"></tbody>
             </table>
@@ -82,6 +93,8 @@
   <script src="../../actividad.js"></script>
   <script>
     let _editId = null;
+    let _sortCol = null;
+    let _sortDir = 1;
 
     async function load() {
       setStatus('statusBar', 'Cargando…', 'info');
@@ -115,8 +128,49 @@
       });
     }
 
+    function sortBy(col) {
+      if (_sortCol === col) _sortDir *= -1;
+      else { _sortCol = col; _sortDir = 1; }
+      render();
+    }
+
+    function sortKey(event, col) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      sortBy(col);
+    }
+
+    function sorted(rows) {
+      if (!_sortCol) return rows;
+      const priorityOrder = cat('prioridades', PRIORIDADES);
+      const statusOrder = cat('estados_proyecto', ESTADOS_PROYECTO);
+      return rows.map(function (row, index) { return { row: row, index: index }; }).sort(function (a, b) {
+        const va = a.row[_sortCol];
+        const vb = b.row[_sortCol];
+        const emptyA = va === '' || va == null;
+        const emptyB = vb === '' || vb == null;
+        if (emptyA !== emptyB) return emptyA ? 1 : -1;
+        if (emptyA && emptyB) return a.index - b.index;
+        let result;
+        if (_sortCol === 'avance_pct') result = Number(va) - Number(vb);
+        else if (_sortCol === 'fecha_fin_estimada') result = new Date(va) - new Date(vb);
+        else if (_sortCol === 'prioridad') result = priorityOrder.indexOf(va) - priorityOrder.indexOf(vb);
+        else if (_sortCol === 'estado') result = statusOrder.indexOf(va) - statusOrder.indexOf(vb);
+        else result = String(va).localeCompare(String(vb), 'es', { sensitivity: 'base' });
+        return result === 0 ? a.index - b.index : result * _sortDir;
+      }).map(function (item) { return item.row; });
+    }
+
+    function updateSortHeaders() {
+      document.querySelectorAll('th[data-sort]').forEach(function (th) {
+        const active = th.dataset.sort === _sortCol;
+        th.setAttribute('aria-sort', active ? (_sortDir === 1 ? 'ascending' : 'descending') : 'none');
+        th.querySelector('.sort-icon').textContent = active ? (_sortDir === 1 ? '▲' : '▼') : '';
+      });
+    }
     function render() {
-      const rows = filtered();
+      const rows = sorted(filtered());
+      updateSortHeaders();
       const tb = document.getElementById('tbody');
       if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" class="empty-row">Sin resultados</td></tr>'; return; }
       tb.innerHTML = rows.map(function (p) {
