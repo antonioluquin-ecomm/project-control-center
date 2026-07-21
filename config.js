@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.27.3',
+  number: '1.27.4',
   date:   '2026-07-21',
-  notes:  'Fix: mismo fix de labels accesibles en Gantt, Proyectos y Configuracion',
+  notes:  'Agrega mostrar/generar contraseña al modal de usuario',
 };
 
 const CHANGELOG = [
+  { v: '1.27.4', date: '2026-07-21', desc: 'El modal de alta/edicion de usuario (Configuracion > Usuarios) suma mostrar/ocultar contraseña y un boton "Generar" (12 caracteres, sin ambiguos 0/O/1/l/I), igual que marketplace-portal. Reduce la friccion de que el admin invente una contraseña debil a mano. Estandar documentado en project-standards/login_standard.md §17.' },
   { v: '1.27.3', date: '2026-07-21', desc: 'Se extiende a Gantt, Proyectos y Configuracion (tabs Usuarios y Catalogos) el fix de v1.27.2: los selects/inputs de filtro y busqueda de esas barras tampoco tenian label ni aria-label. Se agrega label visible (Proyecto/Area/Tienda/Sprint en Gantt; Buscar/Estado/Responsable en Proyectos; Buscar en Usuarios; Catalogo en Catalogos) y aria-label en el campo compacto de alta rapida de valores de catalogo.' },
   { v: '1.27.2', date: '2026-07-21', desc: 'Tareas: la barra de filtros (Proyecto, Buscar, Estado, Tipo, Prioridad, Area, Tienda, Responsable) no tenia labels ni aria-label — ademas de no accesible, un select con un valor elegido (ej. "Bloqueada") no daba pista de a que categoria pertenecia. Se agrega label visible a cada control, siguiendo el mismo patron .field usado en el resto de los formularios.' },
   { v: '1.27.1', date: '2026-07-21', desc: 'Fix: en filas con contenido extra (chips de area/tienda, link de Jira, badge Vencida), la celda de Acciones no se estiraba a la altura real de la fila y los botones quedaban pegados arriba con espacio vacio debajo, dando la impresion de que faltaban. Causa: un <td> con display:flex directo no participa del stretch normal de altura de fila. Se envuelve el contenido en un <div> interno (el <td> vuelve a ser una celda normal) en Tareas, Proyectos, Usuarios y Roles.' },

@@ -13,6 +13,10 @@
     .toolbar .field { margin-bottom: 0; gap: 3px; min-width: 0; }
     .toolbar .field label { font-size: 11.5px; }
     #tab-usuarios .toolbar, #tab-catalogos .toolbar { align-items: flex-end; }
+
+    /* Contraseña: input + acciones (mostrar / generar) — login_standard.md §17 */
+    .pw-group { display: flex; gap: 6px; }
+    .pw-group input { flex: 1; min-width: 0; }
   </style>
 </head>
 <body>
@@ -409,7 +413,10 @@
           '<div class="field"><label>Rol</label><select id="m_rol"></select></div>' +
           '<div class="field"><label>Estado</label><select id="m_activo"><option value="SI"' + (String(u.activo) !== 'NO' ? ' selected' : '') + '>Activo</option><option value="NO"' + (String(u.activo) === 'NO' ? ' selected' : '') + '>Inactivo</option></select></div>' +
         '</div>' +
-        '<div class="field"><label>' + (id ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *') + '</label><input id="m_pass" type="password" autocomplete="new-password" placeholder="' + (id ? '••••••' : 'Mínimo 6 caracteres') + '"></div>' +
+        '<div class="field"><label>' + (id ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *') + '</label>' +
+          '<div class="pw-group"><input id="m_pass" type="password" autocomplete="new-password" placeholder="' + (id ? '••••••' : 'Mínimo 6 caracteres') + '">' +
+          '<button type="button" class="secondary sm" id="m_pass_toggle" onclick="_toggleMPassVisibility()">Ver</button>' +
+          '<button type="button" class="secondary sm" onclick="_generateMPass()">Generar</button></div></div>' +
         '<div id="m_err" class="status-bar error" hidden></div>' +
         '<div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancelar</button>' +
         '<button id="m_save" onclick="save()">Guardar</button></div></div></div>';
@@ -417,6 +424,30 @@
     }
 
     function closeModal() { document.getElementById('modals').innerHTML = ''; }
+
+    function _toggleMPassVisibility() {
+      const inp = document.getElementById('m_pass');
+      const btn = document.getElementById('m_pass_toggle');
+      if (!inp || !btn) return;
+      const showing = inp.type === 'text';
+      inp.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'Ver' : 'Ocultar';
+    }
+
+    function _generateMPass() {
+      const inp = document.getElementById('m_pass');
+      if (!inp) return;
+      // Sin caracteres ambiguos (0/O, 1/l/I) — el admin suele tener que dictarla o pasarla a mano.
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      const bytes = new Uint32Array(12);
+      crypto.getRandomValues(bytes);
+      let pw = '';
+      for (let i = 0; i < bytes.length; i++) pw += chars[bytes[i] % chars.length];
+      inp.value = pw;
+      inp.type = 'text';
+      const btn = document.getElementById('m_pass_toggle');
+      if (btn) btn.textContent = 'Ocultar';
+    }
 
     async function save() {
       const nombre = document.getElementById('m_nombre').value.trim();
