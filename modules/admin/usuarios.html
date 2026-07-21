@@ -7,6 +7,13 @@
   <script>(function(){var saved=localStorage.getItem('pcc_theme');var t=saved?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('pcc_sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed');})();</script>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../src/css/main.css" />
+  <style>
+    /* Labels de la barra de filtros: mismo patron que .field, en version
+       compacta para no expandir el alto del toolbar. */
+    .toolbar .field { margin-bottom: 0; gap: 3px; min-width: 0; }
+    .toolbar .field label { font-size: 11.5px; }
+    #tab-usuarios .toolbar, #tab-catalogos .toolbar { align-items: flex-end; }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -63,7 +70,10 @@
         <div id="tab-usuarios" class="tab-panel">
           <section class="panel">
             <div class="toolbar">
-              <input type="search" id="q" placeholder="Buscar usuario…" style="max-width:260px" oninput="render()" />
+              <div class="field">
+                <label for="q">Buscar</label>
+                <input type="search" id="q" placeholder="Buscar usuario…" style="max-width:260px" oninput="render()" />
+              </div>
               <span class="spacer"></span>
               <button class="sm admin-only" onclick="openModal()">+ Nuevo usuario</button>
             </div>
@@ -125,19 +135,22 @@
         <div id="tab-catalogos" class="tab-panel" hidden>
           <section class="panel">
             <div class="toolbar" style="flex-wrap:wrap;gap:10px">
-              <select id="catSelector" onchange="showCatalogo(this.value)" style="max-width:260px">
-                <option value="">— Elegí un catálogo —</option>
-                <option value="CAT_ESTADOS_PROYECTO">Estados de proyecto</option>
-                <option value="CAT_ESTADOS_TAREA">Estados de tarea</option>
-                <option value="CAT_TIPOS_TAREA">Tipos de tarea</option>
-                <option value="CAT_PRIORIDADES">Prioridades</option>
-                <option value="CAT_SITIOS">Sitios</option>
-                <option value="CAT_AREAS">Áreas</option>
-                <option value="CAT_TIENDAS">Tiendas</option>
-                <option value="CAT_SECCIONES">Secciones</option>
-                <option value="CAT_ESTADOS_SPRINT">Estados de sprint</option>
-                <option value="CAT_RESPONSABLES">Responsables externos</option>
-              </select>
+              <div class="field">
+                <label for="catSelector">Catálogo</label>
+                <select id="catSelector" onchange="showCatalogo(this.value)" style="max-width:260px">
+                  <option value="">— Elegí un catálogo —</option>
+                  <option value="CAT_ESTADOS_PROYECTO">Estados de proyecto</option>
+                  <option value="CAT_ESTADOS_TAREA">Estados de tarea</option>
+                  <option value="CAT_TIPOS_TAREA">Tipos de tarea</option>
+                  <option value="CAT_PRIORIDADES">Prioridades</option>
+                  <option value="CAT_SITIOS">Sitios</option>
+                  <option value="CAT_AREAS">Áreas</option>
+                  <option value="CAT_TIENDAS">Tiendas</option>
+                  <option value="CAT_SECCIONES">Secciones</option>
+                  <option value="CAT_ESTADOS_SPRINT">Estados de sprint</option>
+                  <option value="CAT_RESPONSABLES">Responsables externos</option>
+                </select>
+              </div>
               <span class="spacer"></span>
               <button class="sm admin-only" id="catSaveBtn" onclick="saveCatalogo()" disabled>Guardar cambios</button>
             </div>
@@ -146,7 +159,7 @@
               <h4 id="catTitle" style="margin:0 0 10px;font-size:14px;font-weight:600"></h4>
               <div id="catList" style="max-width:420px"></div>
               <div style="display:flex;gap:8px;align-items:center;margin-top:10px;max-width:420px">
-                <input id="catNewVal" placeholder="Nuevo valor…" style="flex:1"
+                <input id="catNewVal" placeholder="Nuevo valor…" aria-label="Nuevo valor del catálogo" style="flex:1"
                   onkeydown="if(event.key==='Enter'){event.preventDefault();catAgregar();}" />
                 <button class="secondary sm admin-only" onclick="catAgregar()">+ Agregar</button>
               </div>

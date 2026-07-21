@@ -12,6 +12,12 @@
     .sort-th:hover { background: color-mix(in srgb, var(--text) 5%, var(--bg)); }
     .sort-th:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
     .sort-icon { display: inline-block; width: 10px; margin-left: 3px; font-size: 9px; color: var(--muted); }
+
+    /* Labels de la barra de filtros: mismo patron que .field, en version
+       compacta para no expandir el alto del toolbar. */
+    .toolbar-proyectos { align-items: flex-end; }
+    .toolbar-proyectos .field { margin-bottom: 0; gap: 3px; min-width: 0; }
+    .toolbar-proyectos .field label { font-size: 11.5px; }
   </style>
 </head>
 <body>
@@ -57,10 +63,19 @@
           <h1>Proyectos</h1>
         </div>
         <section class="panel">
-          <div class="toolbar">
-            <input type="search" id="q" placeholder="Buscar proyecto…" style="max-width:260px" oninput="render()" />
-            <select id="fEstado" onchange="render()" style="max-width:170px"><option value="">Todos los estados</option></select>
-            <select id="fResp" onchange="render()" style="max-width:170px"><option value="">Todos los responsables</option></select>
+          <div class="toolbar toolbar-proyectos">
+            <div class="field">
+              <label for="q">Buscar</label>
+              <input type="search" id="q" placeholder="Buscar proyecto…" style="max-width:260px" oninput="render()" />
+            </div>
+            <div class="field">
+              <label for="fEstado">Estado</label>
+              <select id="fEstado" onchange="render()" style="max-width:170px"><option value="">Todos los estados</option></select>
+            </div>
+            <div class="field">
+              <label for="fResp">Responsable</label>
+              <select id="fResp" onchange="render()" style="max-width:170px"><option value="">Todos los responsables</option></select>
+            </div>
             <span class="spacer"></span>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
             <button class="sm admin-only" onclick="openModal()">+ Nuevo proyecto</button>

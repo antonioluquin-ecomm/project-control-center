@@ -7,6 +7,13 @@
   <script>(function(){var saved=localStorage.getItem('pcc_theme');var t=saved?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('pcc_sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed');})();</script>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../src/css/main.css" />
+  <style>
+    /* Labels de la barra de filtros: mismo patron que .field, en version
+       compacta para no expandir el alto del toolbar. */
+    .toolbar-gantt { align-items: flex-end; }
+    .toolbar-gantt .field { margin-bottom: 0; gap: 3px; min-width: 0; }
+    .toolbar-gantt .field label { font-size: 11.5px; }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -51,11 +58,23 @@
           <h1>Gantt</h1>
         </div>
         <section class="panel">
-          <div class="toolbar">
-            <select id="selProyecto" onchange="loadTareas()" style="max-width:300px"></select>
-            <select id="fArea" onchange="render()" style="max-width:150px"><option value="">Todas las áreas</option></select>
-            <select id="fTienda" onchange="render()" style="max-width:150px"><option value="">Todas las tiendas</option></select>
-            <select id="fSprint" onchange="loadTareas()" style="max-width:170px"><option value="">Todos los sprints</option></select>
+          <div class="toolbar toolbar-gantt">
+            <div class="field">
+              <label for="selProyecto">Proyecto</label>
+              <select id="selProyecto" onchange="loadTareas()" style="max-width:300px"></select>
+            </div>
+            <div class="field">
+              <label for="fArea">Área</label>
+              <select id="fArea" onchange="render()" style="max-width:150px"><option value="">Todas las áreas</option></select>
+            </div>
+            <div class="field">
+              <label for="fTienda">Tienda</label>
+              <select id="fTienda" onchange="render()" style="max-width:150px"><option value="">Todas las tiendas</option></select>
+            </div>
+            <div class="field">
+              <label for="fSprint">Sprint</label>
+              <select id="fSprint" onchange="loadTareas()" style="max-width:170px"><option value="">Todos los sprints</option></select>
+            </div>
             <span class="spacer"></span>
             <div class="seg-toggle">
               <button class="seg-tab active" id="zoomMes" onclick="setZoom('mes')">Mes</button>
