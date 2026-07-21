@@ -60,6 +60,7 @@ function openTareaDetalleModal(t, opts) {
     { url: t.url_gitlab,          label: 'GitLab' },
     { url: t.url_figma_prototipo, label: 'Figma proto' },
     { url: t.url_figma_editable,  label: 'Figma edit' },
+    { url: t.url_documentacion,   label: 'Documentacion' },
     { url: t.url_informe_gestion, label: 'Informe gestion' },
   ].filter(function (l) { return l.url; }).map(function (l) {
     return '<a class="link-chip" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">↗ ' + escapeHtml(l.label) + '</a>';

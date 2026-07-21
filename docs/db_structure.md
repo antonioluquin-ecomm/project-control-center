@@ -66,6 +66,7 @@ Reglas (google_sheets_standards): `id` autoincremental en col A · columnas de a
 | AF | requerimiento_texto | texto | máx. 4000 *(Requerimiento — brief Jira/GitLab)* |
 | AG | requerimiento_detalles | texto | máx. 4000 *(Requerimiento)* |
 | AH | requerimiento_objetivo | texto | máx. 4000 *(Requerimiento)* |
+| AI | url_documentacion | URL | doc de referencia (Drive/Sheets), siempre disponible sin importar área/proyecto |
 
 `vencida` se calcula al servir (estado no cerrado + `fecha_limite < hoy`).
 

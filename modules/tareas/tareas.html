@@ -688,6 +688,7 @@
         { url: t.url_gitlab, label: 'GitLab' },
         { url: t.url_figma_prototipo, label: 'Figma proto' },
         { url: t.url_figma_editable, label: 'Figma edit' },
+        { url: t.url_documentacion, label: 'Documentacion' },
         { url: t.url_informe_gestion, label: 'Informe gestion' },
       ];
       const html = links.filter(function (l) { return l.url; }).map(function (l) {
@@ -729,12 +730,12 @@
     /* ─── Export CSV ────────────────────────────────────────── */
 
     function _csvRows(list) {
-      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable', 'url_informe_gestion']];
+      const rows = [['id', 'titulo', 'tipo', 'estado', 'prioridad', 'responsable', 'sprint', 'area', 'tienda', 'avance_pct', 'fecha_limite', 'url_jira', 'url_gitlab', 'url_figma_prototipo', 'url_figma_editable', 'url_documentacion', 'url_informe_gestion']];
       list.forEach(function (t) {
         const s = _sprintById(t.id_sprint);
         rows.push([t.id, t.titulo, t.tipo, t.estado, t.prioridad, t.responsable,
           s ? s.nombre : '', t.area, t.tienda, t.avance_pct,
-          (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable, t.url_informe_gestion]);
+          (t.fecha_limite || '').slice(0, 10), t.url_jira, t.url_gitlab, t.url_figma_prototipo, t.url_figma_editable, t.url_documentacion, t.url_informe_gestion]);
       });
       return rows;
     }
@@ -864,6 +865,7 @@
               '<div class="field"><label>Figma - prototipo</label><input id="m_figp" type="url" placeholder="https://..." value="' + escapeHtml(t.url_figma_prototipo || '') + '"></div>' +
               '<div class="field"><label>Figma - editable</label><input id="m_fige" type="url" placeholder="https://..." value="' + escapeHtml(t.url_figma_editable || '') + '"></div>' +
             '</div>' +
+            '<div class="field"><label>Documentacion</label><input id="m_doc" type="url" placeholder="https://..." value="' + escapeHtml(t.url_documentacion || '') + '"></div>' +
             '<div id="m_informe_wrap" class="field" hidden><label>Informe de gestion del portal ecommerce</label><input id="m_informe" type="url" placeholder="https://..." value="' + escapeHtml(t.url_informe_gestion || '') + '"></div>' +
             '<div id="m_err" class="status-bar error" hidden></div>' +
             '<div class="modal-actions">' +
@@ -920,6 +922,7 @@
         url_gitlab:           document.getElementById('m_gitlab').value.trim(),
         url_figma_prototipo:  document.getElementById('m_figp').value.trim(),
         url_figma_editable:   document.getElementById('m_fige').value.trim(),
+        url_documentacion:    document.getElementById('m_doc').value.trim(),
         url_informe_gestion:  document.getElementById('m_informe').value.trim(),
       };
       if (_editOriginalEstado === 'Documentaci\u00f3n' && data.estado === 'Finalizada') { err.textContent = 'No se puede pasar de Documentaci\u00f3n a Finalizada. Primero debe ir a Revisi\u00f3n.'; err.hidden = false; return; }

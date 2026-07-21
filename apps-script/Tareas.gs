@@ -76,6 +76,8 @@ function createTarea_(params, user) {
   const requerimientoTexto = optionalString_(params.requerimiento_texto, 'requerimiento_texto', 4000);
   const requerimientoDetalles = optionalString_(params.requerimiento_detalles, 'requerimiento_detalles', 4000);
   const requerimientoObjetivo = optionalString_(params.requerimiento_objetivo, 'requerimiento_objetivo', 4000);
+  // Doc de referencia (Drive/Sheets), siempre disponible sin importar area/proyecto.
+  const urlDocumentacion = optionalUrl_(params.url_documentacion, 'url_documentacion');
 
   const sheet = getSheet_(SHEETS.TAREAS);
   const id = getNextId_(sheet);
@@ -89,6 +91,7 @@ function createTarea_(params, user) {
     seccion, dispositivos, informeVersion, informeFechaImpl,
     informeDescGeneral, informeDetallesTec, informeResultado,
     requerimientoTexto, requerimientoDetalles, requerimientoObjetivo,
+    urlDocumentacion,
   ]);
   writeLog_('createTarea', 'TAREAS', id, 'OK', titulo, email);
 
@@ -149,6 +152,7 @@ function updateTarea_(params, user) {
   if (params.requerimiento_texto !== undefined) updates.requerimiento_texto = optionalString_(params.requerimiento_texto, 'requerimiento_texto', 4000);
   if (params.requerimiento_detalles !== undefined) updates.requerimiento_detalles = optionalString_(params.requerimiento_detalles, 'requerimiento_detalles', 4000);
   if (params.requerimiento_objetivo !== undefined) updates.requerimiento_objetivo = optionalString_(params.requerimiento_objetivo, 'requerimiento_objetivo', 4000);
+  if (params.url_documentacion !== undefined) updates.url_documentacion = optionalUrl_(params.url_documentacion, 'url_documentacion');
   if (params.id_sprint !== undefined) {
     updates.id_sprint = params.id_sprint ? validateId_(params.id_sprint, 'id_sprint') : '';
     if (updates.id_sprint && !findRowNumber_(getSheet_(SHEETS.SPRINTS), updates.id_sprint)) {

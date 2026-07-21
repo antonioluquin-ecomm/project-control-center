@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.9',
+  number: '1.27.0',
   date:   '2026-07-21',
-  notes:  'Badge "Vencida" pasa a ambar y se reubica junto a la fecha en Tareas',
+  notes:  'Nuevo campo "Documentacion" (URL) en Tareas, siempre disponible',
 };
 
 const CHANGELOG = [
+  { v: '1.27.0', date: '2026-07-21', desc: 'Tareas: nuevo campo "Documentacion" (URL) en la seccion Links del formulario, siempre visible (igual que los links de Figma) en vez de condicionado a un area o proyecto especifico. Pensado para adjuntar el doc de Drive/Sheets con el detalle de la tarea que llega de fuentes como Vivimarketing. Aparece como link chip en la fila de Tareas y en el detalle, y se incluye en la exportacion CSV. Nueva columna url_documentacion (AI) en TAREAS.' },
   { v: '1.26.9', date: '2026-07-21', desc: 'El badge "Vencida"/"Vencido" usaba el mismo rojo (--danger) que las acciones destructivas, pese a ser informativo — pasa a ambar (--warning), con borde propio para no confundirse con el estado "En Curso" que comparte el tono base. En la tabla de Tareas ademas se reubica de la columna Estado (donde se caia a una segunda linea por el ancho del select de edicion) a la columna Vence, junto a la fecha que describe.' },
   { v: '1.26.8', date: '2026-07-21', desc: 'El badge de tienda (Sporting/Woker/B2B) en Tareas y en el detalle de tarea usaba el mismo gris que el estado "Por Hacer", sin relacion con la identidad de cada sitio. Ahora usa el color de marca real de cada uno (tomado de los templates de correos transaccionales): verde para Sporting, naranja para Woker, azul petroleo para B2B. Tiendas sin mapeo (catalogo dinamico) siguen cayendo en el gris generico.' },
   { v: '1.26.7', date: '2026-07-21', desc: 'Formato de descripciones/comentarios: el titulo (#) y el subtitulo (##) ahora se distinguen claramente — antes la diferencia de tamano era de apenas 1.5px y costaba notar cual era cual; el subtitulo pasa a verse en mayusculas y color atenuado, estilo etiqueta de seccion. Se agrega soporte para "---" como linea horizontal separadora.' },

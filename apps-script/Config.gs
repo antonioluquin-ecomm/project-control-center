@@ -98,6 +98,8 @@ const TAREAS_COLS = {
   requerimiento_texto:      32, // AF
   requerimiento_detalles:   33, // AG
   requerimiento_objetivo:   34, // AH
+  // ── Documentacion externa (append al final) ──
+  url_documentacion:        35, // AI — doc de referencia (Drive/Sheets), siempre disponible sin importar area/proyecto
 };
 
 // Sprints globales (multi-proyecto): agrupan TAREAS por id_sprint.
