@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.27.1',
+  number: '1.27.2',
   date:   '2026-07-21',
-  notes:  'Fix: acciones de fila no se centraban en filas altas (Tareas/Proyectos/Usuarios/Roles)',
+  notes:  'Fix: barra de filtros de Tareas sin labels accesibles',
 };
 
 const CHANGELOG = [
+  { v: '1.27.2', date: '2026-07-21', desc: 'Tareas: la barra de filtros (Proyecto, Buscar, Estado, Tipo, Prioridad, Area, Tienda, Responsable) no tenia labels ni aria-label — ademas de no accesible, un select con un valor elegido (ej. "Bloqueada") no daba pista de a que categoria pertenecia. Se agrega label visible a cada control, siguiendo el mismo patron .field usado en el resto de los formularios.' },
   { v: '1.27.1', date: '2026-07-21', desc: 'Fix: en filas con contenido extra (chips de area/tienda, link de Jira, badge Vencida), la celda de Acciones no se estiraba a la altura real de la fila y los botones quedaban pegados arriba con espacio vacio debajo, dando la impresion de que faltaban. Causa: un <td> con display:flex directo no participa del stretch normal de altura de fila. Se envuelve el contenido en un <div> interno (el <td> vuelve a ser una celda normal) en Tareas, Proyectos, Usuarios y Roles.' },
   { v: '1.27.0', date: '2026-07-21', desc: 'Tareas: nuevo campo "Documentacion" (URL) en la seccion Links del formulario, siempre visible (igual que los links de Figma) en vez de condicionado a un area o proyecto especifico. Pensado para adjuntar el doc de Drive/Sheets con el detalle de la tarea que llega de fuentes como Vivimarketing. Aparece como link chip en la fila de Tareas y en el detalle, y se incluye en la exportacion CSV. Nueva columna url_documentacion (AI) en TAREAS.' },
   { v: '1.26.9', date: '2026-07-21', desc: 'El badge "Vencida"/"Vencido" usaba el mismo rojo (--danger) que las acciones destructivas, pese a ser informativo — pasa a ambar (--warning), con borde propio para no confundirse con el estado "En Curso" que comparte el tono base. En la tabla de Tareas ademas se reubica de la columna Estado (donde se caia a una segunda linea por el ancho del select de edicion) a la columna Vence, junto a la fecha que describe.' },
