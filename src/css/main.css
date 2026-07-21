@@ -254,7 +254,9 @@ h3 { font-size: 15px; font-weight: 600; }
 .st-blocked     { background: var(--danger-bg); color: var(--danger); }
 .st-done        { background: var(--success-bg); color: var(--success); }
 .st-cancel      { background: var(--card2); color: var(--muted); text-decoration: line-through; }
-.badge.vencida  { background: var(--danger-bg); color: var(--danger); }
+/* Ambar en vez de --danger: "vencida" es informativo, no una accion destructiva.
+   Con borde propio para no confundirse con st-progress (En Curso), que comparte el ambar base. */
+.badge.vencida  { background: var(--warning-bg); color: var(--warning); border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent); }
 /* Chip de metadatos (proyecto), no de estado: color propio para no confundirse con st-progress
    (En Curso / Sprint Activo comparten ese ámbar). */
 .chip-proyecto  { background: #eef2ff; color: #4338ca; }

@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.8',
+  number: '1.26.9',
   date:   '2026-07-21',
-  notes:  'Badges de tienda con color de marca (Sporting/Woker/B2B) en vez de gris generico',
+  notes:  'Badge "Vencida" pasa a ambar y se reubica junto a la fecha en Tareas',
 };
 
 const CHANGELOG = [
+  { v: '1.26.9', date: '2026-07-21', desc: 'El badge "Vencida"/"Vencido" usaba el mismo rojo (--danger) que las acciones destructivas, pese a ser informativo — pasa a ambar (--warning), con borde propio para no confundirse con el estado "En Curso" que comparte el tono base. En la tabla de Tareas ademas se reubica de la columna Estado (donde se caia a una segunda linea por el ancho del select de edicion) a la columna Vence, junto a la fecha que describe.' },
   { v: '1.26.8', date: '2026-07-21', desc: 'El badge de tienda (Sporting/Woker/B2B) en Tareas y en el detalle de tarea usaba el mismo gris que el estado "Por Hacer", sin relacion con la identidad de cada sitio. Ahora usa el color de marca real de cada uno (tomado de los templates de correos transaccionales): verde para Sporting, naranja para Woker, azul petroleo para B2B. Tiendas sin mapeo (catalogo dinamico) siguen cayendo en el gris generico.' },
   { v: '1.26.7', date: '2026-07-21', desc: 'Formato de descripciones/comentarios: el titulo (#) y el subtitulo (##) ahora se distinguen claramente — antes la diferencia de tamano era de apenas 1.5px y costaba notar cual era cual; el subtitulo pasa a verse en mayusculas y color atenuado, estilo etiqueta de seccion. Se agrega soporte para "---" como linea horizontal separadora.' },
   { v: '1.26.6', date: '2026-07-21', desc: 'Actividad: la campana de notificaciones queda alineada a la derecha como en los demas modulos. Se agregan filtros por Proyecto y Usuario, aplicados a los indicadores, la minuta, los participantes, el resumen copiable y la exportacion CSV.' },
