@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.7',
+  number: '1.26.8',
   date:   '2026-07-21',
-  notes:  'Mas contraste entre titulo/subtitulo en descripciones y soporte de "---" como linea separadora',
+  notes:  'Badges de tienda con color de marca (Sporting/Woker/B2B) en vez de gris generico',
 };
 
 const CHANGELOG = [
+  { v: '1.26.8', date: '2026-07-21', desc: 'El badge de tienda (Sporting/Woker/B2B) en Tareas y en el detalle de tarea usaba el mismo gris que el estado "Por Hacer", sin relacion con la identidad de cada sitio. Ahora usa el color de marca real de cada uno (tomado de los templates de correos transaccionales): verde para Sporting, naranja para Woker, azul petroleo para B2B. Tiendas sin mapeo (catalogo dinamico) siguen cayendo en el gris generico.' },
   { v: '1.26.7', date: '2026-07-21', desc: 'Formato de descripciones/comentarios: el titulo (#) y el subtitulo (##) ahora se distinguen claramente — antes la diferencia de tamano era de apenas 1.5px y costaba notar cual era cual; el subtitulo pasa a verse en mayusculas y color atenuado, estilo etiqueta de seccion. Se agrega soporte para "---" como linea horizontal separadora.' },
   { v: '1.26.6', date: '2026-07-21', desc: 'Actividad: la campana de notificaciones queda alineada a la derecha como en los demas modulos. Se agregan filtros por Proyecto y Usuario, aplicados a los indicadores, la minuta, los participantes, el resumen copiable y la exportacion CSV.' },
   { v: '1.26.5', date: '2026-07-20', desc: 'Comentarios: se corrige la deteccion del autor (el email vive en SESSION.usuario), por lo que Editar vuelve a aparecer cuando corresponde. La edicion queda limitada a comentarios propios durante los primeros 15 minutos, con validacion equivalente en frontend, backend y modo demo; los comentarios editados muestran fecha de edicion. Se agrega fecha_edicion al esquema COMENTARIOS y una migracion idempotente en setupAll() para instalaciones existentes.' },
@@ -172,6 +173,14 @@ const PRIORIDAD_CLASS = {
   'Medium':  'pr-medium',
   'Low':     'pr-low',
   'Lowest':  'pr-lowest',
+};
+
+// Colores de marca por tienda (ver templates de correos transaccionales para el
+// origen de cada tono). Tiendas sin mapeo caen en el badge gris genérico (st-todo).
+const TIENDA_CLASS = {
+  'Sporting': 'tienda-sporting',
+  'Woker':    'tienda-woker',
+  'B2B':      'tienda-b2b',
 };
 
 /* ─── ESTADO GLOBAL ───────────────────────────────────────── */

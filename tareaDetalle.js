@@ -42,7 +42,7 @@ function openTareaDetalleModal(t, opts) {
     t.prioridad   ? '<span class="badge ' + prc + '" style="font-size:11px">' + escapeHtml(t.prioridad) + '</span>' : '',
     t.responsable ? '<span style="font-size:12px;color:var(--muted)">👤 ' + escapeHtml(t.responsable) + '</span>' : '',
     t.area        ? '<span class="badge st-analysis" style="font-size:11px">' + escapeHtml(t.area) + '</span>' : '',
-    t.tienda      ? '<span class="badge st-todo" style="font-size:11px">' + escapeHtml(t.tienda) + '</span>' : '',
+    t.tienda      ? '<span class="badge ' + (TIENDA_CLASS[t.tienda] || 'st-todo') + '" style="font-size:11px">' + escapeHtml(t.tienda) + '</span>' : '',
     t.id_sprint   ? _sprintChip(t.id_sprint, '11px') : '',
   ].filter(Boolean).join('');
 

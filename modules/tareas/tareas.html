@@ -676,7 +676,7 @@
       // Sin proyecto seleccionado, el board mezcla tareas de todos: se aclara de cuál es cada una.
       if (!currentProyectoId()) out += '<span class="badge chip-proyecto" style="font-size:10px">📁 ' + escapeHtml(proyNombre(t.id_proyecto)) + '</span>';
       if (t.area)   out += '<span class="badge st-analysis" style="font-size:10px">' + escapeHtml(t.area) + '</span>';
-      if (t.tienda) out += '<span class="badge st-todo" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
+      if (t.tienda) out += '<span class="badge ' + (TIENDA_CLASS[t.tienda] || 'st-todo') + '" style="font-size:10px">' + escapeHtml(t.tienda) + '</span>';
       return out;
     }
 

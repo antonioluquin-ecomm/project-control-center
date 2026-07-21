@@ -259,11 +259,20 @@ h3 { font-size: 15px; font-weight: 600; }
    (En Curso / Sprint Activo comparten ese ámbar). */
 .chip-proyecto  { background: #eef2ff; color: #4338ca; }
 
+/* Badges de tienda: color de marca de cada sitio (ver templates de correos
+   transaccionales), para no confundirse con los badges de estado. */
+.tienda-sporting { background: #eafbe7; color: #1a7a0a; }
+.tienda-woker    { background: #fff1ec; color: #d83f16; }
+.tienda-b2b      { background: #e6f2f8; color: #0c4a6e; }
+
 [data-theme="dark"] .st-maquetacion { background: rgba(124,58,237,.18); color: #c4b5fd; }
 [data-theme="dark"] .st-qa          { background: rgba(194,65,12,.18);  color: #fb923c; }
 [data-theme="dark"] .st-docs        { background: rgba(21,128,61,.18);  color: #4ade80; }
 [data-theme="dark"] .st-revision    { background: rgba(29,78,216,.18);  color: #93c5fd; }
 [data-theme="dark"] .chip-proyecto  { background: rgba(99,102,241,.18); color: #a5b4fc; }
+[data-theme="dark"] .tienda-sporting { background: rgba(37,182,12,.18);  color: #4ade80; }
+[data-theme="dark"] .tienda-woker    { background: rgba(252,82,38,.18);  color: #fb923c; }
+[data-theme="dark"] .tienda-b2b      { background: rgba(39,129,171,.18); color: #7dd3fc; }
 
 /* Checklist (drawer de actividad) */
 .chk-progress { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
