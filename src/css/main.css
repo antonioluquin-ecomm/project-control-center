@@ -377,7 +377,10 @@ td { padding: 10px 12px; font-size: 12.5px; border-bottom: 1px solid var(--line)
 tbody tr:hover { background: color-mix(in srgb, var(--primary) 4%, var(--card)); }
 tbody tr:last-child td { border-bottom: 0; }
 .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
-.compact-actions { flex-wrap: nowrap; align-items: center; }
+/* height:100% + el <td> sin display propio (ver HTML): un <td> con display:flex directo
+   no se estira a la altura de la fila en filas mas altas (chips/badges extra), dejando los
+   botones pegados arriba con espacio vacio debajo. Envolver en un div interno lo evita. */
+.compact-actions { flex-wrap: nowrap; align-items: center; height: 100%; }
 .compact-actions .action-primary { min-height: 30px; padding: 6px 10px; }
 .compact-actions .action-icon {
   width: 30px; height: 30px; padding: 0; justify-content: center; flex: 0 0 30px;
