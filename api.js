@@ -24,10 +24,12 @@ function renderRichText(value) {
   let inList = false;
   const closeList = function () { if (inList) { html += '</ul>'; inList = false; } };
   lines.forEach(function (line) {
+    const hr = /^(-{3,}|\*{3,})$/.test(line.trim());
     const h2 = line.match(/^##\s+(.*)/);
     const h1 = line.match(/^#\s+(.*)/);
     const li = line.match(/^[-*]\s+(.*)/);
-    if (h2) { closeList(); html += '<h5 class="rt-h2">' + renderRichInlineText(h2[1]) + '</h5>'; }
+    if (hr) { closeList(); html += '<hr class="rt-hr">'; }
+    else if (h2) { closeList(); html += '<h5 class="rt-h2">' + renderRichInlineText(h2[1]) + '</h5>'; }
     else if (h1) { closeList(); html += '<h4 class="rt-h1">' + renderRichInlineText(h1[1]) + '</h4>'; }
     else if (li) { if (!inList) { html += '<ul class="rt-list">'; inList = true; } html += '<li>' + renderRichInlineText(li[1]) + '</li>'; }
     else if (line.trim() === '') { closeList(); html += '<br>'; }

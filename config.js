@@ -9,12 +9,13 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.26.6',
+  number: '1.26.7',
   date:   '2026-07-21',
-  notes:  'Filtros esenciales y encabezado corregido en Actividad',
+  notes:  'Mas contraste entre titulo/subtitulo en descripciones y soporte de "---" como linea separadora',
 };
 
 const CHANGELOG = [
+  { v: '1.26.7', date: '2026-07-21', desc: 'Formato de descripciones/comentarios: el titulo (#) y el subtitulo (##) ahora se distinguen claramente — antes la diferencia de tamano era de apenas 1.5px y costaba notar cual era cual; el subtitulo pasa a verse en mayusculas y color atenuado, estilo etiqueta de seccion. Se agrega soporte para "---" como linea horizontal separadora.' },
   { v: '1.26.6', date: '2026-07-21', desc: 'Actividad: la campana de notificaciones queda alineada a la derecha como en los demas modulos. Se agregan filtros por Proyecto y Usuario, aplicados a los indicadores, la minuta, los participantes, el resumen copiable y la exportacion CSV.' },
   { v: '1.26.5', date: '2026-07-20', desc: 'Comentarios: se corrige la deteccion del autor (el email vive en SESSION.usuario), por lo que Editar vuelve a aparecer cuando corresponde. La edicion queda limitada a comentarios propios durante los primeros 15 minutos, con validacion equivalente en frontend, backend y modo demo; los comentarios editados muestran fecha de edicion. Se agrega fecha_edicion al esquema COMENTARIOS y una migracion idempotente en setupAll() para instalaciones existentes.' },
   { v: '1.26.4', date: '2026-07-20', desc: 'Comentarios: ahora renderizan el mismo subset seguro de formato que las descripciones (titulos con #/##, negritas con **texto** y listas con -/*), con estilos mas compactos para conservar la lectura cronologica. La edicion mantiene el texto fuente y el campo de escritura muestra una ayuda breve de sintaxis.' },
