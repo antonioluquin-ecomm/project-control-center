@@ -33,8 +33,10 @@
     .activity-user-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; border-bottom: 1px solid var(--line); padding-bottom: 7px; }
     .activity-user-row:last-child { border-bottom: 0; padding-bottom: 0; }
     .activity-user-row b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-filter-toolbar { display: grid; grid-template-columns: minmax(180px, 280px) minmax(180px, 240px); gap: 10px; align-items: end; margin-top: 12px; }
+    .activity-filter-toolbar .field { margin: 0; }
     @media (max-width: 980px) { .activity-layout { grid-template-columns: 1fr; } .activity-side { position: static; } }
-    @media (max-width: 620px) { .activity-item, #activityFeed.has-dates .activity-item { grid-template-columns: 1fr; } .activity-time { padding-top: 0; } }
+    @media (max-width: 620px) { .activity-filter-toolbar { grid-template-columns: 1fr; } .activity-item, #activityFeed.has-dates .activity-item { grid-template-columns: 1fr; } .activity-time { padding-top: 0; } }
   </style>
 </head>
 <body>
@@ -70,8 +72,9 @@
       <div class="topbar">
         <button class="topbar-toggle" id="sidebarCollapseBtn" type="button" aria-pressed="false" title="Ocultar men&uacute; lateral" aria-label="Mostrar u ocultar men&uacute; lateral"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
         <span class="topbar-brand">Control Center</span>
-        <span class="topbar-sep">/</span>
+        <span class="topbar-sep">&rsaquo;</span>
         <span class="topbar-crumb">Actividad</span>
+        <div class="topbar-actions"></div>
       </div>
 
       <main class="container">
@@ -99,6 +102,20 @@
             <span class="spacer"></span>
             <button class="secondary sm" onclick="setToday()">Hoy</button>
             <button class="secondary sm" onclick="exportCSV()">Exportar CSV</button>
+          </div>
+          <div class="activity-filter-toolbar" aria-label="Filtros de actividad">
+            <div class="field">
+              <label for="fProyectoActividad">Proyecto</label>
+              <select id="fProyectoActividad" onchange="renderActividad()">
+                <option value="">Todos los proyectos</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fUsuarioActividad">Usuario</label>
+              <select id="fUsuarioActividad" onchange="renderActividad()">
+                <option value="">Todos los usuarios</option>
+              </select>
+            </div>
           </div>
           <div id="statusBar" class="status-bar">Cargando...</div>
         </section>
@@ -181,6 +198,7 @@
         _actividad = await apiGetActividadDiaria({ fecha: fecha, fecha_hasta: fechaHasta });
         document.getElementById('fechaActividad').value = _actividad.fecha;
         document.getElementById('fechaHasta').value = _actividad.fecha_hasta;
+        updateActivityFilters_();
         renderActividad();
         setStatus('statusBar', 'Actividad cargada para ' + rangoLabel_() + '.', 'success');
       } catch (err) {
@@ -224,13 +242,37 @@
 
     function filteredItems() {
       const q = normalizeText(document.getElementById('q').value || '');
+      const proyecto = document.getElementById('fProyectoActividad').value;
+      const usuario = document.getElementById('fUsuarioActividad').value;
       const base = _tab === 'finalizada'
         ? finalizadasList()
         : (_actividad.items || []).filter(function (item) { return !_tab || item.tipo === _tab; });
-      if (!q) return base;
       return base.filter(function (item) {
+        if (proyecto && item.proyecto !== proyecto) return false;
+        if (usuario && item.usuario !== usuario) return false;
+        if (!q) return true;
         return normalizeText([item.titulo, item.proyecto, item.usuario, item.area, item.texto, item.campo, item.valor_anterior, item.valor_nuevo].join(' ')).indexOf(q) !== -1;
       });
+    }
+
+    function updateActivityFilters_() {
+      const projectSelect = document.getElementById('fProyectoActividad');
+      const userSelect = document.getElementById('fUsuarioActividad');
+      const selectedProject = projectSelect.value;
+      const selectedUser = userSelect.value;
+      const items = _actividad.items || [];
+      const projects = unique(items.map(function (item) { return item.proyecto; }).filter(Boolean)).sort(function (a, b) { return a.localeCompare(b, 'es'); });
+      const users = unique(items.map(function (item) { return item.usuario; }).filter(Boolean)).sort(function (a, b) { return a.localeCompare(b, 'es'); });
+
+      projectSelect.innerHTML = '<option value="">Todos los proyectos</option>' + projects.map(function (project) {
+        return '<option value="' + escapeHtml(project) + '">' + escapeHtml(project) + '</option>';
+      }).join('');
+      userSelect.innerHTML = '<option value="">Todos los usuarios</option>' + users.map(function (user) {
+        return '<option value="' + escapeHtml(user) + '">' + escapeHtml(user) + '</option>';
+      }).join('');
+
+      projectSelect.value = projects.indexOf(selectedProject) !== -1 ? selectedProject : '';
+      userSelect.value = users.indexOf(selectedUser) !== -1 ? selectedUser : '';
     }
 
     const TAB_TITLE = { '': 'Todo', alta: 'Altas', estado: 'Estados', cambio: 'Otros cambios', comentario: 'Comentarios', finalizada: 'Finalizadas' };
