@@ -9,14 +9,15 @@
 /* ─── VERSIÓN ─────────────────────────────────────────────── */
 
 const VERSION = {
-  number: '1.27.4',
-  date:   '2026-07-21',
-  notes:  'Agrega mostrar/generar contraseña al modal de usuario',
+  number: '1.27.5',
+  date:   '2026-07-23',
+  notes:  'Nuevo logo de marca (barras ascendentes) en sidebar, login y favicon',
 };
 
 /* Máximo 10 entradas (project-standards/application_shell.md §8.5) — descripción breve,
  * de una línea. Al agregar una versión nueva, quitar la más antigua del final. */
 const CHANGELOG = [
+  { v: '1.27.5', date: '2026-07-23', desc: 'Nuevo logo de marca (barras ascendentes) en sidebar, login y favicon.' },
   { v: '1.27.4', date: '2026-07-21', desc: 'Modal de usuario: mostrar/ocultar contraseña y botón "Generar".' },
   { v: '1.27.3', date: '2026-07-21', desc: 'Label visible en filtros de Gantt, Proyectos y Configuración.' },
   { v: '1.27.2', date: '2026-07-21', desc: 'Tareas: label visible en cada control de la barra de filtros.' },
@@ -26,7 +27,6 @@ const CHANGELOG = [
   { v: '1.26.8', date: '2026-07-21', desc: 'Badge de tienda usa el color de marca real (Sporting/Woker/B2B).' },
   { v: '1.26.7', date: '2026-07-21', desc: 'Formato de descripciones: título y subtítulo se distinguen mejor.' },
   { v: '1.26.6', date: '2026-07-21', desc: 'Actividad: campana de notificaciones alineada a la derecha, con filtros.' },
-  { v: '1.26.5', date: '2026-07-20', desc: 'Comentarios: fix de detección de autor y edición limitada a 15 min.' },
 ];
 
 function initVersionBadge() {
